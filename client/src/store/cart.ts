@@ -16,8 +16,8 @@ export type CartLine = {
   slug: string
   name: string
   price: number
-  kcal: number
-  protein: number
+  kcal?: number
+  protein?: number
   qty: number
 }
 
@@ -52,8 +52,8 @@ export const useCart = create<CartState>()(
                 slug: dish.slug,
                 name: dish.name,
                 price: dish.price,
-                kcal: dish.nutrition.kcal,
-                protein: dish.nutrition.protein,
+                kcal: dish.nutrition?.kcal,
+                protein: dish.nutrition?.protein,
                 qty: 1,
               },
             ],

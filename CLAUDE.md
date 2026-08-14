@@ -193,35 +193,49 @@ Do **not** invent dishes. The user is supplying the real menu. Required fields p
 Also wanted: logo / name treatment, tagline, delivery fee and radius, contact details, address,
 brand photos.
 
-## 8b. Values needing correction from the user
+## 8b. Real menu — LOADED, with two open questions
 
-12 dishes are seeded in `server/src/seed.ts`, all transcribed from the design screenshots.
-**Three sit in the cut-off bottom row of the menu screenshot**, so their price and macros are
-estimates — the only invented numbers in the project. Each is marked `ESTIMATED` in the file:
+The kitchen's printed menu poster (`design/Screenshot 2026-08-14 030539.png`) has been
+transcribed in full into `server/src/seed.ts`: **104 dishes + 15 add-ons = 119 items**.
 
-| Dish | Needs |
-|---|---|
-| Malai Paneer Tikka | real price + kcal/protein/carbs/fat |
-| Butter Chicken | real price + kcal/protein/carbs/fat |
-| Grilled Chicken Salad | real price + kcal/protein/carbs/fat |
+Counts match the website design exactly, which confirms the design was drawn from this menu:
 
-Also unverified: the veg/non-veg mark on Malai Paneer Tikka (assumed veg), and carbs/fat for the
-four carousel dishes, whose cards show only kcal and protein.
+| Section | Count | Design said |
+|---|---|---|
+| Fat Loss | 28 | 28 ✓ |
+| Muscle Gain | 28 | 28 ✓ |
+| Basic Fitness | 21 | 21 ✓ |
+| **Goal packages total** | **77** | "77 meals" ✓ |
+| Indian & Tandoor | 19 | 19 ✓ |
+| Salads & Steam | 8 | 8 ✓ |
 
-The landing page's "77 meals" is the full catalogue, still to come; the menu's "12 dishes today"
-is what is on the pass. Both figures are computed from real data, so they currently both read 12.
+### ⚠️ Open question 1 — the brand does not match
 
----
+The poster reads **"Fitness Diet Hub & Kitchen"**, delivering **"Across Talegaon Dabhade"**.
+The website design says **"Healthy Eats"**, Kothrud, Pune, with a Kothrud address, a Pune
+phone number and Kothrud/Baner/Viman Nagar/Hinjewadi delivery.
 
-## 8a. Landing page design reference
+These are a different name and a different town (Talegaon Dabhade is ~35 km from Kothrud).
+The site currently uses the **Healthy Eats / Kothrud** branding from the design. If the real
+business is Fitness Diet Hub & Kitchen in Talegaon, `BRAND` in `shared/index.ts` is the single
+place to change — name, address, phone, delivery areas and hours all read from it.
 
-The user has a Claude design at:
-`https://claude.ai/design/p/ed87b683-b97e-45dc-83c8-8c3e30add231?file=Healthy+Eats+-+Landing.dc.html`
+### ⚠️ Open question 2 — no macros anywhere
 
-**This URL 403s for Claude Code** — it is private to the user's claude.ai session and cannot be
-fetched with WebFetch. The source must be handed over directly (saved into
-`design/` in the repo, pasted, or re-shared as a public artifact link).
-Once received, it is the visual reference for the landing page; enhancement is permitted.
+The poster carries **no calorie or macro figures**, and macros-on-every-plate is the product's
+stated USP. `nutrition` is therefore **optional** in the schema, and the UI renders
+"Macros on request" rather than fabricated numbers. Inventing them would be actively harmful —
+customers track protein off these figures.
+
+Supply real macros and they appear everywhere automatically.
+
+### Smaller things worth a human check
+
+- **Veg / non-veg is inferred from dish names** (chicken, fish, mutton, egg, keema, sukka,
+  omelette → non-veg; "Soy Keema" hand-corrected to veg). 37 of 119 are marked non-veg.
+- **Descriptions and ingredient lines are empty** — the poster has none.
+- Poster numbering skips 78–84 and 88–89; those items simply are not on it.
+- Split-price add-ons ("Grilled Chicken 100/50 g — ₹119/59") are seeded at the 100 g price only.
 
 ## 9. Homepage section order (user-specified)
 

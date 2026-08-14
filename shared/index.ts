@@ -69,7 +69,13 @@ export const dishSchema = z.object({
   category: z.string(),
   price: z.number().nonnegative(), // ₹
   image: z.string(),
-  nutrition: nutritionSchema,
+  /**
+   * OPTIONAL on purpose. The real menu poster carries no macro figures, and
+   * inventing nutrition data for a fitness kitchen would be actively harmful —
+   * people track protein off these numbers. Absent until the kitchen supplies
+   * real values; the UI hides macro rows rather than showing zeros.
+   */
+  nutrition: nutritionSchema.optional(),
   goals: z.array(goalSchema),
   timing: z.array(timingSchema),
   diet: z.array(dietSchema),

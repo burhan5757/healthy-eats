@@ -9,7 +9,7 @@ import { MenuFilters, type DietFilter } from '@/components/menu/MenuFilters'
 import { CartBar } from '@/components/menu/CartBar'
 
 /** Cuisine sections sit alongside the goal packages in the filter row. */
-const CUISINE_SECTIONS = ['Indian & Tandoor', 'Salads & Steam'] as const
+const CUISINE_SECTIONS = ['Indian & Tandoor', 'Salads & Steam', 'Add-ons'] as const
 
 export default function Menu() {
   const [params, setParams] = useSearchParams()

@@ -38,7 +38,9 @@ export default function About() {
   // Dish count is read from the live menu rather than hardcoded, so it stays
   // honest as the real catalogue lands.
   const { data } = useQuery({ queryKey: ['menu'], queryFn: api.menu.list })
-  const dishCount = data?.dishes.length ?? 0
+  // Counts dishes inside the three goal packages, matching the design's figure.
+  // Sides, salads, tandoor and add-ons are extras, not part of a package.
+  const dishCount = (data?.dishes ?? []).filter((d) => d.goals.length > 0).length
 
   const stats = [
     {

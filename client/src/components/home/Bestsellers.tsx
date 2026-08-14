@@ -159,9 +159,11 @@ function DishCard({ dish }: { dish: Dish }) {
 
         <h3 className="mt-4 font-display text-[26px] leading-tight">{dish.name}</h3>
 
-        <p className="mt-2 text-[15px] text-muted-foreground">
-          {dish.nutrition.kcal} kcal · {dish.nutrition.protein} g protein
-        </p>
+        {dish.nutrition && (
+          <p className="mt-2 text-[15px] text-muted-foreground">
+            {dish.nutrition.kcal} kcal · {dish.nutrition.protein} g protein
+          </p>
+        )}
 
         {/* mt-auto pins the price row to the card bottom so a two-line dish name
             doesn't knock this card out of alignment with its neighbours. */}

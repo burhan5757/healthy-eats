@@ -6,9 +6,7 @@ import type { UserDoc } from './models/User.js'
 /** Mongoose docs → the shared wire shapes. `_id` never leaks to the client. */
 
 export function toDish(d: DishDoc): Dish {
-  // Mongoose types nested subdocuments as optional; schema-level `required`
-  // guarantees they exist on any persisted document.
-  const nutrition = d.nutrition!
+  const nutrition = d.nutrition
   return {
     id: String(d._id),
     slug: d.slug,
@@ -18,12 +16,14 @@ export function toDish(d: DishDoc): Dish {
     category: d.category,
     price: d.price,
     image: d.image ?? '',
-    nutrition: {
-      kcal: nutrition.kcal,
-      protein: nutrition.protein,
-      carbs: nutrition.carbs,
-      fat: nutrition.fat,
-    },
+    nutrition: nutrition
+      ? {
+          kcal: nutrition.kcal,
+          protein: nutrition.protein,
+          carbs: nutrition.carbs,
+          fat: nutrition.fat,
+        }
+      : undefined,
     goals: d.goals as Dish['goals'],
     timing: d.timing as Dish['timing'],
     diet: d.diet as Dish['diet'],

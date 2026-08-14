@@ -54,6 +54,8 @@ export function MenuDishCard({ dish }: { dish: Dish }) {
           <p className="mt-1.5 mb-5 text-[13px] leading-snug text-terracotta-text">{dish.ingredients}</p>
         )}
 
+        {/* Macros only render when the kitchen has supplied them — never zeros. */}
+        {dish.nutrition ? (
         <dl className="mt-auto flex justify-between gap-2 border-t border-border pt-4 pb-1">
           {[
             { v: dish.nutrition.kcal, u: '', l: 'kcal' },
@@ -70,6 +72,11 @@ export function MenuDishCard({ dish }: { dish: Dish }) {
             </div>
           ))}
         </dl>
+        ) : (
+          <p className="mt-auto border-t border-border pt-4 pb-1 text-[12px] text-muted-foreground">
+            Macros on request
+          </p>
+        )}
 
         <div className="mt-4 flex min-h-11 items-center justify-between gap-3">
           <p className="font-display text-[19px] tabular-nums">{formatINR(dish.price)}</p>

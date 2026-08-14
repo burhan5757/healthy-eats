@@ -84,7 +84,9 @@ function HeroSpecial({ dish }: { dish: Dish }) {
         )}
 
         <div className="mt-auto pt-8">
-          <MacroRow nutrition={dish.nutrition} className="border-t border-border pt-6" />
+          {dish.nutrition && (
+            <MacroRow nutrition={dish.nutrition} className="border-t border-border pt-6" />
+          )}
 
           <div className="mt-7 flex items-center justify-between gap-4">
             <p className="font-display text-[26px] tabular-nums">{formatINR(dish.price)}</p>
@@ -125,7 +127,9 @@ function SideSpecial({ dish }: { dish: Dish }) {
         )}
 
         <div className="mt-auto pt-6">
-          <MacroRow nutrition={dish.nutrition} className="border-t border-border pt-5" />
+          {dish.nutrition && (
+            <MacroRow nutrition={dish.nutrition} className="border-t border-border pt-5" />
+          )}
 
           <div className="mt-5 flex items-center justify-between gap-4">
             <p className="font-display text-[22px] tabular-nums">{formatINR(dish.price)}</p>

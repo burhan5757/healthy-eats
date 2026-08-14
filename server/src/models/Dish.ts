@@ -12,11 +12,15 @@ const dishSchema = new Schema(
     price: { type: Number, required: true, min: 0 },
     image: { type: String, default: '' },
 
+    // Optional — see the note on `nutrition` in shared/index.ts.
     nutrition: {
-      kcal: { type: Number, required: true, min: 0 },
-      protein: { type: Number, required: true, min: 0 },
-      carbs: { type: Number, required: true, min: 0 },
-      fat: { type: Number, required: true, min: 0 },
+      type: {
+        kcal: { type: Number, required: true, min: 0 },
+        protein: { type: Number, required: true, min: 0 },
+        carbs: { type: Number, required: true, min: 0 },
+        fat: { type: Number, required: true, min: 0 },
+      },
+      default: undefined,
     },
 
     goals: [{ type: String, enum: GOALS }],

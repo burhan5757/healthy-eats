@@ -84,7 +84,8 @@ function Row({
         </p>
         <p className="mt-0.5 text-[12px] text-muted-foreground">
           {dish.category}
-          {dish.goals[0] && ` · ${GOAL_LABELS[dish.goals[0]]}`} · {dish.nutrition.kcal} kcal
+          {dish.goals[0] && ` · ${GOAL_LABELS[dish.goals[0]]}`}
+          {dish.nutrition ? ` · ${dish.nutrition.kcal} kcal` : ''}
         </p>
       </div>
 

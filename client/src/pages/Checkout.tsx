@@ -109,9 +109,11 @@ export default function Checkout() {
                     <p className="font-display text-[17px] leading-tight text-primary">
                       {line.name}
                     </p>
-                    <p className="mt-1 text-[12px] text-muted-foreground">
-                      {line.kcal} kcal · {line.protein} g protein
-                    </p>
+                    {line.kcal != null && (
+                      <p className="mt-1 text-[12px] text-muted-foreground">
+                        {line.kcal} kcal · {line.protein} g protein
+                      </p>
+                    )}
                     <QtyStepper
                       className="mt-3 w-fit"
                       qty={line.qty}
