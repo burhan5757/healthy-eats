@@ -11,13 +11,19 @@
     "install:all": "npm install && npm --prefix client install && npm --prefix server install",
     "seed": "npm --prefix server run seed",
     "lint": "npm --prefix client run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,css,json,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,css,json,md}\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:all": "npm run test && npm run test:e2e"
   },
   "dependencies": {
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "concurrently": "^9.2.1",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "vitest": "^4.1.10"
   }
 }

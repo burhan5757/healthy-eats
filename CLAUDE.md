@@ -342,6 +342,20 @@ Audited across all 11 pages (public + admin + kitchen) at 390 / 768 / 1440 px:
 
 Re-run the audit any time with `$CLAUDE_JOB_DIR/tmp/audit.py` and `contrast2.py` (Playwright).
 
+## 14. Tests
+
+`npm run test:all` — 56 tests, all passing.
+
+- **Vitest (41)** in `tests/unit/` — the shared contract: state machine, Zod schemas, cart totals.
+- **Playwright (15)** in `tests/e2e/` — guest checkout, the three-screen loop, cancel → sold out,
+  and access control asserted **at the API** rather than through the UI.
+
+When adding behaviour to the order lifecycle or access rules, extend these rather than
+testing by hand — they already cover the paths that matter.
+
+**A real bug the tests caught:** an empty cart was charging a ₹39 delivery fee, because a
+subtotal of 0 falls below the free-delivery threshold. Fixed in `client/src/store/cart.ts`.
+
 ## 10b. Known privacy trade-off — decide before launch
 
 Order numbers are 4 digits (`HE-4821`) and `/api/orders/track/:orderNumber` is unauthenticated,

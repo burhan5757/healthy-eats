@@ -90,8 +90,13 @@ export function cartSubtotal(lines: CartLine[]): number {
 /** Mirrors the server's calculation so the UI never shows a different number. */
 export function cartTotals(lines: CartLine[]) {
   const subtotal = cartSubtotal(lines)
-  const deliveryFee = subtotal >= FREE_DELIVERY_ABOVE ? 0 : DELIVERY_FEE
-  const packaging = lines.length > 0 ? PACKAGING_FEE : 0
+
+  // An empty cart costs nothing. Without the length guard a subtotal of 0 falls
+  // below the free-delivery threshold and picks up a delivery fee.
+  const empty = lines.length === 0
+  const deliveryFee = empty || subtotal >= FREE_DELIVERY_ABOVE ? 0 : DELIVERY_FEE
+  const packaging = empty ? 0 : PACKAGING_FEE
+
   return { subtotal, deliveryFee, packaging, total: subtotal + deliveryFee + packaging }
 }
 
