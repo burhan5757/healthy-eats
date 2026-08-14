@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { LogOut } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { SOCKET_EVENTS, type Order } from '@shared/index'
 import { api } from '@/lib/api'
 import { getSocket } from '@/lib/socket'
+import { useAuth } from '@/store/auth'
 import { cn } from '@/lib/utils'
 
 /**
@@ -15,6 +18,14 @@ import { cn } from '@/lib/utils'
  */
 export default function Kitchen() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const { logout } = useAuth()
+
+  const handleSignOut = async () => {
+    await logout()
+    navigate('/login', { replace: true })
+  }
+
   const [now, setNow] = useState(() => Date.now())
 
   const { data, isPending } = useQuery({
@@ -53,22 +64,38 @@ export default function Kitchen() {
 
   return (
     <div className="min-h-dvh bg-[#16251C] text-[#F2F0E9]">
-      <header className="flex items-center justify-between gap-6 border-b border-[#2C4033] px-6 py-3.5">
-        <div className="flex items-center gap-4">
-          <h1 className="font-sans text-[15px] font-bold tracking-tight">Healthy Eats · Kitchen</h1>
-          <span className="flex items-center gap-2 rounded-full bg-[#E8A33D]/15 px-3 py-1.5">
+      {/* flex-wrap + min-w-0 keeps this from forcing a horizontal scrollbar on a
+          phone, where the logo, ticket count, clock and sign-out cannot all fit
+          on one line. */}
+      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-[#2C4033] px-4 py-3 sm:px-6 sm:py-3.5">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          <h1 className="truncate font-sans text-[14px] font-bold tracking-tight sm:text-[15px]">
+            Healthy Eats · Kitchen
+          </h1>
+          <span className="flex shrink-0 items-center gap-2 rounded-full bg-[#E8A33D]/15 px-3 py-1.5">
             <span className="size-1.5 rounded-full bg-[#E8A33D]" aria-hidden />
-            <span className="text-[12px] font-semibold text-[#E8A33D]">
+            <span className="text-[12px] font-semibold whitespace-nowrap text-[#E8A33D]">
               {active} active {active === 1 ? 'ticket' : 'tickets'}
             </span>
           </span>
         </div>
 
-        <div className="flex items-baseline gap-4">
-          <span className="text-[12px] text-[#93A398]">Service till 22:30</span>
-          <span className="text-[26px] font-bold tabular-nums">
+        <div className="flex items-center gap-3 sm:gap-5">
+          <span className="hidden text-[12px] text-[#93A398] sm:inline">Service till 22:30</span>
+          <span className="text-[22px] font-bold tabular-nums sm:text-[26px]">
             {new Date(now).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
           </span>
+
+          {/* Deliberately understated — the kitchen should never hit this by
+              accident mid-service, but it has to exist. */}
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="flex items-center gap-1.5 rounded-full border border-[#2C4033] px-3.5 py-2 text-[12px] font-semibold text-[#93A398] transition-colors hover:border-[#4A6B55] hover:text-[#F2F0E9]"
+          >
+            <LogOut className="size-3.5" strokeWidth={1.75} aria-hidden />
+            Sign out
+          </button>
         </div>
       </header>
 
@@ -119,7 +146,10 @@ function Column({
   children: React.ReactNode
 }) {
   return (
-    <section className="min-h-[calc(100dvh-61px)] bg-[#16251C] p-4">
+    // The full-height column only makes sense once the three sit side by side.
+    // On a phone they stack, and full-height empties mean scrolling through
+    // three blank screens to reach the tickets.
+    <section className="bg-[#16251C] p-4 md:min-h-[calc(100dvh-61px)]">
       <div className="flex items-center justify-between px-1 pb-3">
         <h2 className="eyebrow font-sans text-[#E8A33D]">{title}</h2>
         <span className="text-[14px] font-semibold text-[#93A398] tabular-nums">{count}</span>

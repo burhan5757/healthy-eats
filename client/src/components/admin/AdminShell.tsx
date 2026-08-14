@@ -66,23 +66,35 @@ export function AdminShell({ liveCount }: { liveCount?: number }) {
       </aside>
 
       <div className="min-w-0 flex-1">
-        {/* Mobile nav — the sidebar is desktop-only */}
-        <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-border bg-forest-deep px-4 py-3 lg:hidden">
-          {NAV.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) =>
-                cn(
-                  'shrink-0 rounded-full px-4 py-2 text-[13px] transition-colors',
-                  isActive ? 'bg-primary text-on-dark' : 'text-on-dark/70',
-                )
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
+        {/* Mobile / tablet nav — the sidebar is desktop-only, so sign-out has to
+            live here too or there is no way to log out below lg. */}
+        <div className="flex items-center gap-3 border-b border-border bg-forest-deep px-4 py-3 lg:hidden">
+          <div className="no-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto">
+            {NAV.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) =>
+                  cn(
+                    'shrink-0 rounded-full px-4 py-2 text-[13px] transition-colors',
+                    isActive ? 'bg-primary text-on-dark' : 'text-on-dark/70',
+                  )
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={logout}
+            className="flex shrink-0 items-center gap-1.5 rounded-full border border-on-dark-border px-3.5 py-2 text-[13px] font-semibold text-on-dark/80 transition-colors hover:text-on-dark"
+          >
+            <LogOut className="size-3.5" strokeWidth={1.5} aria-hidden />
+            Sign out
+          </button>
         </div>
 
         <main className="px-6 py-8 lg:px-10">
