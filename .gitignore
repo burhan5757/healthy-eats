@@ -1,0 +1,40 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# builds
+dist/
+build/
+*.tsbuildinfo
+
+# environment — never commit secrets (JWT_SECRET, ADMIN_PASSWORD, Atlas URI)
+.env
+.env.*
+!.env.example
+
+# test artefacts
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# editors / OS
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# agent skills are installed third-party content, not authored here.
+# skills-lock.json IS tracked so the set is reproducible via `npx skills`.
+.agents/skills/
+.claude/skills/
+.claude/settings.local.json

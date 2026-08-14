@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+/* ============================================================================
+   HEALTHY EATS — design tokens
+
+   Derived from the user's landing design (design/ screenshots), NOT from the
+   earlier "Fresh Citrus" proposal. Cream base, deep forest bands, terracotta
+   accent, high-contrast serif display.
+
+   NEVER hardcode a hex value in a component — always reference a token.
+   ========================================================================= */
+
+:root {
+  /* --- Core palette ------------------------------------------------------- */
+  --he-cream: #f2f0e9; /* page background */
+  --he-surface: #fbfaf6; /* cards */
+  --he-forest: #17281f; /* dark bands: hero, how-it-works */
+  --he-forest-deep: #132119; /* footer */
+  --he-green: #1e5e43; /* CTA fill — Order Now, Add to order */
+  --he-green-dark: #174a35; /* CTA hover */
+  --he-terracotta: #be8a5c; /* decorative only — dots, rules, on-dark text */
+  /**
+   * Terracotta as BODY TEXT on light backgrounds.
+   * The design's #BE8A5C only reaches 2.9:1 on cream, well under the 4.5:1 WCAG AA
+   * needs for small text. Darkened to the minimum that passes while holding the hue.
+   */
+  --he-terracotta-text: #8a6443; /* 4.6:1 on cream, 5.0:1 on surface */
+  --he-terracotta-dark: #885e36; /* badge text — 4.5:1 on --he-badge */
+  --he-badge: #ede4d6; /* goal badge fill */
+
+  --he-text: #1a2620;
+  --he-muted: #6a6f66; /* nudged darker: #6E736A was 4.26:1 on cream */
+  --he-border: #dcd8cc;
+
+  /* Image slots, until real photography lands */
+  --he-placeholder: #ded9cd;
+  --he-placeholder-line: #c7c1b1;
+
+  /* On dark bands */
+  --he-on-dark: #f2f0e9;
+  --he-on-dark-muted: #93a398;
+  --he-on-dark-border: #2c4033;
+
+  /* --- Order status ------------------------------------------------------- */
+  --he-status-placed: #4a7fa5;
+  --he-status-preparing: #c58a3d;
+  --he-status-ready: #1e5e43;
+  --he-status-delivered: #6e736a;
+  --he-status-cancelled: #a8442f;
+
+  /* Kitchen ticket ageing */
+  --he-age-fresh: #1e5e43;
+  --he-age-warn: #c58a3d;
+  --he-age-late: #a8442f;
+
+  --radius: 0.5rem;
+
+  /* --- shadcn/ui token mapping -------------------------------------------- */
+  --background: var(--he-cream);
+  --foreground: var(--he-text);
+  --card: var(--he-surface);
+  --card-foreground: var(--he-text);
+  --popover: var(--he-surface);
+  --popover-foreground: var(--he-text);
+  --primary: var(--he-green);
+  --primary-foreground: #ffffff;
+  --secondary: var(--he-badge);
+  --secondary-foreground: var(--he-terracotta-dark);
+  --muted: #e8e5db;
+  --muted-foreground: var(--he-muted);
+  --accent: var(--he-terracotta);
+  --accent-foreground: #ffffff;
+  --destructive: #a8442f;
+  --destructive-foreground: #ffffff;
+  --border: var(--he-border);
+  --input: var(--he-border);
+  --ring: var(--he-green);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-dark: var(--he-green-dark);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-cream: var(--he-cream);
+  --color-surface: var(--he-surface);
+  --color-forest: var(--he-forest);
+  --color-forest-deep: var(--he-forest-deep);
+  --color-terracotta: var(--he-terracotta);
+  --color-terracotta-text: var(--he-terracotta-text);
+  --color-terracotta-dark: var(--he-terracotta-dark);
+  --color-badge: var(--he-badge);
+  --color-placeholder: var(--he-placeholder);
+  --color-placeholder-line: var(--he-placeholder-line);
+  --color-on-dark: var(--he-on-dark);
+  --color-on-dark-muted: var(--he-on-dark-muted);
+  --color-on-dark-border: var(--he-on-dark-border);
+
+  --color-status-placed: var(--he-status-placed);
+  --color-status-preparing: var(--he-status-preparing);
+  --color-status-ready: var(--he-status-ready);
+  --color-status-delivered: var(--he-status-delivered);
+  --color-status-cancelled: var(--he-status-cancelled);
+
+  --color-age-fresh: var(--he-age-fresh);
+  --color-age-warn: var(--he-age-warn);
+  --color-age-late: var(--he-age-late);
+
+  --font-display: 'Playfair Display', ui-serif, Georgia, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 3px;
+  }
+}
+
+@layer utilities {
+  /* Letterspaced uppercase micro-label — section eyebrows, macro captions */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
