@@ -340,6 +340,11 @@ Append newest at the bottom. Format: date — decision — reason.
 | 2026-08-14 | About page built from the 3 About screenshots; `HowDeliveryWorks` gained a light `card` variant | The block appears on both Home (dark band) and About (light card) |
 | 2026-08-14 | Contact page designed from scratch, **with no message form** | No design was supplied. A form with no endpoint would silently discard messages — worse than not offering one. Phone/Instagram/map instead. |
 | 2026-08-14 | **Palette darkened for WCAG AA**: added `--he-terracotta-text` (#8A6443), `--he-terracotta-dark` → #885E36, `--he-muted` → #6A6F66, placeholder caption → #5A5F56 | The design's terracotta only reached 2.9:1 on cream — well under the 4.5:1 AA needs for small text. Hue held; only lightness moved. `--he-terracotta` is unchanged and still used for decoration and on-dark text. |
+| 2026-08-15 | **Landing-page dish cards wired to the cart**; `CartBar` now renders on Home as well as Menu | The bestsellers and specials cards rendered their Add buttons with no `onClick` — dead controls. They now use the same add → `QtyStepper` pattern as `MenuDishCard`. The cart bar came with it: without it a click on the landing page has no visible effect and no route to checkout. Covered by an e2e regression test. |
+| 2026-08-15 | **The checkout pin no longer defaults to the kitchen.** No pin exists until the customer places one | On mount the map emitted the kitchen's own coordinates, so any order where nobody touched the map shipped a delivery pin pointing at the restaurant — wrong data that looked deliberate. Absent beats wrong; the UI now says so plainly. |
+| 2026-08-15 | **Address search + reverse geocoding added** via OSM Nominatim (`client/src/lib/geocode.ts`) | Dragging from Kothrud was the only way to find an address, and the pin read back as bare coordinates the customer could not verify. Same OSM family as the tiles, so still no API key. ⚠️ Public Nominatim is rate-limited and not for production volume — see §15. |
+| 2026-08-15 | Kitchen coordinates and a **12 km delivery radius** moved into `BRAND` (`geo`, `deliveryRadiusKm`) | Brand facts live in one place. Drives the distance readout, the ETA, and the out-of-range notice. |
+| 2026-08-15 | An out-of-range pin **warns, never blocks** | The kitchen may still want a Hinjewadi order it can service; a hard block silently loses revenue. The customer is told and the kitchen calls to confirm. |
 
 ## 13. Accessibility status
 
@@ -358,11 +363,16 @@ Re-run the audit any time with `$CLAUDE_JOB_DIR/tmp/audit.py` and `contrast2.py`
 
 ## 14. Tests
 
-`npm run test:all` — 56 tests, all passing.
+`npm run test:all` — 70 tests, all passing.
 
-- **Vitest (41)** in `tests/unit/` — the shared contract: state machine, Zod schemas, cart totals.
-- **Playwright (15)** in `tests/e2e/` — guest checkout, the three-screen loop, cancel → sold out,
-  and access control asserted **at the API** rather than through the UI.
+- **Vitest (52)** in `tests/unit/` — the shared contract: state machine, Zod schemas, cart totals,
+  and the delivery-distance/ETA maths behind the checkout pin.
+- **Playwright (18)** in `tests/e2e/` — guest checkout, adding from the landing page, the delivery
+  pin, the three-screen loop, cancel → sold out, and access control asserted **at the API** rather
+  than through the UI.
+
+Third-party geocoding is deliberately **not** asserted in the e2e tests — it is a network lookup
+against someone else's rate-limited service and would make the suite flaky.
 
 When adding behaviour to the order lifecycle or access rules, extend these rather than
 testing by hand — they already cover the paths that matter.
@@ -381,3 +391,16 @@ Fine for a prototype. Before real customers use it, do one of:
 - require the phone's last 4 digits as a second factor on the tracking lookup.
 
 Flagged in code at `server/src/routes/orders.ts`.
+
+## 15. Geocoding — decide before launch
+
+The checkout pin's address search and reverse lookup use **OpenStreetMap's public Nominatim**
+(`client/src/lib/geocode.ts`). It needs no API key, which is why it suits a prototype.
+
+Its usage policy allows roughly **one request per second** and forbids heavy use. Every call is
+debounced and abortable, but that is a courtesy, not a guarantee — under real checkout traffic the
+public instance will rate-limit and searches will start failing. Before launch, either self-host
+Nominatim or move to a paid geocoder. Only `geocode.ts` changes; nothing else calls it.
+
+The map falls back safely: if search fails the customer is told to tap the map instead, and if the
+reverse lookup fails the pin still works, it just shows coordinates without a street name.
