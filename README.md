@@ -1,6 +1,8 @@
 # Healthy Eats
 
-Ordering and delivery platform for a fitness-focused kitchen in Kothrud, Pune.
+Ordering and delivery platform for a fitness-focused kitchen, built as a working prototype.
+Brand details (address, phone, FSSAI number) shipped in this repo are placeholders — see
+`shared/index.ts`'s `BRAND` constant.
 
 Every dish is tagged by **fitness goal** (fat loss · muscle gain · basic fitness) and by
 **timing** (pre-workout · post-workout · meal), with calories and macros on every plate.

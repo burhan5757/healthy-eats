@@ -4,9 +4,6 @@ import { BRAND } from '@shared/index'
 import { Container, Eyebrow } from '@/components/ui/primitives'
 import { MiniMap } from '@/components/track/MiniMap'
 
-/** Kitchen coordinates — Dahanukar Colony, Kothrud. */
-const KITCHEN = { lat: 18.5089, lng: 73.8088 }
-
 /**
  * No design was supplied for Contact, so this is built from the existing tokens
  * and the real brand details.
@@ -98,7 +95,7 @@ export default function Contact() {
         <div className="rounded-md border border-border bg-surface p-7">
           <Eyebrow>Find the kitchen</Eyebrow>
           <div className="mt-5 [&>div]:h-[320px]">
-            <MiniMap lat={KITCHEN.lat} lng={KITCHEN.lng} />
+            <MiniMap lat={BRAND.geo.lat} lng={BRAND.geo.lng} />
           </div>
 
           <p className="mt-5 text-[14px] leading-relaxed text-muted-foreground">
@@ -106,7 +103,7 @@ export default function Contact() {
           </p>
 
           <a
-            href={`https://www.openstreetmap.org/?mlat=${KITCHEN.lat}&mlon=${KITCHEN.lng}#map=17/${KITCHEN.lat}/${KITCHEN.lng}`}
+            href={`https://www.openstreetmap.org/?mlat=${BRAND.geo.lat}&mlon=${BRAND.geo.lng}#map=17/${BRAND.geo.lat}/${BRAND.geo.lng}`}
             target="_blank"
             rel="noreferrer noopener"
             className="mt-5 inline-block rounded-full border border-primary/45 px-6 py-2.5 text-[13px] font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"

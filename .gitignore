@@ -33,6 +33,9 @@ Thumbs.db
 npm-debug.log*
 yarn-error.log*
 
+# real brand PII scrubbed for the public repo — never commit
+/private/
+
 # agent skills are installed third-party content, not authored here.
 # skills-lock.json IS tracked so the set is reproducible via `npx skills`.
 .agents/skills/

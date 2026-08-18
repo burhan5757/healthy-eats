@@ -260,6 +260,12 @@ export function isNonVeg(diet: readonly Diet[]): boolean {
    Brand — taken verbatim from the user's landing design
    ========================================================================= */
 
+/**
+ * Placeholder brand facts for the public/demo build — the real kitchen's address, phone,
+ * coordinates and FSSAI number are deliberately not committed here. Replace every field
+ * with the real details in a private `.env`-backed config (or a local, gitignored override)
+ * before deploying for the actual business.
+ */
 export const BRAND = {
   name: 'Healthy Eats',
   city: 'Pune',
@@ -269,6 +275,11 @@ export const BRAND = {
   blurb:
     'A neighbourhood kitchen cooking goal-based meals for people who train, and for anyone who wants dinner portioned properly.',
   address: { line1: 'Shop 0, Example Complex', line2: 'Kothrud, Pune 411038' },
+  /** Where the riders leave from — the checkout map opens here and measures from it.
+   *  Placeholder: approximate Kothrud-area coordinates, not the real kitchen's location. */
+  geo: { lat: 18.5089, lng: 73.8088 },
+  /** Beyond this the food arrives cold; checkout warns rather than blocks. */
+  deliveryRadiusKm: 12,
   phone: '+91 90000 00000',
   hours: 'Mon – Sun, 11:00 – 22:30',
   kitchenHours: 'Kitchen 11:00 – 22:30',
