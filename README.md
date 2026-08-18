@@ -112,7 +112,7 @@ the order state machine, the Zod schemas, and the cart arithmetic.
 
 ## Before this goes live
 
-See `CLAUDE.md` for the full decision log. Two items need a decision:
+Two items need a decision:
 
 1. **Order-number privacy** — tracking is public by 4-digit order number, per the design.
    Enumerable. Lengthen the number or add a phone check first (§10b).
