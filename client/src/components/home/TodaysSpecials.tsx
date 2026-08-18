@@ -8,6 +8,8 @@ import {
   MacroRow,
 } from '@/components/ui/primitives'
 import { PlatePlaceholder } from '@/components/ui/PlatePlaceholder'
+import { QtyStepper } from '@/components/menu/QtyStepper'
+import { useCart, useQtyOf } from '@/store/cart'
 import { cn, formatINR } from '@/lib/utils'
 
 /**
@@ -55,6 +57,9 @@ export function TodaysSpecials({ dishes }: { dishes: Dish[] }) {
 
 function HeroSpecial({ dish }: { dish: Dish }) {
   const soldOut = !dish.availableToday
+  const qty = useQtyOf(dish.id)
+  const add = useCart((s) => s.add)
+  const setQty = useCart((s) => s.setQty)
 
   return (
     <article
@@ -88,11 +93,21 @@ function HeroSpecial({ dish }: { dish: Dish }) {
             <MacroRow nutrition={dish.nutrition} className="border-t border-border pt-6" />
           )}
 
-          <div className="mt-7 flex items-center justify-between gap-4">
+          <div className="mt-7 flex min-h-12 items-center justify-between gap-4">
             <p className="font-display text-[26px] tabular-nums">{formatINR(dish.price)}</p>
-            <ButtonPill disabled={soldOut}>
-              {soldOut ? 'Sold out today' : 'Add to order'}
-            </ButtonPill>
+
+            {soldOut ? (
+              <ButtonPill disabled>Sold out today</ButtonPill>
+            ) : qty > 0 ? (
+              <QtyStepper
+                qty={qty}
+                dishName={dish.name}
+                onDecrease={() => setQty(dish.id, qty - 1)}
+                onIncrease={() => setQty(dish.id, qty + 1)}
+              />
+            ) : (
+              <ButtonPill onClick={() => add(dish)}>Add to order</ButtonPill>
+            )}
           </div>
         </div>
       </div>
@@ -102,6 +117,9 @@ function HeroSpecial({ dish }: { dish: Dish }) {
 
 function SideSpecial({ dish }: { dish: Dish }) {
   const soldOut = !dish.availableToday
+  const qty = useQtyOf(dish.id)
+  const add = useCart((s) => s.add)
+  const setQty = useCart((s) => s.setQty)
 
   return (
     <article
@@ -131,11 +149,21 @@ function SideSpecial({ dish }: { dish: Dish }) {
             <MacroRow nutrition={dish.nutrition} className="border-t border-border pt-5" />
           )}
 
-          <div className="mt-5 flex items-center justify-between gap-4">
+          <div className="mt-5 flex min-h-11 items-center justify-between gap-4">
             <p className="font-display text-[22px] tabular-nums">{formatINR(dish.price)}</p>
-            <ButtonOutline disabled={soldOut}>
-              {soldOut ? 'Sold out' : 'Add to order'}
-            </ButtonOutline>
+
+            {soldOut ? (
+              <ButtonOutline disabled>Sold out</ButtonOutline>
+            ) : qty > 0 ? (
+              <QtyStepper
+                qty={qty}
+                dishName={dish.name}
+                onDecrease={() => setQty(dish.id, qty - 1)}
+                onIncrease={() => setQty(dish.id, qty + 1)}
+              />
+            ) : (
+              <ButtonOutline onClick={() => add(dish)}>Add to order</ButtonOutline>
+            )}
           </div>
         </div>
       </div>

@@ -72,6 +72,59 @@ test.describe('guest checkout', () => {
     await expect(page.getByRole('link', { name: 'Checkout' })).toBeVisible()
   })
 
+  // Regression: the landing-page cards rendered their buttons with no click
+  // handler at all, so Add and Add to order were dead everywhere except /menu.
+  test('the landing page cards add to the cart', async ({ page }) => {
+    await page.goto('/')
+
+    // Bestsellers rail
+    await page.getByRole('button', { name: 'Add', exact: true }).first().click()
+    await expect(page.getByText('1 item')).toBeVisible()
+
+    // Today's specials
+    await page.getByRole('button', { name: 'Add to order' }).first().click()
+    await expect(page.getByText('2 items')).toBeVisible()
+
+    // The card swaps to a stepper, and it drives the same cart
+    await page.getByRole('button', { name: /One more/ }).first().click()
+    await expect(page.getByText('3 items')).toBeVisible()
+
+    await page.getByRole('link', { name: 'Checkout' }).click()
+    await expect(page.getByRole('heading', { name: /Where should the rider come/ })).toBeVisible()
+  })
+
+  /**
+   * The pin used to default to the kitchen's own coordinates on mount, so an
+   * untouched map still sent the rider a pin pointing at the restaurant.
+   * Geocoding is deliberately not asserted here — it is a third-party lookup.
+   */
+  test('the delivery pin starts empty and lands where the customer taps', async ({ page }) => {
+    await page.goto('/menu')
+    await page.getByRole('button', { name: 'Add', exact: true }).first().click()
+    await page.getByRole('link', { name: 'Checkout' }).click()
+
+    await expect(page.getByText(/No pin yet/)).toBeVisible()
+
+    const map = page.locator('.leaflet-container')
+    await map.click({ position: { x: 260, y: 150 } })
+
+    await expect(page.getByText(/No pin yet/)).toBeHidden()
+    await expect(page.getByText(/km from the kitchen/)).toBeVisible()
+  })
+
+  test('searching for an address does not submit the checkout form', async ({ page }) => {
+    await page.goto('/menu')
+    await page.getByRole('button', { name: 'Add', exact: true }).first().click()
+    await page.getByRole('link', { name: 'Checkout' }).click()
+
+    await page.fill('#pin-search', 'Baner')
+    await page.press('#pin-search', 'Enter')
+
+    await expect(page).toHaveURL(/\/checkout/)
+    // A stray submit would have surfaced the address validation errors.
+    await expect(page.getByText('Name is required')).toBeHidden()
+  })
+
   test('tracking an unknown order number fails gracefully', async ({ page }) => {
     await page.goto('/track/HE-0000')
     await expect(page.getByRole('heading', { name: /can't find that order/i })).toBeVisible()

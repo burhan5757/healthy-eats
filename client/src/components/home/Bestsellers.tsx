@@ -4,6 +4,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GOAL_LABELS, TIMING_LABELS, type Dish } from '@shared/index'
 import { Container, Eyebrow, GoalBadge, ButtonOutline } from '@/components/ui/primitives'
 import { PlatePlaceholder } from '@/components/ui/PlatePlaceholder'
+import { QtyStepper } from '@/components/menu/QtyStepper'
+import { useCart, useQtyOf } from '@/store/cart'
 import { cn, formatINR } from '@/lib/utils'
 
 /**
@@ -135,6 +137,10 @@ function DishCard({ dish }: { dish: Dish }) {
       ? TIMING_LABELS[dish.timing[0]]
       : null
 
+  const qty = useQtyOf(dish.id)
+  const add = useCart((s) => s.add)
+  const setQty = useCart((s) => s.setQty)
+
   const soldOut = !dish.availableToday
 
   return (
@@ -166,10 +172,23 @@ function DishCard({ dish }: { dish: Dish }) {
         )}
 
         {/* mt-auto pins the price row to the card bottom so a two-line dish name
-            doesn't knock this card out of alignment with its neighbours. */}
-        <div className="mt-auto flex items-center justify-between gap-4 pt-7">
+            doesn't knock this card out of alignment with its neighbours.
+            min-h-11 holds the row height steady when Add swaps to the stepper. */}
+        <div className="mt-auto flex min-h-11 items-center justify-between gap-4 pt-7">
           <p className="font-display text-[22px] tabular-nums">{formatINR(dish.price)}</p>
-          <ButtonOutline disabled={soldOut}>{soldOut ? 'Sold out' : 'Add'}</ButtonOutline>
+
+          {soldOut ? (
+            <ButtonOutline disabled>Sold out</ButtonOutline>
+          ) : qty > 0 ? (
+            <QtyStepper
+              qty={qty}
+              dishName={dish.name}
+              onDecrease={() => setQty(dish.id, qty - 1)}
+              onIncrease={() => setQty(dish.id, qty + 1)}
+            />
+          ) : (
+            <ButtonOutline onClick={() => add(dish)}>Add</ButtonOutline>
+          )}
         </div>
       </div>
     </article>

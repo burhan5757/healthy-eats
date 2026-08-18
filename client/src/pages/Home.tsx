@@ -7,6 +7,7 @@ import { TodaysSpecials } from '@/components/home/TodaysSpecials'
 import { GoalCollections } from '@/components/home/GoalCollections'
 import { FullMenuCta } from '@/components/home/FullMenuCta'
 import { HowDeliveryWorks } from '@/components/home/HowDeliveryWorks'
+import { CartBar } from '@/components/menu/CartBar'
 import { Container } from '@/components/ui/primitives'
 
 /**
@@ -34,6 +35,10 @@ export default function Home() {
       <GoalCollections dishes={dishes} />
       <FullMenuCta dishes={dishes} />
       <HowDeliveryWorks />
+
+      {/* Adding from the landing cards needs the same confirmation + route to
+          checkout the menu page has, or the click has no visible effect. */}
+      <CartBar />
     </>
   )
 }
