@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test,           } from '@playwright/test'
 
 /**
  * The order lifecycle across all three screens — the behaviour the whole product
@@ -8,7 +8,7 @@ import { expect, test, type Page } from '@playwright/test'
 const ADMIN = { email: 'admin@healthyeats.in', password: 'admin123' }
 const CHEF = { email: 'chef@healthyeats.in', password: 'chef123' }
 
-async function signIn(page: Page, who: { email: string; password: string }) {
+async function signIn(page      , who                                     ) {
   await page.goto('/login')
   await page.fill('#email', who.email)
   await page.fill('#password', who.password)
@@ -17,7 +17,7 @@ async function signIn(page: Page, who: { email: string; password: string }) {
 }
 
 /** Adds `count` distinct dishes and checks out as a guest. Returns the order number. */
-async function placeGuestOrder(page: Page, count = 2, notes = 'No peanut - allergy') {
+async function placeGuestOrder(page      , count = 2, notes = 'No peanut - allergy') {
   await page.goto('/menu')
   await expect(page.getByRole('heading', { name: /Everything on the pass/ })).toBeVisible()
 
@@ -38,7 +38,7 @@ async function placeGuestOrder(page: Page, count = 2, notes = 'No peanut - aller
   await page.getByRole('button', { name: 'Place Order' }).click()
   await page.waitForURL(/\/track\/HE-\d+/)
 
-  return page.url().split('/').pop()!
+  return page.url().split('/').pop() 
 }
 
 test.describe('guest checkout', () => {

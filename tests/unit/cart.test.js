@@ -9,7 +9,7 @@ import { DELIVERY_FEE, FREE_DELIVERY_ABOVE, PACKAGING_FEE } from '../../shared/i
  * Re-implemented here rather than imported from the client store, which pulls in
  * zustand and a browser localStorage — the formula is what matters.
  */
-function totals(lines: { price: number; qty: number }[]) {
+function totals(lines                                  ) {
   const subtotal = lines.reduce((sum, l) => sum + l.price * l.qty, 0)
   const empty = lines.length === 0
   const deliveryFee = empty || subtotal >= FREE_DELIVERY_ABOVE ? 0 : DELIVERY_FEE

@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext } from '@playwright/test'
+import { expect, test,                        } from '@playwright/test'
 
 /**
  * "There is only one admin and no one else has access" is the user's hardest
@@ -8,7 +8,7 @@ import { expect, test, type APIRequestContext } from '@playwright/test'
 
 const API = 'http://localhost:4000/api'
 
-async function login(request: APIRequestContext, email: string, password: string) {
+async function login(request                   , email        , password        ) {
   const res = await request.post(`${API}/auth/login`, { data: { email, password } })
   expect(res.ok()).toBeTruthy()
 }
@@ -90,7 +90,7 @@ test.describe('privilege escalation', () => {
 test.describe('state machine is enforced server-side', () => {
   test('an order cannot be cancelled once it is ready', async ({ request }) => {
     const menu = await (await request.get(`${API}/menu`)).json()
-    const dish = menu.dishes.find((d: { availableToday: boolean }) => d.availableToday)
+    const dish = menu.dishes.find((d                             ) => d.availableToday)
 
     const created = await request.post(`${API}/orders`, {
       data: {
@@ -125,7 +125,7 @@ test.describe('state machine is enforced server-side', () => {
 
   test('totals are computed by the server, not taken from the client', async ({ request }) => {
     const menu = await (await request.get(`${API}/menu`)).json()
-    const dish = menu.dishes.find((d: { availableToday: boolean }) => d.availableToday)
+    const dish = menu.dishes.find((d                             ) => d.availableToday)
 
     const res = await request.post(`${API}/orders`, {
       data: {
