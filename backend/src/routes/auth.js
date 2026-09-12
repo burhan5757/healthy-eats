@@ -25,7 +25,9 @@ authRouter.post(
 
     const existing = await User.findOne({ email: email.toLowerCase() })
     if (existing) {
-      res.status(409).json({ error: 'An account with this email already exists.' })
+      res
+        .status(409)
+        .json({ error: 'An account with this email already exists.' })
       return
     }
 
@@ -54,7 +56,7 @@ authRouter.post(
       return
     }
 
-    setAuthCookie(res, signToken({ sub: String(user._id), role: user.role          }))
+    setAuthCookie(res, signToken({ sub: String(user._id), role: user.role }))
     res.json({ user: toPublicUser(user) })
   }),
 )
@@ -68,7 +70,7 @@ authRouter.get(
   '/me',
   requireAuth,
   asyncRoute(async (req, res) => {
-    const user = await User.findById(req.auth .sub)
+    const user = await User.findById(req.auth.sub)
     if (!user) {
       clearAuthCookie(res)
       res.status(401).json({ error: 'Session no longer valid.' })

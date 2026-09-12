@@ -1,4 +1,3 @@
-                                         
 import { isNonVeg } from '@shared/index'
 import { cn } from '@/lib/utils'
 
@@ -7,7 +6,7 @@ import { cn } from '@/lib/utils'
  * green for veg and maroon for non-veg. Legally expected on Indian food listings,
  * and present on every card in the menu design.
  */
-export function VegMark({ diet, className }                                               ) {
+export function VegMark({ diet, className }) {
   const nonVeg = isNonVeg(diet)
   const label = nonVeg ? 'Non-vegetarian' : 'Vegetarian'
 
@@ -23,7 +22,10 @@ export function VegMark({ diet, className }                                     
       )}
     >
       <span
-        className={cn('size-2 rounded-[1px]', nonVeg ? 'bg-[#9B2C2C]' : 'bg-[#1E5E43]')}
+        className={cn(
+          'size-2 rounded-[1px]',
+          nonVeg ? 'bg-[#9B2C2C]' : 'bg-[#1E5E43]',
+        )}
         aria-hidden
       />
     </span>

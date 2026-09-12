@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-;                                        
 import { api } from '@/lib/api'
 import { Bestsellers } from '@/components/home/Bestsellers'
 import { HeroBand } from '@/components/home/HeroBand'
@@ -20,7 +19,7 @@ export default function Home() {
     queryFn: api.menu.list,
   })
 
-  const dishes         = data?.dishes ?? []
+  const dishes = data?.dishes ?? []
   const bestsellers = dishes.filter((d) => d.isBestseller)
   const specials = dishes.filter((d) => d.isTodaysSpecial)
 
@@ -52,7 +51,10 @@ function HomeSkeleton() {
 
         <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="overflow-hidden rounded-md border border-border bg-surface">
+            <div
+              key={i}
+              className="overflow-hidden rounded-md border border-border bg-surface"
+            >
               <div className="aspect-[4/3] bg-muted" />
               <div className="space-y-4 p-6">
                 <div className="h-5 w-20 rounded bg-muted" />
@@ -73,7 +75,8 @@ function HomeError() {
     <Container className="py-32 text-center">
       <h1 className="text-4xl">The kitchen is not answering</h1>
       <p className="mx-auto mt-5 max-w-[46ch] text-[15px] leading-relaxed text-muted-foreground">
-        We could not load the menu just now. Check that the server is running, then try again.
+        We could not load the menu just now. Check that the server is running,
+        then try again.
       </p>
       <button
         type="button"

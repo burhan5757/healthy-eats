@@ -26,10 +26,10 @@ nothing else changes.
 
 ### Staff sign-in — http://localhost:5173/login
 
-| Role | Email | Password |
-|---|---|---|
+| Role  | Email                  | Password   |
+| ----- | ---------------------- | ---------- |
 | Admin | `admin@healthyeats.in` | `admin123` |
-| Chef | `chef@healthyeats.in` | `chef123` |
+| Chef  | `chef@healthyeats.in`  | `chef123`  |
 
 Both are seeded server-side and **cannot be registered**. Change them via `backend/.env`
 before this goes anywhere real.
@@ -38,11 +38,11 @@ before this goes anywhere real.
 
 ## The three screens
 
-| Screen | Route | Who |
-|---|---|---|
-| Storefront, menu, checkout, tracking | `/`, `/menu`, `/checkout`, `/track/:orderNumber` | anyone |
-| Kitchen display | `/kitchen` | chef, admin |
-| Monitoring dashboard | `/admin` | **admin only** |
+| Screen                               | Route                                            | Who            |
+| ------------------------------------ | ------------------------------------------------ | -------------- |
+| Storefront, menu, checkout, tracking | `/`, `/menu`, `/checkout`, `/track/:orderNumber` | anyone         |
+| Kitchen display                      | `/kitchen`                                       | chef, admin    |
+| Monitoring dashboard                 | `/admin`                                         | **admin only** |
 
 **Try the whole loop:** open `/menu`, `/kitchen` and `/admin` in three windows. Place an
 order → it appears in admin → Accept → it lands on the kitchen screen → Ready to Go →
@@ -80,14 +80,14 @@ design/     design handoff
 
 ## Scripts
 
-| Command | Does |
-|---|---|
-| `npm run dev` | frontend + backend together |
-| `npm run build` | production build of both |
-| `npm test` | Vitest unit tests |
+| Command            | Does                        |
+| ------------------ | --------------------------- |
+| `npm run dev`      | frontend + backend together |
+| `npm run build`    | production build of both    |
+| `npm test`         | Vitest unit tests           |
 | `npm run test:e2e` | Playwright end-to-end tests |
-| `npm run test:all` | both |
-| `npm run format` | Prettier across the repo |
+| `npm run test:all` | both                        |
+| `npm run format`   | Prettier across the repo    |
 
 ## Tests
 
@@ -98,13 +98,13 @@ the order state machine, the Zod schemas, and the cart arithmetic.
 
 **End-to-end (15)** — Playwright, against the running app:
 
-- *Guest checkout* — ordering without an account, validation, cart persistence, unknown order numbers.
-- *The three-screen loop* — an order travelling customer → admin → chef → admin, asserting the
+- _Guest checkout_ — ordering without an account, validation, cart persistence, unknown order numbers.
+- _The three-screen loop_ — an order travelling customer → admin → chef → admin, asserting the
   chef's button appears live over Socket.IO with no reload, and that the allergy note reaches
   the kitchen.
-- *Cancel → sold out* — admin picks a dish, the customer is told which one ran out, and the
+- _Cancel → sold out_ — admin picks a dish, the customer is told which one ran out, and the
   public menu refuses it.
-- *Access control* — tested at the API, not the UI, because hiding a screen is not access control.
+- _Access control_ — tested at the API, not the UI, because hiding a screen is not access control.
   Anonymous gets 401, chef gets 403 on admin routes, registering with `role: "admin"` still
   produces a customer, and a tampered price in the payload is ignored.
 

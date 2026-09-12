@@ -7,8 +7,8 @@ import 'leaflet/dist/leaflet.css'
  * All interaction is disabled — this is a picture of where the rider is headed,
  * not a control.
  */
-export function MiniMap({ lat, lng }                              ) {
-  const containerRef = useRef                (null)
+export function MiniMap({ lat, lng }) {
+  const containerRef = useRef(null)
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -26,7 +26,9 @@ export function MiniMap({ lat, lng }                              ) {
       touchZoom: false,
     })
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+    }).addTo(map)
 
     L.marker([lat, lng], {
       icon: L.divIcon({

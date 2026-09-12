@@ -9,31 +9,27 @@ import { z } from 'zod'
 /* --- Taxonomy: the two-axis USP (CLAUDE.md §1) ---------------------------- */
 
 /** The three goal packages, named as they appear in the user's landing design. */
-export const GOALS = ['fat-loss', 'muscle-gain', 'basic-fitness'];        
-export const TIMINGS = ['pre-workout', 'post-workout', 'meal'];        
-export const DIETS = ['veg', 'non-veg', 'vegan', 'gluten-free'];        
+export const GOALS = ['fat-loss', 'muscle-gain', 'basic-fitness']
+export const TIMINGS = ['pre-workout', 'post-workout', 'meal']
+export const DIETS = ['veg', 'non-veg', 'vegan', 'gluten-free']
 
 export const goalSchema = z.enum(GOALS)
 export const timingSchema = z.enum(TIMINGS)
 export const dietSchema = z.enum(DIETS)
 
-;                                            
-;                                                
-;                                            
-
-export const GOAL_LABELS                       = {
+export const GOAL_LABELS = {
   'fat-loss': 'Fat Loss',
   'muscle-gain': 'Muscle Gain',
   'basic-fitness': 'Basic Fitness',
 }
 
-export const TIMING_LABELS                         = {
+export const TIMING_LABELS = {
   'pre-workout': 'Pre-Workout',
   'post-workout': 'Post-Workout',
   meal: 'Meal',
 }
 
-export const DIET_LABELS                       = {
+export const DIET_LABELS = {
   veg: 'Veg',
   'non-veg': 'Non-Veg',
   vegan: 'Vegan',
@@ -42,9 +38,8 @@ export const DIET_LABELS                       = {
 
 /* --- Roles ---------------------------------------------------------------- */
 
-export const ROLES = ['customer', 'chef', 'admin'];        
+export const ROLES = ['customer', 'chef', 'admin']
 export const roleSchema = z.enum(ROLES)
-;                                            
 
 /** Shape of the JWT payload. Validated on decode — a stale token from an older
  *  code version with a different claim shape must not silently become
@@ -53,7 +48,6 @@ export const authPayloadSchema = z.object({
   sub: z.string(),
   role: roleSchema,
 })
-;                                                          
 
 /* --- Nutrition ------------------------------------------------------------ */
 
@@ -63,7 +57,6 @@ export const nutritionSchema = z.object({
   carbs: z.number().nonnegative(),
   fat: z.number().nonnegative(),
 })
-;                                                      
 
 /* --- Dish ----------------------------------------------------------------- */
 
@@ -93,18 +86,21 @@ export const dishSchema = z.object({
   /** Flipped false when admin cancels an order citing this dish. Resets daily. */
   availableToday: z.boolean(),
 })
-;                                            
 
 export const dishInputSchema = dishSchema.omit({ id: true })
-;                                                      
 
 /* --- Order ---------------------------------------------------------------- */
 
-export const ORDER_STATUSES = ['placed', 'preparing', 'ready', 'delivered', 'cancelled'];        
+export const ORDER_STATUSES = [
+  'placed',
+  'preparing',
+  'ready',
+  'delivered',
+  'cancelled',
+]
 export const orderStatusSchema = z.enum(ORDER_STATUSES)
-;                                                          
 
-export const ORDER_STATUS_LABELS                              = {
+export const ORDER_STATUS_LABELS = {
   placed: 'Placed',
   preparing: 'Preparing',
   ready: 'Ready',
@@ -117,7 +113,7 @@ export const ORDER_STATUS_LABELS                              = {
  * Left unannotated so the element type stays the 4-step tuple rather than
  * widening back to every OrderStatus.
  */
-export const ORDER_PROGRESS = ['placed', 'preparing', 'ready', 'delivered'];        
+export const ORDER_PROGRESS = ['placed', 'preparing', 'ready', 'delivered']
 
 export const addressSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -131,7 +127,6 @@ export const addressSchema = z.object({
   lat: z.number().optional(),
   lng: z.number().optional(),
 })
-;                                                  
 
 export const orderItemSchema = z.object({
   dishId: z.string(),
@@ -139,20 +134,17 @@ export const orderItemSchema = z.object({
   price: z.number().nonnegative(),
   qty: z.number().int().positive(),
 })
-;                                                      
 
 export const timelineEntrySchema = z.object({
   status: orderStatusSchema,
   at: z.string(), // ISO
 })
-;                                                              
 
 export const cancellationSchema = z.object({
   reason: z.string(),
   /** Dishes the admin marked sold out while cancelling. */
   soldOutDishIds: z.array(z.string()),
 })
-;                                                            
 
 export const orderSchema = z.object({
   id: z.string(),
@@ -172,7 +164,6 @@ export const orderSchema = z.object({
   cancellation: cancellationSchema.optional(),
   createdAt: z.string(),
 })
-;                                              
 
 /* --- User ----------------------------------------------------------------- */
 
@@ -182,7 +173,6 @@ export const publicUserSchema = z.object({
   email: z.email(),
   role: roleSchema,
 })
-;                                                        
 
 /* ============================================================================
    Request payloads
@@ -193,35 +183,35 @@ export const registerSchema = z.object({
   email: z.email('Enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 })
-;                                                         
 
 export const loginSchema = z.object({
   email: z.email('Enter a valid email'),
   password: z.string().min(1, 'Password is required'),
 })
-;                                                   
 
 export const placeOrderSchema = z.object({
   items: z
     .array(z.object({ dishId: z.string(), qty: z.number().int().positive() }))
     .min(1, 'Your cart is empty'),
   address: addressSchema,
-  notes: z.string().max(200, 'Keep the note under 200 characters').optional().default(''),
+  notes: z
+    .string()
+    .max(200, 'Keep the note under 200 characters')
+    .optional()
+    .default(''),
 })
-;                                                             
 
 export const cancelOrderSchema = z.object({
   reason: z.string().min(1, 'Give the customer a reason'),
   /** Empty array = reject the order without marking anything sold out. */
   soldOutDishIds: z.array(z.string()).default([]),
 })
-;                                                               
 
 /* ============================================================================
    Order state machine — enforced on the server (CLAUDE.md §5)
    ========================================================================= */
 
-export const ALLOWED_TRANSITIONS                                              = {
+export const ALLOWED_TRANSITIONS = {
   placed: ['preparing', 'cancelled'],
   preparing: ['ready', 'cancelled'], // cancel allowed here, NEVER after ready
   ready: ['delivered'],
@@ -230,14 +220,14 @@ export const ALLOWED_TRANSITIONS                                              = 
 }
 
 /** Which role is permitted to perform each transition. */
-export const TRANSITION_ROLE                                               = {
+export const TRANSITION_ROLE = {
   preparing: 'admin', // admin accepts → auto-enters preparing
   ready: 'chef', // the chef's single button
   delivered: 'admin', // admin closes the order out
   cancelled: 'admin',
 }
 
-export function canTransition(from             , to             )          {
+export function canTransition(from, to) {
   return ALLOWED_TRANSITIONS[from].includes(to)
 }
 
@@ -249,7 +239,7 @@ export const SOCKET_EVENTS = {
   orderCreated: 'order:created',
   orderUpdated: 'order:updated',
   menuUpdated: 'menu:updated',
-};        
+}
 
 /* ============================================================================
    Business constants
@@ -261,7 +251,7 @@ export const FREE_DELIVERY_ABOVE = 599 // ₹
 export const PREP_TIME_MINUTES = 30
 
 /** True when the dish should carry the red non-veg mark. */
-export function isNonVeg(diet                 )          {
+export function isNonVeg(diet) {
   return diet.includes('non-veg')
 }
 
@@ -296,6 +286,9 @@ export const BRAND = {
   since: '2026',
   instagram: '@healthyeats.demo',
   fssai: '00000000000000',
-  heroPills: ['Cooked fresh daily', 'Macros on every plate', 'Delivering across Pune'],
-};        
-
+  heroPills: [
+    'Cooked fresh daily',
+    'Macros on every plate',
+    'Delivering across Pune',
+  ],
+}

@@ -29,7 +29,7 @@ export function Header() {
 
   useEffect(() => {
     if (!open) return
-    const onKey = (e               ) => e.key === 'Escape' && setOpen(false)
+    const onKey = (e) => e.key === 'Escape' && setOpen(false)
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
     return () => {
@@ -47,7 +47,9 @@ export function Header() {
     >
       <Container className="flex h-[76px] items-center justify-between gap-6 md:h-[92px]">
         <Link to="/" className="flex items-baseline gap-2.5">
-          <span className="font-display text-[24px] leading-none md:text-[28px]">{BRAND.name}</span>
+          <span className="font-display text-[24px] leading-none md:text-[28px]">
+            {BRAND.name}
+          </span>
           <span className="eyebrow text-muted-foreground">{BRAND.city}</span>
         </Link>
 
@@ -110,7 +112,10 @@ export function Header() {
         <nav aria-label="Primary mobile">
           <ul className="flex flex-col px-6 py-2">
             {NAV.map((item) => (
-              <li key={item.to} className="border-b border-border last:border-b-0">
+              <li
+                key={item.to}
+                className="border-b border-border last:border-b-0"
+              >
                 <NavLink
                   to={item.to}
                   end={item.to === '/'}

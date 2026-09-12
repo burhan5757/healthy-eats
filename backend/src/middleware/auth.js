@@ -34,7 +34,9 @@ export function readAuth(req, _res, next) {
       // of the decoded payload. Validate it too — a stale token from an older
       // code version could otherwise carry a different claim shape and leave
       // req.auth.role silently undefined.
-      const parsed = authPayloadSchema.safeParse(jwt.verify(token, config.jwtSecret))
+      const parsed = authPayloadSchema.safeParse(
+        jwt.verify(token, config.jwtSecret),
+      )
       if (parsed.success) {
         req.auth = parsed.data
       }

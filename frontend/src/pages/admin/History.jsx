@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { ORDER_STATUS_LABELS,            } from '@shared/index'
+import { ORDER_STATUS_LABELS } from '@shared/index'
 import { api } from '@/lib/api'
 import { formatINR } from '@/lib/utils'
 
@@ -21,11 +21,19 @@ import { formatINR } from '@/lib/utils'
  * quietly inflating the totals.
  */
 export default function History() {
-  const stats = useQuery({ queryKey: ['admin-stats'], queryFn: api.orders.stats })
-  const orders = useQuery({ queryKey: ['admin-orders'], queryFn: api.orders.all })
+  const stats = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: api.orders.stats,
+  })
+  const orders = useQuery({
+    queryKey: ['admin-orders'],
+    queryFn: api.orders.all,
+  })
 
-  if (stats.isPending) return <p className="text-muted-foreground">Loading figures…</p>
-  if (stats.isError) return <p className="text-destructive">Could not load the figures.</p>
+  if (stats.isPending)
+    return <p className="text-muted-foreground">Loading figures…</p>
+  if (stats.isError)
+    return <p className="text-destructive">Could not load the figures.</p>
 
   const s = stats.data
   const closed = (orders.data?.orders ?? []).filter(
@@ -34,13 +42,29 @@ export default function History() {
 
   return (
     <>
-      <p className="eyebrow text-muted-foreground">Money &amp; order monitoring</p>
-      <h1 className="mt-4 text-[clamp(2rem,4vw,2.75rem)]">Today&apos;s history</h1>
+      <p className="eyebrow text-muted-foreground">
+        Money &amp; order monitoring
+      </p>
+      <h1 className="mt-4 text-[clamp(2rem,4vw,2.75rem)]">
+        Today&apos;s history
+      </h1>
 
       <ul className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat label="Revenue today" value={formatINR(s.todayRevenue)} hint="delivered orders only" />
-        <Stat label="Orders today" value={String(s.todayOrders)} hint="all statuses" />
-        <Stat label="Average order" value={formatINR(s.averageOrderValue)} hint="lifetime" />
+        <Stat
+          label="Revenue today"
+          value={formatINR(s.todayRevenue)}
+          hint="delivered orders only"
+        />
+        <Stat
+          label="Orders today"
+          value={String(s.todayOrders)}
+          hint="all statuses"
+        />
+        <Stat
+          label="Average order"
+          value={formatINR(s.averageOrderValue)}
+          hint="lifetime"
+        />
         <Stat
           label="Lost to cancellations"
           value={formatINR(s.lostToCancellations)}
@@ -51,15 +75,24 @@ export default function History() {
 
       <section className="mt-10 rounded-md border border-border bg-surface p-7">
         <h2 className="font-display text-[24px]">Revenue, last 7 days</h2>
-        <p className="mt-1 text-[13px] text-muted-foreground">Delivered orders, ₹ per day.</p>
+        <p className="mt-1 text-[13px] text-muted-foreground">
+          Delivered orders, ₹ per day.
+        </p>
 
         <div className="mt-8 h-[260px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={s.daily} margin={{ top: 4, right: 4, bottom: 4, left: -12 }}>
-              <CartesianGrid strokeDasharray="2 4" stroke="var(--color-border)" vertical={false} />
+            <BarChart
+              data={s.daily}
+              margin={{ top: 4, right: 4, bottom: 4, left: -12 }}
+            >
+              <CartesianGrid
+                strokeDasharray="2 4"
+                stroke="var(--color-border)"
+                vertical={false}
+              />
               <XAxis
                 dataKey="date"
-                tickFormatter={(d        ) =>
+                tickFormatter={(d) =>
                   new Date(d).toLocaleDateString('en-GB', { weekday: 'short' })
                 }
                 tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }}
@@ -79,17 +112,20 @@ export default function History() {
                   borderRadius: 8,
                   fontSize: 13,
                 }}
-                formatter={((v         ) => [formatINR(Number(v)), 'Revenue'])         }
-                labelFormatter={
-                  ((d         ) =>
-                    new Date(String(d)).toLocaleDateString('en-GB', {
-                      weekday: 'long',
-                      day: 'numeric',
-                      month: 'short',
-                    }))         
+                formatter={(v) => [formatINR(Number(v)), 'Revenue']}
+                labelFormatter={(d) =>
+                  new Date(String(d)).toLocaleDateString('en-GB', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'short',
+                  })
                 }
               />
-              <Bar dataKey="revenue" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="revenue"
+                fill="var(--color-primary)"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -105,7 +141,10 @@ export default function History() {
           ) : (
             <ul className="mt-6 divide-y divide-border border-t border-border">
               {s.topDishes.map((d) => (
-                <li key={d.name} className="flex items-center justify-between gap-4 py-3.5">
+                <li
+                  key={d.name}
+                  className="flex items-center justify-between gap-4 py-3.5"
+                >
                   <span className="text-[14px]">{d.name}</span>
                   <span className="flex items-baseline gap-4">
                     <span className="text-[12px] text-muted-foreground tabular-nums">
@@ -129,10 +168,15 @@ export default function History() {
             </p>
           ) : (
             <ul className="mt-6 divide-y divide-border border-t border-border">
-              {closed.slice(0, 12).map((o       ) => (
-                <li key={o.id} className="flex items-center justify-between gap-4 py-3.5">
+              {closed.slice(0, 12).map((o) => (
+                <li
+                  key={o.id}
+                  className="flex items-center justify-between gap-4 py-3.5"
+                >
                   <span>
-                    <span className="font-display text-[16px] tabular-nums">{o.orderNumber}</span>
+                    <span className="font-display text-[16px] tabular-nums">
+                      {o.orderNumber}
+                    </span>
                     <span className="ml-3 text-[12px] text-muted-foreground">
                       {o.address.name}
                     </span>
@@ -161,17 +205,7 @@ export default function History() {
   )
 }
 
-function Stat({
-  label,
-  value,
-  hint,
-  tone,
-}   
-               
-               
-              
-                
- ) {
+function Stat({ label, value, hint, tone }) {
   return (
     <li className="rounded-md border border-border bg-surface p-6">
       <p className="eyebrow text-muted-foreground">{label}</p>

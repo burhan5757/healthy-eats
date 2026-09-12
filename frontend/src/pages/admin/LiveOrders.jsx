@@ -1,23 +1,33 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ORDER_STATUS_LABELS, SOCKET_EVENTS,                              } from '@shared/index'
+import { ORDER_STATUS_LABELS, SOCKET_EVENTS } from '@shared/index'
 import { api } from '@/lib/api'
 import { getSocket } from '@/lib/socket'
 import { CancelDialog } from '@/components/admin/CancelDialog'
 import { MiniMap } from '@/components/track/MiniMap'
 import { cn, formatINR } from '@/lib/utils'
 
-;                                           
-
-const STATUS_STYLES                                                         = {
-  placed: { badge: 'bg-badge text-terracotta-dark', border: 'border-l-terracotta' },
-  preparing: { badge: 'bg-primary/12 text-primary', border: 'border-l-primary' },
+const STATUS_STYLES = {
+  placed: {
+    badge: 'bg-badge text-terracotta-dark',
+    border: 'border-l-terracotta',
+  },
+  preparing: {
+    badge: 'bg-primary/12 text-primary',
+    border: 'border-l-primary',
+  },
   ready: { badge: 'bg-primary/12 text-primary', border: 'border-l-primary' },
-  delivered: { badge: 'bg-muted text-muted-foreground', border: 'border-l-border' },
-  cancelled: { badge: 'bg-destructive/12 text-destructive', border: 'border-l-destructive' },
+  delivered: {
+    badge: 'bg-muted text-muted-foreground',
+    border: 'border-l-border',
+  },
+  cancelled: {
+    badge: 'bg-destructive/12 text-destructive',
+    border: 'border-l-destructive',
+  },
 }
 
-const BADGE_LABELS                              = {
+const BADGE_LABELS = {
   ...ORDER_STATUS_LABELS,
   preparing: 'Accepted',
   ready: 'Ready to go',
@@ -25,8 +35,8 @@ const BADGE_LABELS                              = {
 
 export default function LiveOrders() {
   const queryClient = useQueryClient()
-  const [filter, setFilter] = useState        ('all')
-  const [cancelling, setCancelling] = useState              (null)
+  const [filter, setFilter] = useState('all')
+  const [cancelling, setCancelling] = useState(null)
   const [now, setNow] = useState(() => Date.now())
 
   const { data, isPending } = useQuery({
@@ -42,7 +52,8 @@ export default function LiveOrders() {
 
   useEffect(() => {
     const socket = getSocket()
-    const refresh = () => queryClient.invalidateQueries({ queryKey: ['admin-orders'] })
+    const refresh = () =>
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] })
     socket.on(SOCKET_EVENTS.orderCreated, refresh)
     socket.on(SOCKET_EVENTS.orderUpdated, refresh)
     return () => {
@@ -57,11 +68,16 @@ export default function LiveOrders() {
     queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
   }
 
-  const accept = useMutation({ mutationFn: api.orders.accept, onSuccess: invalidateAll })
-  const deliver = useMutation({ mutationFn: api.orders.deliver, onSuccess: invalidateAll })
+  const accept = useMutation({
+    mutationFn: api.orders.accept,
+    onSuccess: invalidateAll,
+  })
+  const deliver = useMutation({
+    mutationFn: api.orders.deliver,
+    onSuccess: invalidateAll,
+  })
   const cancel = useMutation({
-    mutationFn: ({ id, input }                                                                     ) =>
-      api.orders.cancel(id, input),
+    mutationFn: ({ id, input }) => api.orders.cancel(id, input),
     onSuccess: () => {
       invalidateAll()
       setCancelling(null)
@@ -76,14 +92,17 @@ export default function LiveOrders() {
       placed: orders.filter((o) => o.status === 'placed').length,
       preparing: orders.filter((o) => o.status === 'preparing').length,
       ready: orders.filter((o) => o.status === 'ready').length,
-      closed: orders.filter((o) => o.status === 'delivered' || o.status === 'cancelled').length,
+      closed: orders.filter(
+        (o) => o.status === 'delivered' || o.status === 'cancelled',
+      ).length,
     }),
     [orders],
   )
 
   const visible = orders.filter((o) => {
     if (filter === 'all') return true
-    if (filter === 'closed') return o.status === 'delivered' || o.status === 'cancelled'
+    if (filter === 'closed')
+      return o.status === 'delivered' || o.status === 'cancelled'
     return o.status === filter
   })
 
@@ -100,8 +119,12 @@ export default function LiveOrders() {
           month: 'long',
           year: 'numeric',
         })}{' '}
-        · {new Date(now).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} ·
-        Service open
+        ·{' '}
+        {new Date(now).toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+        })}{' '}
+        · Service open
       </p>
 
       <h1 className="mt-4 text-[clamp(2rem,4vw,2.75rem)]">Order monitoring</h1>
@@ -112,15 +135,13 @@ export default function LiveOrders() {
         </p>
 
         <div className="no-scrollbar flex gap-2 overflow-x-auto">
-          {(
-            [
-              { key: 'all', label: `All ${counts.all}` },
-              { key: 'placed', label: `Placed ${counts.placed}` },
-              { key: 'preparing', label: `Accepted ${counts.preparing}` },
-              { key: 'ready', label: `Ready ${counts.ready}` },
-              { key: 'closed', label: `Closed ${counts.closed}` },
-            ]         
-          ).map((f) => (
+          {[
+            { key: 'all', label: `All ${counts.all}` },
+            { key: 'placed', label: `Placed ${counts.placed}` },
+            { key: 'preparing', label: `Accepted ${counts.preparing}` },
+            { key: 'ready', label: `Ready ${counts.ready}` },
+            { key: 'closed', label: `Closed ${counts.closed}` },
+          ].map((f) => (
             <button
               key={f.key}
               type="button"
@@ -181,22 +202,13 @@ export default function LiveOrders() {
   )
 }
 
-function OrderCard({
-  order,
-  onAccept,
-  onDeliver,
-  onCancel,
-  busy,
-}   
-              
-                      
-                       
-                      
-               
- ) {
+function OrderCard({ order, onAccept, onDeliver, onCancel, busy }) {
   const style = STATUS_STYLES[order.status]
-  const hhmm = (iso        ) =>
-    new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  const hhmm = (iso) =>
+    new Date(iso).toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
 
   const placedAt = order.timeline[0]?.at ?? order.createdAt
   const statusAt = order.timeline.at(-1)?.at
@@ -227,7 +239,9 @@ function OrderCard({
 
       <div className="flex-1 p-5">
         <div className="flex items-start justify-between gap-3">
-          <p className="font-display text-[22px] tabular-nums">{order.orderNumber}</p>
+          <p className="font-display text-[22px] tabular-nums">
+            {order.orderNumber}
+          </p>
           <span className={cn('eyebrow rounded-sm px-2 py-1', style.badge)}>
             {BADGE_LABELS[order.status]}
           </span>
@@ -236,12 +250,16 @@ function OrderCard({
         <p className="mt-1.5 text-[12px] text-muted-foreground">{meta}</p>
 
         <p className="mt-4 text-[15px] font-semibold">{order.address.name}</p>
-        <p className="text-[13px] text-muted-foreground">+91 {order.address.phone}</p>
+        <p className="text-[13px] text-muted-foreground">
+          +91 {order.address.phone}
+        </p>
 
         <ul className="mt-4 space-y-1.5">
           {order.items.map((item) => (
             <li key={item.dishId} className="flex gap-3 text-[13px]">
-              <span className="text-muted-foreground tabular-nums">{item.qty} ×</span>
+              <span className="text-muted-foreground tabular-nums">
+                {item.qty} ×
+              </span>
               <span>{item.name}</span>
             </li>
           ))}
@@ -255,7 +273,9 @@ function OrderCard({
 
         <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
           <span className="eyebrow text-muted-foreground">Total · cash</span>
-          <span className="font-display text-[20px] tabular-nums">{formatINR(order.total)}</span>
+          <span className="font-display text-[20px] tabular-nums">
+            {formatINR(order.total)}
+          </span>
         </div>
 
         {order.address.lat != null && order.address.lng != null && (

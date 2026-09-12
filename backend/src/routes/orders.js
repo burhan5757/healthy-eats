@@ -7,7 +7,6 @@ import {
   cancelOrderSchema,
   canTransition,
   placeOrderSchema,
-                   
 } from '../../../shared/index.js'
 import { Dish, resetStaleSoldOut, todayKey } from '../models/Dish.js'
 import { Order, generateOrderNumber } from '../models/Order.js'
@@ -18,7 +17,7 @@ import { emit } from '../realtime.js'
 
 export const ordersRouter = Router()
 
-function stamp(status             ) {
+function stamp(status) {
   return { status, at: new Date().toISOString() }
 }
 
@@ -38,7 +37,7 @@ ordersRouter.post(
     await resetStaleSoldOut()
 
     const { items, address, notes } = req.body
-    const dishes = await Dish.find({ _id: { $in: items.map((i                    ) => i.dishId) } })
+    const dishes = await Dish.find({ _id: { $in: items.map((i) => i.dishId) } })
 
     if (dishes.length !== items.length) {
       res.status(400).json({ error: 'One of those dishes no longer exists.' })
@@ -56,15 +55,17 @@ ordersRouter.post(
 
     // Totals are computed from the database, never from the client payload.
     const byId = new Map(dishes.map((d) => [String(d._id), d]))
-    const orderItems = items.map((i                                 ) => {
-      const dish = byId.get(i.dishId) 
-      return { dishId: dish._id, name: dish.name, price: dish.price, qty: i.qty }
+    const orderItems = items.map((i) => {
+      const dish = byId.get(i.dishId)
+      return {
+        dishId: dish._id,
+        name: dish.name,
+        price: dish.price,
+        qty: i.qty,
+      }
     })
 
-    const subtotal = orderItems.reduce(
-      (sum        , i                                ) => sum + i.price * i.qty,
-      0,
-    )
+    const subtotal = orderItems.reduce((sum, i) => sum + i.price * i.qty, 0)
     const deliveryFee = subtotal >= FREE_DELIVERY_ABOVE ? 0 : DELIVERY_FEE
     const packaging = PACKAGING_FEE
 
@@ -110,7 +111,11 @@ ordersRouter.get(
       orderNumber: String(req.params.orderNumber).toUpperCase(),
     })
     if (!order) {
-      res.status(404).json({ error: 'No order with that number. Check the digits and try again.' })
+      res
+        .status(404)
+        .json({
+          error: 'No order with that number. Check the digits and try again.',
+        })
       return
     }
     res.json({ order: toOrder(order) })
@@ -122,7 +127,9 @@ ordersRouter.get(
   '/mine',
   requireAuth,
   asyncRoute(async (req, res) => {
-    const orders = await Order.find({ customerId: req.auth .sub }).sort({ createdAt: -1 })
+    const orders = await Order.find({ customerId: req.auth.sub }).sort({
+      createdAt: -1,
+    })
     res.json({ orders: orders.map(toOrder) })
   }),
 )
@@ -134,7 +141,9 @@ ordersRouter.get(
   asyncRoute(async (_req, res) => {
     // 'placed' is included so the kitchen can SEE what is coming before admin
     // accepts it — but the Ready button stays disabled until it is 'preparing'.
-    const orders = await Order.find({ status: { $in: ['placed', 'preparing', 'ready'] } }).sort({
+    const orders = await Order.find({
+      status: { $in: ['placed', 'preparing', 'ready'] },
+    }).sort({
       createdAt: 1, // oldest first — the kitchen works the queue in order
     })
     res.json({ orders: orders.map(toOrder) })
@@ -146,7 +155,7 @@ ordersRouter.get(
   '/',
   requireRole('admin'),
   asyncRoute(async (req, res) => {
-    const status = req.query.status;                          
+    const status = req.query.status
     const filter = status ? { status } : {}
     const orders = await Order.find(filter).sort({ createdAt: -1 }).limit(200)
     res.json({ orders: orders.map(toOrder) })
@@ -163,13 +172,12 @@ ordersRouter.get(
     const startOfToday = new Date()
     startOfToday.setHours(0, 0, 0, 0)
 
-    const isToday = (o                         ) =>
-      (o                                  ).createdAt >= startOfToday
+    const isToday = (o) => o.createdAt >= startOfToday
 
-    const sum = (list               ) => list.reduce((s, o) => s + o.total, 0)
+    const sum = (list) => list.reduce((s, o) => s + o.total, 0)
 
     // Revenue by dish, from delivered orders only.
-    const byDish = new Map                                                        ()
+    const byDish = new Map()
     for (const o of earned) {
       for (const i of o.items) {
         const key = String(i.dishId)
@@ -181,7 +189,7 @@ ordersRouter.get(
     }
 
     // Last 7 days of delivered revenue, oldest first.
-    const daily                                      = []
+    const daily = []
     for (let d = 6; d >= 0; d--) {
       const day = new Date()
       day.setDate(day.getDate() - d)
@@ -189,10 +197,7 @@ ordersRouter.get(
       daily.push({
         date: key,
         revenue: sum(
-          earned.filter(
-            (o) =>
-              (o                                  ).createdAt.toLocaleDateString('en-CA') === key,
-          ),
+          earned.filter((o) => o.createdAt.toLocaleDateString('en-CA') === key),
         ),
       })
     }
@@ -202,10 +207,14 @@ ordersRouter.get(
       todayOrders: orders.filter(isToday).length,
       pending: orders.filter((o) => o.status === 'placed').length,
       inKitchen: orders.filter((o) => o.status === 'preparing').length,
-      averageOrderValue: earned.length ? Math.round(sum(earned) / earned.length) : 0,
+      averageOrderValue: earned.length
+        ? Math.round(sum(earned) / earned.length)
+        : 0,
       lostToCancellations: sum(orders.filter((o) => o.status === 'cancelled')),
       daily,
-      topDishes: [...byDish.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 8),
+      topDishes: [...byDish.values()]
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 8),
     })
   }),
 )
@@ -220,8 +229,8 @@ ordersRouter.get(
       res.status(404).json({ error: 'Order not found.' })
       return
     }
-    const isOwner = String(order.customerId) === req.auth .sub
-    const isStaff = req.auth .role === 'admin' || req.auth .role === 'chef'
+    const isOwner = String(order.customerId) === req.auth.sub
+    const isStaff = req.auth.role === 'admin' || req.auth.role === 'chef'
     if (!isOwner && !isStaff) {
       res.status(403).json({ error: 'You do not have access to this order.' })
       return
@@ -234,13 +243,13 @@ ordersRouter.get(
    Transitions — the state machine (CLAUDE.md §5)
    ========================================================================= */
 
-async function transition(id        , to             ) {
+async function transition(id, to) {
   const order = await Order.findById(id)
-  if (!order) return { error: 'notfound'          }
+  if (!order) return { error: 'notfound' }
 
-  const from = order.status;              
+  const from = order.status
   if (!canTransition(from, to)) {
-    return { error: 'illegal'         , from, to }
+    return { error: 'illegal', from, to }
   }
 
   order.status = to
@@ -249,10 +258,7 @@ async function transition(id        , to             ) {
   return { order }
 }
 
-function respond(
-  res                            ,
-  result                                        ,
-) {
+function respond(res, result) {
   if ('error' in result) {
     if (result.error === 'notfound') {
       res.status(404).json({ error: 'Order not found.' })
@@ -272,7 +278,7 @@ ordersRouter.post(
   '/:id/accept',
   requireRole('admin'),
   asyncRoute(async (req, res) => {
-    respond(res, await transition(String(req.params.id),'preparing'))
+    respond(res, await transition(String(req.params.id), 'preparing'))
   }),
 )
 
@@ -281,7 +287,7 @@ ordersRouter.post(
   '/:id/ready',
   requireRole('chef', 'admin'),
   asyncRoute(async (req, res) => {
-    respond(res, await transition(String(req.params.id),'ready'))
+    respond(res, await transition(String(req.params.id), 'ready'))
   }),
 )
 
@@ -290,7 +296,7 @@ ordersRouter.post(
   '/:id/deliver',
   requireRole('admin'),
   asyncRoute(async (req, res) => {
-    respond(res, await transition(String(req.params.id),'delivered'))
+    respond(res, await transition(String(req.params.id), 'delivered'))
   }),
 )
 
@@ -312,7 +318,7 @@ ordersRouter.post(
       return
     }
 
-    const from = order.status;              
+    const from = order.status
     if (!canTransition(from, 'cancelled')) {
       res.status(409).json({
         error:
@@ -325,11 +331,11 @@ ordersRouter.post(
 
     // Only dishes actually in this order may be marked sold out.
     const orderDishIds = new Set(order.items.map((i) => String(i.dishId)))
-    const validSoldOut = (soldOutDishIds            ).filter((id) => orderDishIds.has(id))
+    const validSoldOut = soldOutDishIds.filter((id) => orderDishIds.has(id))
 
     order.status = 'cancelled'
     order.timeline.push(stamp('cancelled'))
-    order.cancellation = { reason, soldOutDishIds: validSoldOut          }
+    order.cancellation = { reason, soldOutDishIds: validSoldOut }
     await order.save()
 
     if (validSoldOut.length > 0) {
@@ -339,7 +345,9 @@ ordersRouter.post(
       )
       const updated = await Dish.find({ _id: { $in: validSoldOut } })
       for (const d of updated) {
-        emit(SOCKET_EVENTS.menuUpdated, { dish: { id: String(d._id), availableToday: false } })
+        emit(SOCKET_EVENTS.menuUpdated, {
+          dish: { id: String(d._id), availableToday: false },
+        })
       }
     }
 

@@ -1,5 +1,4 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-;                                        
 import { useAuth } from '@/store/auth'
 import { Container } from '@/components/ui/primitives'
 
@@ -11,13 +10,15 @@ import { Container } from '@/components/ui/primitives'
  * customer hitting an admin endpoint regardless of what the browser does
  * (CLAUDE.md §10).
  */
-export function RequireRole({ roles }                   ) {
+export function RequireRole({ roles }) {
   const { user, loading } = useAuth()
   const location = useLocation()
 
   if (loading) {
     return (
-      <Container className="py-32 text-center text-muted-foreground">Checking access…</Container>
+      <Container className="py-32 text-center text-muted-foreground">
+        Checking access…
+      </Container>
     )
   }
 
@@ -29,8 +30,8 @@ export function RequireRole({ roles }                   ) {
         <p className="eyebrow text-muted-foreground">Not permitted</p>
         <h1 className="mt-4 text-4xl">This area isn&apos;t yours</h1>
         <p className="mx-auto mt-4 max-w-[44ch] text-[15px] leading-relaxed text-muted-foreground">
-          You&apos;re signed in as {user.name} ({user.role}). Only the admin account can open the
-          monitoring dashboard.
+          You&apos;re signed in as {user.name} ({user.role}). Only the admin
+          account can open the monitoring dashboard.
         </p>
       </Container>
     )

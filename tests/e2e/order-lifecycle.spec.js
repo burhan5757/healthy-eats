@@ -1,4 +1,4 @@
-import { expect, test,           } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 /**
  * The order lifecycle across all three screens — the behaviour the whole product
@@ -8,7 +8,7 @@ import { expect, test,           } from '@playwright/test'
 const ADMIN = { email: 'admin@healthyeats.in', password: 'admin123' }
 const CHEF = { email: 'chef@healthyeats.in', password: 'chef123' }
 
-async function signIn(page      , who                                     ) {
+async function signIn(page, who) {
   await page.goto('/login')
   await page.fill('#email', who.email)
   await page.fill('#password', who.password)
@@ -17,9 +17,11 @@ async function signIn(page      , who                                     ) {
 }
 
 /** Adds `count` distinct dishes and checks out as a guest. Returns the order number. */
-async function placeGuestOrder(page      , count = 2, notes = 'No peanut - allergy') {
+async function placeGuestOrder(page, count = 2, notes = 'No peanut - allergy') {
   await page.goto('/menu')
-  await expect(page.getByRole('heading', { name: /Everything on the pass/ })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: /Everything on the pass/ }),
+  ).toBeVisible()
 
   for (let i = 0; i < count; i++) {
     // The first "Add" shifts to a stepper each time, so nth(0) walks the list.
@@ -27,7 +29,9 @@ async function placeGuestOrder(page      , count = 2, notes = 'No peanut - aller
   }
 
   await page.getByRole('link', { name: 'Checkout' }).click()
-  await expect(page.getByRole('heading', { name: /Where should the rider come/ })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: /Where should the rider come/ }),
+  ).toBeVisible()
 
   await page.fill('#name', 'Rohit Kulkarni')
   await page.fill('#phone', '9860422190')
@@ -38,11 +42,13 @@ async function placeGuestOrder(page      , count = 2, notes = 'No peanut - aller
   await page.getByRole('button', { name: 'Place Order' }).click()
   await page.waitForURL(/\/track\/HE-\d+/)
 
-  return page.url().split('/').pop() 
+  return page.url().split('/').pop()
 }
 
 test.describe('guest checkout', () => {
-  test('a customer can order without an account and gets a tracking number', async ({ page }) => {
+  test('a customer can order without an account and gets a tracking number', async ({
+    page,
+  }) => {
     const orderNumber = await placeGuestOrder(page)
 
     expect(orderNumber).toMatch(/^HE-\d{4}$/)
@@ -86,11 +92,16 @@ test.describe('guest checkout', () => {
     await expect(page.getByText('2 items')).toBeVisible()
 
     // The card swaps to a stepper, and it drives the same cart
-    await page.getByRole('button', { name: /One more/ }).first().click()
+    await page
+      .getByRole('button', { name: /One more/ })
+      .first()
+      .click()
     await expect(page.getByText('3 items')).toBeVisible()
 
     await page.getByRole('link', { name: 'Checkout' }).click()
-    await expect(page.getByRole('heading', { name: /Where should the rider come/ })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: /Where should the rider come/ }),
+    ).toBeVisible()
   })
 
   /**
@@ -98,7 +109,9 @@ test.describe('guest checkout', () => {
    * untouched map still sent the rider a pin pointing at the restaurant.
    * Geocoding is deliberately not asserted here — it is a third-party lookup.
    */
-  test('the delivery pin starts empty and lands where the customer taps', async ({ page }) => {
+  test('the delivery pin starts empty and lands where the customer taps', async ({
+    page,
+  }) => {
     await page.goto('/menu')
     await page.getByRole('button', { name: 'Add', exact: true }).first().click()
     await page.getByRole('link', { name: 'Checkout' }).click()
@@ -112,7 +125,9 @@ test.describe('guest checkout', () => {
     await expect(page.getByText(/km from the kitchen/)).toBeVisible()
   })
 
-  test('searching for an address does not submit the checkout form', async ({ page }) => {
+  test('searching for an address does not submit the checkout form', async ({
+    page,
+  }) => {
     await page.goto('/menu')
     await page.getByRole('button', { name: 'Add', exact: true }).first().click()
     await page.getByRole('link', { name: 'Checkout' }).click()
@@ -125,14 +140,20 @@ test.describe('guest checkout', () => {
     await expect(page.getByText('Name is required')).toBeHidden()
   })
 
-  test('tracking an unknown order number fails gracefully', async ({ page }) => {
+  test('tracking an unknown order number fails gracefully', async ({
+    page,
+  }) => {
     await page.goto('/track/HE-0000')
-    await expect(page.getByRole('heading', { name: /can't find that order/i })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: /can't find that order/i }),
+    ).toBeVisible()
   })
 })
 
 test.describe('the three-screen loop', () => {
-  test('an order flows customer to admin to chef and back', async ({ browser }) => {
+  test('an order flows customer to admin to chef and back', async ({
+    browser,
+  }) => {
     const customer = await browser.newPage()
     const admin = await browser.newPage()
     const chef = await browser.newPage()
@@ -148,31 +169,45 @@ test.describe('the three-screen loop', () => {
     await expect(adminCard.getByText('Placed')).toBeVisible()
 
     // 2. The kitchen can see it, but must not start it yet.
-    const chefTicket = chef.locator('article').filter({ hasText: orderNumber.replace('HE-', '') })
+    const chefTicket = chef
+      .locator('article')
+      .filter({ hasText: orderNumber.replace('HE-', '') })
     await expect(chefTicket).toBeVisible({ timeout: 15_000 })
-    await expect(chefTicket.getByText('Waiting for admin to accept')).toBeVisible()
-    await expect(chefTicket.getByRole('button', { name: 'Ready to Go' })).toHaveCount(0)
+    await expect(
+      chefTicket.getByText('Waiting for admin to accept'),
+    ).toBeVisible()
+    await expect(
+      chefTicket.getByRole('button', { name: 'Ready to Go' }),
+    ).toHaveCount(0)
 
     // The allergy note reaches the person cooking.
     await expect(chefTicket.getByText('No peanut - allergy')).toBeVisible()
 
     // 3. Admin accepts — the chef's button appears live, with no reload.
     await adminCard.getByRole('button', { name: 'Accept' }).click()
-    await expect(chefTicket.getByRole('button', { name: 'Ready to Go' })).toBeVisible({
+    await expect(
+      chefTicket.getByRole('button', { name: 'Ready to Go' }),
+    ).toBeVisible({
       timeout: 15_000,
     })
 
     // 4. Chef sends it to the pass.
     await chefTicket.getByRole('button', { name: 'Ready to Go' }).click()
-    await expect(chefTicket.getByText('waiting for rider')).toBeVisible({ timeout: 15_000 })
+    await expect(chefTicket.getByText('waiting for rider')).toBeVisible({
+      timeout: 15_000,
+    })
 
     // 5. Admin closes it out.
     const readyCard = admin.locator('article').filter({ hasText: orderNumber })
-    await expect(readyCard.getByRole('button', { name: 'Mark delivered' })).toBeVisible({
+    await expect(
+      readyCard.getByRole('button', { name: 'Mark delivered' }),
+    ).toBeVisible({
       timeout: 15_000,
     })
     await readyCard.getByRole('button', { name: 'Mark delivered' }).click()
-    await expect(readyCard.getByText('Delivered')).toBeVisible({ timeout: 15_000 })
+    await expect(readyCard.getByText('Delivered')).toBeVisible({
+      timeout: 15_000,
+    })
 
     // 6. The customer sees the finished journey.
     await customer.reload()
@@ -192,7 +227,9 @@ test.describe('the three-screen loop', () => {
     await expect(card).toBeVisible({ timeout: 15_000 })
 
     // Capture the dish the admin is about to declare sold out.
-    const firstDish = (await card.locator('li').first().innerText()).replace(/^\d+\s*×\s*/, '').trim()
+    const firstDish = (await card.locator('li').first().innerText())
+      .replace(/^\d+\s*×\s*/, '')
+      .trim()
 
     await card.getByRole('button', { name: 'Cancel' }).click()
     const dialog = admin.getByRole('dialog')
@@ -204,19 +241,29 @@ test.describe('the three-screen loop', () => {
 
     // The customer is told which dish ran out.
     await customer.reload()
-    await expect(customer.getByText(/kitchen couldn't take this order/i)).toBeVisible()
+    await expect(
+      customer.getByText(/kitchen couldn't take this order/i),
+    ).toBeVisible()
     await expect(customer.getByText(/Sold out:/)).toBeVisible()
 
     // The public menu now refuses that dish.
     const menu = await browser.newPage()
     await menu.goto('/menu')
     const soldOutCard = menu.locator('article').filter({ hasText: firstDish })
-    await expect(soldOutCard.getByText('Unavailable today')).toBeVisible({ timeout: 15_000 })
-    await expect(soldOutCard.getByRole('button', { name: 'Sold out' })).toBeDisabled()
+    await expect(soldOutCard.getByText('Unavailable today')).toBeVisible({
+      timeout: 15_000,
+    })
+    await expect(
+      soldOutCard.getByRole('button', { name: 'Sold out' }),
+    ).toBeDisabled()
 
     // Put it back so the suite can run again.
     await admin.goto('/admin/menu')
-    const row = admin.locator('div').filter({ hasText: firstDish }).getByRole('switch').first()
+    const row = admin
+      .locator('div')
+      .filter({ hasText: firstDish })
+      .getByRole('switch')
+      .first()
     await row.click()
   })
 })

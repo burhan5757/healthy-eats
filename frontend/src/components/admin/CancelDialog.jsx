@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-;                                         
 import { cn } from '@/lib/utils'
 
 /**
@@ -8,23 +7,13 @@ import { cn } from '@/lib/utils'
  * (CLAUDE.md §3). Picking nothing is allowed: that rejects the order without
  * touching the menu.
  */
-export function CancelDialog({
-  order,
-  onClose,
-  onConfirm,
-  busy,
-}   
-              
-                     
-                                                                          
-               
- ) {
-  const [selected, setSelected] = useState          ([])
+export function CancelDialog({ order, onClose, onConfirm, busy }) {
+  const [selected, setSelected] = useState([])
   const [reason, setReason] = useState('')
-  const dialogRef = useRef                (null)
+  const dialogRef = useRef(null)
 
   useEffect(() => {
-    const onKey = (e               ) => e.key === 'Escape' && onClose()
+    const onKey = (e) => e.key === 'Escape' && onClose()
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
     return () => {
@@ -33,8 +22,10 @@ export function CancelDialog({
     }
   }, [onClose])
 
-  const toggle = (dishId        ) =>
-    setSelected((s) => (s.includes(dishId) ? s.filter((x) => x !== dishId) : [...s, dishId]))
+  const toggle = (dishId) =>
+    setSelected((s) =>
+      s.includes(dishId) ? s.filter((x) => x !== dishId) : [...s, dishId],
+    )
 
   // The reason the customer reads. Auto-written from the picks, still editable.
   const autoReason =
@@ -44,7 +35,8 @@ export function CancelDialog({
           .map((i) => i.name)
           .join(', ')}`
       : ''
-  const finalReason = reason.trim() || autoReason || 'The kitchen could not take this order.'
+  const finalReason =
+    reason.trim() || autoReason || 'The kitchen could not take this order.'
 
   return (
     <div
@@ -58,13 +50,17 @@ export function CancelDialog({
         aria-labelledby="cancel-title"
         className="w-full max-w-[520px] rounded-md border border-border bg-surface p-7"
       >
-        <p className="eyebrow text-muted-foreground">Cancel {order.orderNumber}</p>
+        <p className="eyebrow text-muted-foreground">
+          Cancel {order.orderNumber}
+        </p>
         <h2 id="cancel-title" className="mt-3 font-display text-[26px]">
           Which dish ran out?
         </h2>
         <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
-          Anything you tick goes <strong className="text-foreground">Unavailable today</strong> on
-          the public menu and resets tomorrow. Tick nothing to just reject this order.
+          Anything you tick goes{' '}
+          <strong className="text-foreground">Unavailable today</strong> on the
+          public menu and resets tomorrow. Tick nothing to just reject this
+          order.
         </p>
 
         <ul className="mt-6 space-y-2">
@@ -75,7 +71,9 @@ export function CancelDialog({
                 <label
                   className={cn(
                     'flex cursor-pointer items-center gap-3 rounded-sm border px-4 py-3 transition-colors duration-150',
-                    on ? 'border-destructive bg-destructive/8' : 'border-border hover:border-primary/50',
+                    on
+                      ? 'border-destructive bg-destructive/8'
+                      : 'border-border hover:border-primary/50',
                   )}
                 >
                   <input
@@ -85,7 +83,9 @@ export function CancelDialog({
                     className="size-4 accent-[var(--he-alert,#a8442f)]"
                   />
                   <span className="flex-1 text-[15px]">{item.name}</span>
-                  <span className="text-[13px] text-muted-foreground">× {item.qty}</span>
+                  <span className="text-[13px] text-muted-foreground">
+                    × {item.qty}
+                  </span>
                 </label>
               </li>
             )
@@ -93,7 +93,10 @@ export function CancelDialog({
         </ul>
 
         <div className="mt-6">
-          <label htmlFor="cancel-reason" className="eyebrow block text-muted-foreground">
+          <label
+            htmlFor="cancel-reason"
+            className="eyebrow block text-muted-foreground"
+          >
             Reason the customer sees
           </label>
           <input
@@ -116,7 +119,9 @@ export function CancelDialog({
           <button
             type="button"
             disabled={busy}
-            onClick={() => onConfirm({ reason: finalReason, soldOutDishIds: selected })}
+            onClick={() =>
+              onConfirm({ reason: finalReason, soldOutDishIds: selected })
+            }
             className="rounded-full bg-destructive px-6 py-3 text-[14px] font-semibold text-destructive-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
           >
             {busy ? 'Cancelling…' : 'Cancel this order'}

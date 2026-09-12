@@ -1,5 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState,                } from 'react'
-;                                                    
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { api } from '@/lib/api'
 
 /**
@@ -11,17 +10,10 @@ import { api } from '@/lib/api'
  * permission decision is still made server-side.
  */
 
-;                 
-                         
-                  
-                                         
-                             
- 
+const AuthContext = createContext(null)
 
-const AuthContext = createContext                  (null)
-
-export function AuthProvider({ children }                         ) {
-  const [user, setUser] = useState                   (null)
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -32,7 +24,7 @@ export function AuthProvider({ children }                         ) {
       .finally(() => setLoading(false))
   }, [])
 
-  const value = useMemo           (
+  const value = useMemo(
     () => ({
       user,
       loading,
@@ -48,12 +40,12 @@ export function AuthProvider({ children }                         ) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export function useAuth()            {
+export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>')
   return ctx
 }
 
-export function hasRole(user                   , ...roles        )          {
+export function hasRole(user, ...roles) {
   return Boolean(user && roles.includes(user.role))
 }

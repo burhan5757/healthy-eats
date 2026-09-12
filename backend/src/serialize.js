@@ -1,11 +1,6 @@
-                                                                    
-                                               
-                                                 
-                                               
-
 /** Mongoose docs → the shared wire shapes. `_id` never leaks to the client. */
 
-export function toDish(d         )       {
+export function toDish(d) {
   const nutrition = d.nutrition
   return {
     id: String(d._id),
@@ -24,17 +19,17 @@ export function toDish(d         )       {
           fat: nutrition.fat,
         }
       : undefined,
-    goals: d.goals                 ,
-    timing: d.timing                  ,
-    diet: d.diet                ,
+    goals: d.goals,
+    timing: d.timing,
+    diet: d.diet,
     isBestseller: d.isBestseller,
     isTodaysSpecial: d.isTodaysSpecial,
     availableToday: d.availableToday,
   }
 }
 
-export function toOrder(o          )        {
-  const address = o.address 
+export function toOrder(o) {
+  const address = o.address
   return {
     id: String(o._id),
     orderNumber: o.orderNumber,
@@ -59,23 +54,23 @@ export function toOrder(o          )        {
       lng: address.lng ?? undefined,
     },
     notes: o.notes ?? '',
-    status: o.status                   ,
-    timeline: o.timeline.map((t) => ({ status: t.status                   , at: t.at })),
+    status: o.status,
+    timeline: o.timeline.map((t) => ({ status: t.status, at: t.at })),
     cancellation: o.cancellation
       ? {
           reason: o.cancellation.reason,
           soldOutDishIds: o.cancellation.soldOutDishIds.map(String),
         }
       : undefined,
-    createdAt: (o                                  ).createdAt.toISOString(),
+    createdAt: o.createdAt.toISOString(),
   }
 }
 
-export function toPublicUser(u         )             {
+export function toPublicUser(u) {
   return {
     id: String(u._id),
     name: u.name,
     email: u.email,
-    role: u.role                      ,
+    role: u.role,
   }
 }

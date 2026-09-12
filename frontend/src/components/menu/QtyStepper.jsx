@@ -11,13 +11,7 @@ export function QtyStepper({
   onIncrease,
   dishName,
   className,
-}   
-             
-                        
-                        
-                  
-                    
- ) {
+}) {
   return (
     <div
       className={cn(

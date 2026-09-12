@@ -1,7 +1,5 @@
 import { cn } from '@/lib/utils'
 
-;                                                 
-
 /**
  * Two controls, matching the menu design:
  *  - a row of category pills (All + goal packages + cuisine sections)
@@ -13,13 +11,7 @@ export function MenuFilters({
   onCategoryChange,
   diet,
   onDietChange,
-}   
-                                              
-                
-                                         
-                  
-                                       
- ) {
+}) {
   return (
     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
       <div
@@ -53,13 +45,11 @@ export function MenuFilters({
         aria-label="Filter by diet"
         className="flex shrink-0 self-start rounded-full border border-border p-1 lg:self-auto"
       >
-        {(
-          [
-            { key: 'all', label: 'All' },
-            { key: 'veg', label: 'Veg' },
-            { key: 'non-veg', label: 'Non-veg' },
-          ]         
-        ).map((d) => {
+        {[
+          { key: 'all', label: 'All' },
+          { key: 'veg', label: 'Veg' },
+          { key: 'non-veg', label: 'Non-veg' },
+        ].map((d) => {
           const isActive = diet === d.key
           return (
             <button

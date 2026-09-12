@@ -28,13 +28,18 @@ export default function Login() {
     },
   })
 
-  if (user) return <Navigate to={user.role === 'chef' ? '/kitchen' : '/admin'} replace />
+  if (user)
+    return (
+      <Navigate to={user.role === 'chef' ? '/kitchen' : '/admin'} replace />
+    )
 
   return (
     <div className="grid min-h-dvh place-items-center py-16">
       <Container className="max-w-[460px]">
         <Link to="/" className="flex items-baseline justify-center gap-2.5">
-          <span className="font-display text-[30px] leading-none">{BRAND.name}</span>
+          <span className="font-display text-[30px] leading-none">
+            {BRAND.name}
+          </span>
           <span className="eyebrow text-muted-foreground">{BRAND.city}</span>
         </Link>
 
@@ -53,7 +58,10 @@ export default function Login() {
             }}
           >
             <div>
-              <label htmlFor="email" className="eyebrow block text-muted-foreground">
+              <label
+                htmlFor="email"
+                className="eyebrow block text-muted-foreground"
+              >
                 Email
               </label>
               <input
@@ -67,7 +75,10 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="eyebrow block text-muted-foreground">
+              <label
+                htmlFor="password"
+                className="eyebrow block text-muted-foreground"
+              >
                 Password
               </label>
               <input
@@ -81,8 +92,13 @@ export default function Login() {
             </div>
 
             {login.isError && (
-              <p role="alert" className="rounded-sm bg-destructive/10 p-3 text-[13px] text-destructive">
-                {login.error instanceof ApiError ? login.error.message : 'Could not sign in.'}
+              <p
+                role="alert"
+                className="rounded-sm bg-destructive/10 p-3 text-[13px] text-destructive"
+              >
+                {login.error instanceof ApiError
+                  ? login.error.message
+                  : 'Could not sign in.'}
               </p>
             )}
 
@@ -104,10 +120,12 @@ export default function Login() {
           <p className="eyebrow text-muted-foreground">Demo accounts</p>
           <ul className="mt-3 space-y-1.5 text-muted-foreground">
             <li>
-              <strong className="text-foreground">Admin</strong> · admin@healthyeats.in / admin123
+              <strong className="text-foreground">Admin</strong> ·
+              admin@healthyeats.in / admin123
             </li>
             <li>
-              <strong className="text-foreground">Chef</strong> · chef@healthyeats.in / chef123
+              <strong className="text-foreground">Chef</strong> ·
+              chef@healthyeats.in / chef123
             </li>
           </ul>
         </div>

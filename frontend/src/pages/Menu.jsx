@@ -1,26 +1,29 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { GOALS, GOAL_LABELS, isNonVeg,                      } from '@shared/index'
+import { GOALS, GOAL_LABELS, isNonVeg } from '@shared/index'
 import { api } from '@/lib/api'
 import { Container, Eyebrow } from '@/components/ui/primitives'
 import { MenuDishCard } from '@/components/menu/MenuDishCard'
-import { MenuFilters,                 } from '@/components/menu/MenuFilters'
+import { MenuFilters } from '@/components/menu/MenuFilters'
 import { CartBar } from '@/components/menu/CartBar'
 
 /** Cuisine sections sit alongside the goal packages in the filter row. */
-const CUISINE_SECTIONS = ['Indian & Tandoor', 'Salads & Steam', 'Add-ons'];        
+const CUISINE_SECTIONS = ['Indian & Tandoor', 'Salads & Steam', 'Add-ons']
 
 export default function Menu() {
   const [params, setParams] = useSearchParams()
-  const [diet, setDiet] = useState            ('all')
+  const [diet, setDiet] = useState('all')
 
   // The active category comes from the URL so the landing page's collection
   // tiles can deep-link straight into a filtered menu.
   const active = params.get('goal') ?? params.get('category') ?? 'all'
 
-  const { data, isPending, isError } = useQuery({ queryKey: ['menu'], queryFn: api.menu.list })
-  const dishes         = useMemo(() => data?.dishes ?? [], [data])
+  const { data, isPending, isError } = useQuery({
+    queryKey: ['menu'],
+    queryFn: api.menu.list,
+  })
+  const dishes = useMemo(() => data?.dishes ?? [], [data])
 
   const categories = useMemo(
     () => [
@@ -34,21 +37,20 @@ export default function Menu() {
   const filtered = useMemo(() => {
     return dishes.filter((d) => {
       const matchesCategory =
-        active === 'all' ||
-        d.goals.includes(active        ) ||
-        d.category === active
+        active === 'all' || d.goals.includes(active) || d.category === active
 
       const matchesDiet =
-        diet === 'all' || (diet === 'non-veg' ? isNonVeg(d.diet) : !isNonVeg(d.diet))
+        diet === 'all' ||
+        (diet === 'non-veg' ? isNonVeg(d.diet) : !isNonVeg(d.diet))
 
       return matchesCategory && matchesDiet
     })
   }, [dishes, active, diet])
 
-  const handleCategory = (key        ) => {
+  const handleCategory = (key) => {
     if (key === 'all') {
       setParams({}, { replace: true })
-    } else if ((GOALS                     ).includes(key)) {
+    } else if (GOALS.includes(key)) {
       setParams({ goal: key }, { replace: true })
     } else {
       setParams({ category: key }, { replace: true })
@@ -63,7 +65,8 @@ export default function Menu() {
           the last row of cards. */}
       <Container className="pt-16 pb-40 sm:pb-36">
         <Eyebrow>
-          Full menu · {dishes.length} {dishes.length === 1 ? 'dish' : 'dishes'} today
+          Full menu · {dishes.length} {dishes.length === 1 ? 'dish' : 'dishes'}{' '}
+          today
         </Eyebrow>
 
         <div className="mt-4 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
@@ -71,8 +74,8 @@ export default function Menu() {
             Everything on the pass today
           </h1>
           <p className="max-w-[42ch] text-[15px] leading-relaxed text-muted-foreground lg:pb-2">
-            Filter by what you&apos;re training for. Macros are per portion as served — nothing is
-            rounded up.
+            Filter by what you&apos;re training for. Macros are per portion as
+            served — nothing is rounded up.
           </p>
         </div>
 
@@ -93,12 +96,18 @@ export default function Menu() {
         ) : (
           <>
             <p className="mt-10 text-[13px] text-muted-foreground">
-              Showing {filtered.length} of {dishes.length} dishes · {activeLabel}
+              Showing {filtered.length} of {dishes.length} dishes ·{' '}
+              {activeLabel}
               {diet !== 'all' && ` · ${diet === 'veg' ? 'Veg' : 'Non-veg'}`}
             </p>
 
             {filtered.length === 0 ? (
-              <EmptyResult onReset={() => { handleCategory('all'); setDiet('all') }} />
+              <EmptyResult
+                onReset={() => {
+                  handleCategory('all')
+                  setDiet('all')
+                }}
+              />
             ) : (
               <ul className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filtered.map((dish) => (
@@ -124,7 +133,10 @@ function MenuSkeleton() {
       aria-busy
     >
       {Array.from({ length: 8 }).map((_, i) => (
-        <li key={i} className="overflow-hidden rounded-md border border-border bg-surface">
+        <li
+          key={i}
+          className="overflow-hidden rounded-md border border-border bg-surface"
+        >
           <div className="aspect-[4/3] bg-muted" />
           <div className="space-y-3 p-5">
             <div className="h-5 w-20 rounded bg-muted" />
@@ -139,12 +151,13 @@ function MenuSkeleton() {
   )
 }
 
-function EmptyResult({ onReset }                         ) {
+function EmptyResult({ onReset }) {
   return (
     <div className="mt-6 rounded-md border border-border bg-surface px-8 py-20 text-center">
       <h2 className="font-display text-[26px]">Nothing on the pass for that</h2>
       <p className="mx-auto mt-3 max-w-[42ch] text-[15px] leading-relaxed text-muted-foreground">
-        No dish matches that combination today. Try a different goal, or clear the filters.
+        No dish matches that combination today. Try a different goal, or clear
+        the filters.
       </p>
       <button
         type="button"
@@ -162,7 +175,8 @@ function MenuError() {
     <div className="mt-16 rounded-md border border-border bg-surface px-8 py-20 text-center">
       <h2 className="font-display text-[26px]">The kitchen is not answering</h2>
       <p className="mx-auto mt-3 max-w-[44ch] text-[15px] leading-relaxed text-muted-foreground">
-        We could not load the menu just now. Check that the server is running, then try again.
+        We could not load the menu just now. Check that the server is running,
+        then try again.
       </p>
       <button
         type="button"

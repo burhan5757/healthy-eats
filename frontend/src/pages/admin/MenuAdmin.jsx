@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { GOAL_LABELS,           } from '@shared/index'
+import { GOAL_LABELS } from '@shared/index'
 import { api } from '@/lib/api'
 import { VegMark } from '@/components/menu/VegMark'
 import { cn, formatINR } from '@/lib/utils'
@@ -11,15 +11,19 @@ import { cn, formatINR } from '@/lib/utils'
  */
 export default function MenuAdmin() {
   const queryClient = useQueryClient()
-  const { data, isPending } = useQuery({ queryKey: ['menu'], queryFn: api.menu.list })
+  const { data, isPending } = useQuery({
+    queryKey: ['menu'],
+    queryFn: api.menu.list,
+  })
 
   const setAvailability = useMutation({
-    mutationFn: ({ id, available }                                    ) =>
+    mutationFn: ({ id, available }) =>
       api.menuAdmin.setAvailability(id, available),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['menu'] }),
   })
 
-  if (isPending) return <p className="text-muted-foreground">Loading the menu…</p>
+  if (isPending)
+    return <p className="text-muted-foreground">Loading the menu…</p>
 
   const dishes = data?.dishes ?? []
   const soldOut = dishes.filter((d) => !d.availableToday)
@@ -27,17 +31,23 @@ export default function MenuAdmin() {
   return (
     <>
       <p className="eyebrow text-muted-foreground">Menu availability</p>
-      <h1 className="mt-4 text-[clamp(2rem,4vw,2.75rem)]">What&apos;s on the pass</h1>
+      <h1 className="mt-4 text-[clamp(2rem,4vw,2.75rem)]">
+        What&apos;s on the pass
+      </h1>
       <p className="mt-4 max-w-[56ch] text-[15px] leading-relaxed text-muted-foreground">
         Turning a dish off hides it from ordering and shows{' '}
-        <strong className="text-foreground">Unavailable today</strong> on the public menu. Everything
-        comes back automatically tomorrow.
+        <strong className="text-foreground">Unavailable today</strong> on the
+        public menu. Everything comes back automatically tomorrow.
       </p>
 
       {soldOut.length > 0 && (
         <div className="mt-8 rounded-md border border-destructive/30 bg-destructive/8 px-6 py-5">
-          <p className="eyebrow text-destructive">Sold out today · {soldOut.length}</p>
-          <p className="mt-2 text-[14px]">{soldOut.map((d) => d.name).join(', ')}</p>
+          <p className="eyebrow text-destructive">
+            Sold out today · {soldOut.length}
+          </p>
+          <p className="mt-2 text-[14px]">
+            {soldOut.map((d) => d.name).join(', ')}
+          </p>
         </div>
       )}
 
@@ -46,9 +56,15 @@ export default function MenuAdmin() {
           <li key={dish.id}>
             <Row
               dish={dish}
-              busy={setAvailability.isPending && setAvailability.variables?.id === dish.id}
+              busy={
+                setAvailability.isPending &&
+                setAvailability.variables?.id === dish.id
+              }
               onToggle={() =>
-                setAvailability.mutate({ id: dish.id, available: !dish.availableToday })
+                setAvailability.mutate({
+                  id: dish.id,
+                  available: !dish.availableToday,
+                })
               }
             />
           </li>
@@ -58,15 +74,7 @@ export default function MenuAdmin() {
   )
 }
 
-function Row({
-  dish,
-  onToggle,
-  busy,
-}   
-            
-                      
-               
- ) {
+function Row({ dish, onToggle, busy }) {
   const available = dish.availableToday
 
   return (
@@ -79,7 +87,12 @@ function Row({
       <VegMark diet={dish.diet} />
 
       <div className="min-w-0 flex-1">
-        <p className={cn('text-[15px] font-semibold', !available && 'text-muted-foreground')}>
+        <p
+          className={cn(
+            'text-[15px] font-semibold',
+            !available && 'text-muted-foreground',
+          )}
+        >
           {dish.name}
         </p>
         <p className="mt-0.5 text-[12px] text-muted-foreground">
@@ -89,7 +102,9 @@ function Row({
         </p>
       </div>
 
-      <p className="font-display text-[17px] tabular-nums">{formatINR(dish.price)}</p>
+      <p className="font-display text-[17px] tabular-nums">
+        {formatINR(dish.price)}
+      </p>
 
       <button
         type="button"

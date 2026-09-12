@@ -33,7 +33,10 @@ describe('distanceKm', () => {
 
   it('kmFromKitchen measures from the brand address', () => {
     const somewhere = { lat: 18.6, lng: 73.9 }
-    expect(kmFromKitchen(somewhere)).toBeCloseTo(distanceKm(BRAND.geo, somewhere), 10)
+    expect(kmFromKitchen(somewhere)).toBeCloseTo(
+      distanceKm(BRAND.geo, somewhere),
+      10,
+    )
   })
 })
 
@@ -52,7 +55,9 @@ describe('delivery range', () => {
 
   it('flags Talegaon, which is not a delivery area', () => {
     // ~35 km out — the town on the kitchen's printed menu poster (CLAUDE.md §8b).
-    expect(isOutsideDeliveryRange(kmFromKitchen({ lat: 18.7353, lng: 73.6759 }))).toBe(true)
+    expect(
+      isOutsideDeliveryRange(kmFromKitchen({ lat: 18.7353, lng: 73.6759 })),
+    ).toBe(true)
   })
 })
 

@@ -27,7 +27,7 @@ export const config = {
     email: process.env.CHEF_EMAIL ?? 'chef@healthyeats.in',
     password: process.env.CHEF_PASSWORD ?? 'chef123',
   },
-};        
+}
 
 if (config.isProd && config.jwtSecret === 'healthy-eats-dev-secret-change-me') {
   throw new Error('JWT_SECRET must be set in production')

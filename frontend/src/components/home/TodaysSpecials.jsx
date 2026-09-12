@@ -1,4 +1,4 @@
-import { GOAL_LABELS,           } from '@shared/index'
+import { GOAL_LABELS } from '@shared/index'
 import {
   ButtonOutline,
   ButtonPill,
@@ -17,7 +17,7 @@ import { cn, formatINR } from '@/lib/utils'
  * two horizontal cards stacked on the right. Deliberately a different shape
  * from the bestsellers rail so the page doesn't read as two identical rows.
  */
-export function TodaysSpecials({ dishes }                    ) {
+export function TodaysSpecials({ dishes }) {
   if (dishes.length === 0) return null
 
   const [hero, ...rest] = dishes
@@ -55,7 +55,7 @@ export function TodaysSpecials({ dishes }                    ) {
   )
 }
 
-function HeroSpecial({ dish }                ) {
+function HeroSpecial({ dish }) {
   const soldOut = !dish.availableToday
   const qty = useQtyOf(dish.id)
   const add = useCart((s) => s.add)
@@ -75,7 +75,8 @@ function HeroSpecial({ dish }                ) {
 
       <div className="flex flex-1 flex-col p-8">
         <GoalBadge className="self-start">
-          Chef&apos;s pick{dish.goals[0] ? ` · ${GOAL_LABELS[dish.goals[0]]}` : ''}
+          Chef&apos;s pick
+          {dish.goals[0] ? ` · ${GOAL_LABELS[dish.goals[0]]}` : ''}
         </GoalBadge>
 
         <h3 className="mt-5 font-display text-[clamp(1.85rem,3vw,2.5rem)] leading-tight">
@@ -90,11 +91,16 @@ function HeroSpecial({ dish }                ) {
 
         <div className="mt-auto pt-8">
           {dish.nutrition && (
-            <MacroRow nutrition={dish.nutrition} className="border-t border-border pt-6" />
+            <MacroRow
+              nutrition={dish.nutrition}
+              className="border-t border-border pt-6"
+            />
           )}
 
           <div className="mt-7 flex min-h-12 items-center justify-between gap-4">
-            <p className="font-display text-[26px] tabular-nums">{formatINR(dish.price)}</p>
+            <p className="font-display text-[26px] tabular-nums">
+              {formatINR(dish.price)}
+            </p>
 
             {soldOut ? (
               <ButtonPill disabled>Sold out today</ButtonPill>
@@ -115,7 +121,7 @@ function HeroSpecial({ dish }                ) {
   )
 }
 
-function SideSpecial({ dish }                ) {
+function SideSpecial({ dish }) {
   const soldOut = !dish.availableToday
   const qty = useQtyOf(dish.id)
   const add = useCart((s) => s.add)
@@ -134,9 +140,15 @@ function SideSpecial({ dish }                ) {
       </div>
 
       <div className="flex flex-col p-7">
-        {dish.goals[0] && <GoalBadge className="self-start">{GOAL_LABELS[dish.goals[0]]}</GoalBadge>}
+        {dish.goals[0] && (
+          <GoalBadge className="self-start">
+            {GOAL_LABELS[dish.goals[0]]}
+          </GoalBadge>
+        )}
 
-        <h3 className="mt-4 font-display text-[26px] leading-tight">{dish.name}</h3>
+        <h3 className="mt-4 font-display text-[26px] leading-tight">
+          {dish.name}
+        </h3>
 
         {dish.description && (
           <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
@@ -146,11 +158,16 @@ function SideSpecial({ dish }                ) {
 
         <div className="mt-auto pt-6">
           {dish.nutrition && (
-            <MacroRow nutrition={dish.nutrition} className="border-t border-border pt-5" />
+            <MacroRow
+              nutrition={dish.nutrition}
+              className="border-t border-border pt-5"
+            />
           )}
 
           <div className="mt-5 flex min-h-11 items-center justify-between gap-4">
-            <p className="font-display text-[22px] tabular-nums">{formatINR(dish.price)}</p>
+            <p className="font-display text-[22px] tabular-nums">
+              {formatINR(dish.price)}
+            </p>
 
             {soldOut ? (
               <ButtonOutline disabled>Sold out</ButtonOutline>
@@ -162,7 +179,9 @@ function SideSpecial({ dish }                ) {
                 onIncrease={() => setQty(dish.id, qty + 1)}
               />
             ) : (
-              <ButtonOutline onClick={() => add(dish)}>Add to order</ButtonOutline>
+              <ButtonOutline onClick={() => add(dish)}>
+                Add to order
+              </ButtonOutline>
             )}
           </div>
         </div>
@@ -174,7 +193,9 @@ function SideSpecial({ dish }                ) {
 function SoldOutRibbon() {
   return (
     <div className="absolute inset-x-0 bottom-0 bg-destructive px-4 py-2 text-center">
-      <span className="eyebrow text-destructive-foreground">Unavailable today</span>
+      <span className="eyebrow text-destructive-foreground">
+        Unavailable today
+      </span>
     </div>
   )
 }

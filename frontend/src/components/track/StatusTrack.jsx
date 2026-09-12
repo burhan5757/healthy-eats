@@ -1,18 +1,21 @@
 import { Check, X } from 'lucide-react'
-import { ORDER_PROGRESS,                              } from '@shared/index'
+import { ORDER_PROGRESS } from '@shared/index'
 import { cn } from '@/lib/utils'
 
-const STEP_LABELS                                                  = {
+const STEP_LABELS = {
   placed: 'Order Placed',
   preparing: 'Order Accepted',
   ready: 'Ready to Go',
   delivered: 'Delivered',
 }
 
-function timeOf(order       , status             )                {
+function timeOf(order, status) {
   const entry = order.timeline.find((t) => t.status === status)
   if (!entry) return null
-  return new Date(entry.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  return new Date(entry.at).toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 /**
@@ -20,12 +23,12 @@ function timeOf(order       , status             )                {
  * When an order is cancelled the track stops: reached steps stay marked, and
  * the step where it died carries the cancellation.
  */
-export function StatusTrack({ order }                  ) {
+export function StatusTrack({ order }) {
   const cancelled = order.status === 'cancelled'
   // `cancelled` is not on the progress track, so it never has an index of its own.
   const currentIndex = cancelled
     ? ORDER_PROGRESS.indexOf('preparing')
-    : ORDER_PROGRESS.indexOf(order.status                                   )
+    : ORDER_PROGRESS.indexOf(order.status)
 
   const cancelledAt = order.timeline.find((t) => t.status === 'cancelled')
 
@@ -43,7 +46,10 @@ export function StatusTrack({ order }                  ) {
           const at = timeOf(order, step)
 
           return (
-            <li key={step} className="relative flex flex-1 flex-col items-center">
+            <li
+              key={step}
+              className="relative flex flex-1 flex-col items-center"
+            >
               {/* Connector to the previous node */}
               {i > 0 && (
                 <span
@@ -59,7 +65,9 @@ export function StatusTrack({ order }                  ) {
                   aria-hidden
                   className={cn(
                     'absolute top-4 right-0 left-1/2 h-px -translate-y-1/2',
-                    order.timeline.some((t) => t.status === ORDER_PROGRESS[i + 1]) && !cancelled
+                    order.timeline.some(
+                      (t) => t.status === ORDER_PROGRESS[i + 1],
+                    ) && !cancelled
                       ? 'bg-primary'
                       : 'bg-border',
                   )}
@@ -70,8 +78,11 @@ export function StatusTrack({ order }                  ) {
                 className={cn(
                   'relative z-10 grid size-8 place-items-center rounded-full border text-[12px] font-semibold',
                   isDone && 'border-primary bg-primary text-primary-foreground',
-                  isCancelPoint && 'border-destructive bg-destructive text-destructive-foreground',
-                  !isDone && !isCancelPoint && 'border-border bg-background text-muted-foreground',
+                  isCancelPoint &&
+                    'border-destructive bg-destructive text-destructive-foreground',
+                  !isDone &&
+                    !isCancelPoint &&
+                    'border-border bg-background text-muted-foreground',
                 )}
               >
                 {isDone ? (
@@ -86,7 +97,9 @@ export function StatusTrack({ order }                  ) {
               <span
                 className={cn(
                   'mt-3 text-center text-[13px] font-medium',
-                  isDone || isCancelPoint ? 'text-foreground' : 'text-muted-foreground',
+                  isDone || isCancelPoint
+                    ? 'text-foreground'
+                    : 'text-muted-foreground',
                 )}
               >
                 {STEP_LABELS[step]}
@@ -94,10 +107,13 @@ export function StatusTrack({ order }                  ) {
 
               <span className="mt-0.5 text-center text-[12px] text-muted-foreground tabular-nums">
                 {isCancelPoint && cancelledAt
-                  ? `cancelled ${new Date(cancelledAt.at).toLocaleTimeString('en-GB', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}`
+                  ? `cancelled ${new Date(cancelledAt.at).toLocaleTimeString(
+                      'en-GB',
+                      {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      },
+                    )}`
                   : (at ?? '—')}
               </span>
             </li>

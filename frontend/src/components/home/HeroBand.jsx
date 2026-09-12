@@ -25,7 +25,10 @@ export function HeroBand() {
               key={pill}
               className="flex items-center gap-3 rounded-full border border-on-dark-border px-6 py-3.5"
             >
-              <span className="size-1.5 rounded-full bg-terracotta" aria-hidden />
+              <span
+                className="size-1.5 rounded-full bg-terracotta"
+                aria-hidden
+              />
               <span className="text-[15px]">{pill}</span>
             </li>
           ))}

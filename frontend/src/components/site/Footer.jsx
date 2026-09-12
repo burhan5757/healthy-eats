@@ -15,7 +15,9 @@ export function Footer() {
       <Container className="py-20">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] lg:gap-10">
           <div>
-            <h2 className="font-display text-[30px] leading-none">{BRAND.name}</h2>
+            <h2 className="font-display text-[30px] leading-none">
+              {BRAND.name}
+            </h2>
             <p className="mt-6 max-w-[300px] text-[15px] leading-relaxed text-on-dark-muted">
               {BRAND.blurb}
             </p>
@@ -73,7 +75,9 @@ export function Footer() {
         </div>
 
         <div className="mt-16 flex flex-col gap-3 border-t border-on-dark-border pt-8 text-[13px] text-on-dark-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} {BRAND.legalName}</p>
+          <p>
+            © {new Date().getFullYear()} {BRAND.legalName}
+          </p>
           <p>Cash on delivery only · FSSAI {BRAND.fssai}</p>
         </div>
       </Container>

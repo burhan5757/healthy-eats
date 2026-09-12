@@ -1,4 +1,4 @@
-import { GOAL_LABELS, TIMING_LABELS,           } from '@shared/index'
+import { GOAL_LABELS, TIMING_LABELS } from '@shared/index'
 import { ButtonOutline, GoalBadge } from '@/components/ui/primitives'
 import { PlatePlaceholder } from '@/components/ui/PlatePlaceholder'
 import { VegMark } from './VegMark'
@@ -10,7 +10,7 @@ import { cn, formatINR } from '@/lib/utils'
  * Menu grid card. Denser than the landing card: adds the veg mark, the
  * ingredient line and the full four-cell macro row, per the menu design.
  */
-export function MenuDishCard({ dish }                ) {
+export function MenuDishCard({ dish }) {
   const qty = useQtyOf(dish.id)
   const add = useCart((s) => s.add)
   const setQty = useCart((s) => s.setQty)
@@ -39,7 +39,9 @@ export function MenuDishCard({ dish }                ) {
 
         {soldOut && (
           <div className="absolute inset-x-0 bottom-0 bg-destructive px-3 py-1.5 text-center">
-            <span className="eyebrow text-destructive-foreground">Unavailable today</span>
+            <span className="eyebrow text-destructive-foreground">
+              Unavailable today
+            </span>
           </div>
         )}
       </div>
@@ -47,31 +49,37 @@ export function MenuDishCard({ dish }                ) {
       <div className="flex flex-1 flex-col p-5">
         {tag && <GoalBadge className="self-start">{tag}</GoalBadge>}
 
-        <h3 className="mt-3.5 font-display text-[21px] leading-tight text-primary">{dish.name}</h3>
+        <h3 className="mt-3.5 font-display text-[21px] leading-tight text-primary">
+          {dish.name}
+        </h3>
 
         {/* mb keeps a gap above the macro divider even though `mt-auto` pins it down */}
         {dish.ingredients && (
-          <p className="mt-1.5 mb-5 text-[13px] leading-snug text-terracotta-text">{dish.ingredients}</p>
+          <p className="mt-1.5 mb-5 text-[13px] leading-snug text-terracotta-text">
+            {dish.ingredients}
+          </p>
         )}
 
         {/* Macros only render when the kitchen has supplied them — never zeros. */}
         {dish.nutrition ? (
-        <dl className="mt-auto flex justify-between gap-2 border-t border-border pt-4 pb-1">
-          {[
-            { v: dish.nutrition.kcal, u: '', l: 'kcal' },
-            { v: dish.nutrition.protein, u: ' g', l: 'prot' },
-            { v: dish.nutrition.carbs, u: ' g', l: 'carb' },
-            { v: dish.nutrition.fat, u: ' g', l: 'fat' },
-          ].map((m) => (
-            <div key={m.l}>
-              <dd className="text-[13px] font-bold tabular-nums">
-                {m.v}
-                {m.u}
-              </dd>
-              <dt className="eyebrow mt-0.5 text-[9px] text-muted-foreground">{m.l}</dt>
-            </div>
-          ))}
-        </dl>
+          <dl className="mt-auto flex justify-between gap-2 border-t border-border pt-4 pb-1">
+            {[
+              { v: dish.nutrition.kcal, u: '', l: 'kcal' },
+              { v: dish.nutrition.protein, u: ' g', l: 'prot' },
+              { v: dish.nutrition.carbs, u: ' g', l: 'carb' },
+              { v: dish.nutrition.fat, u: ' g', l: 'fat' },
+            ].map((m) => (
+              <div key={m.l}>
+                <dd className="text-[13px] font-bold tabular-nums">
+                  {m.v}
+                  {m.u}
+                </dd>
+                <dt className="eyebrow mt-0.5 text-[9px] text-muted-foreground">
+                  {m.l}
+                </dt>
+              </div>
+            ))}
+          </dl>
         ) : (
           <p className="mt-auto border-t border-border pt-4 pb-1 text-[12px] text-muted-foreground">
             Macros on request
@@ -79,7 +87,9 @@ export function MenuDishCard({ dish }                ) {
         )}
 
         <div className="mt-4 flex min-h-11 items-center justify-between gap-3">
-          <p className="font-display text-[19px] tabular-nums">{formatINR(dish.price)}</p>
+          <p className="font-display text-[19px] tabular-nums">
+            {formatINR(dish.price)}
+          </p>
 
           {soldOut ? (
             <ButtonOutline disabled className="px-4 py-2 text-[13px]">
@@ -93,7 +103,10 @@ export function MenuDishCard({ dish }                ) {
               onIncrease={() => setQty(dish.id, qty + 1)}
             />
           ) : (
-            <ButtonOutline onClick={() => add(dish)} className="px-6 py-2 text-[13px]">
+            <ButtonOutline
+              onClick={() => add(dish)}
+              className="px-6 py-2 text-[13px]"
+            >
               Add
             </ButtonOutline>
           )}

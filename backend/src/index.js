@@ -26,17 +26,10 @@ app.use('/api/orders', ordersRouter)
 app.use((_req, res) => res.status(404).json({ error: 'Not found.' }))
 
 // Error handler — must keep all four params for Express to recognise it.
-app.use(
-  (
-    err       ,
-    _req                 ,
-    res                  ,
-    _next                      ,
-  ) => {
-    console.error('[error]', err)
-    res.status(500).json({ error: 'Something went wrong on our end.' })
-  },
-)
+app.use((err, _req, res, _next) => {
+  console.error('[error]', err)
+  res.status(500).json({ error: 'Something went wrong on our end.' })
+})
 
 async function start() {
   await connectDb()

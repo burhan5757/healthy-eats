@@ -27,7 +27,11 @@ async function request(path, init) {
 
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
-    throw new ApiError(body.error ?? 'Something went wrong.', res.status, body.fields)
+    throw new ApiError(
+      body.error ?? 'Something went wrong.',
+      res.status,
+      body.fields,
+    )
   }
   return body
 }
@@ -39,9 +43,11 @@ export const api = {
   },
   orders: {
     /** Guest checkout — no auth required (CLAUDE.md §10a). */
-    place: (input) => request('/orders', { method: 'POST', body: JSON.stringify(input) }),
+    place: (input) =>
+      request('/orders', { method: 'POST', body: JSON.stringify(input) }),
     /** Public lookup by order number, per the tracking design. */
-    track: (orderNumber) => request(`/orders/track/${encodeURIComponent(orderNumber)}`),
+    track: (orderNumber) =>
+      request(`/orders/track/${encodeURIComponent(orderNumber)}`),
 
     /** Chef + admin: the active kitchen queue. */
     kitchen: () => request('/orders/kitchen'),

@@ -44,20 +44,27 @@ describe('address validation', () => {
     expect(addressSchema.safeParse({ ...valid, phone }).success).toBe(false)
   })
 
-  it.each([['5 digits', '41103'], ['letters', 'abc123'], ['7 digits', '4110380']])(
-    'rejects a pincode with %s',
-    (_why, pincode) => {
-      expect(addressSchema.safeParse({ ...valid, pincode }).success).toBe(false)
-    },
-  )
+  it.each([
+    ['5 digits', '41103'],
+    ['letters', 'abc123'],
+    ['7 digits', '4110380'],
+  ])('rejects a pincode with %s', (_why, pincode) => {
+    expect(addressSchema.safeParse({ ...valid, pincode }).success).toBe(false)
+  })
 
   it('rejects an empty name and a stub address', () => {
     expect(addressSchema.safeParse({ ...valid, name: '' }).success).toBe(false)
-    expect(addressSchema.safeParse({ ...valid, line1: 'abc' }).success).toBe(false)
+    expect(addressSchema.safeParse({ ...valid, line1: 'abc' }).success).toBe(
+      false,
+    )
   })
 
   it('carries the dropped map pin through', () => {
-    const result = addressSchema.safeParse({ ...valid, lat: 18.5089, lng: 73.8088 })
+    const result = addressSchema.safeParse({
+      ...valid,
+      lat: 18.5089,
+      lng: 73.8088,
+    })
     expect(result.success).toBe(true)
     if (result.success) expect(result.data.lat).toBeCloseTo(18.5089)
   })
@@ -81,21 +88,29 @@ describe('place order payload', () => {
 
   it('rejects a zero or negative quantity', () => {
     expect(
-      placeOrderSchema.safeParse({ items: [{ dishId: 'a', qty: 0 }], address }).success,
+      placeOrderSchema.safeParse({ items: [{ dishId: 'a', qty: 0 }], address })
+        .success,
     ).toBe(false)
     expect(
-      placeOrderSchema.safeParse({ items: [{ dishId: 'a', qty: -2 }], address }).success,
+      placeOrderSchema.safeParse({ items: [{ dishId: 'a', qty: -2 }], address })
+        .success,
     ).toBe(false)
   })
 
   it('rejects a fractional quantity', () => {
     expect(
-      placeOrderSchema.safeParse({ items: [{ dishId: 'a', qty: 1.5 }], address }).success,
+      placeOrderSchema.safeParse({
+        items: [{ dishId: 'a', qty: 1.5 }],
+        address,
+      }).success,
     ).toBe(false)
   })
 
   it('defaults the kitchen note to empty and caps its length', () => {
-    const ok = placeOrderSchema.safeParse({ items: [{ dishId: 'a', qty: 1 }], address })
+    const ok = placeOrderSchema.safeParse({
+      items: [{ dishId: 'a', qty: 1 }],
+      address,
+    })
     expect(ok.success).toBe(true)
     if (ok.success) expect(ok.data.notes).toBe('')
 
@@ -123,11 +138,15 @@ describe('place order payload', () => {
 
 describe('cancel payload', () => {
   it('requires a reason the customer can read', () => {
-    expect(cancelOrderSchema.safeParse({ reason: '', soldOutDishIds: [] }).success).toBe(false)
+    expect(
+      cancelOrderSchema.safeParse({ reason: '', soldOutDishIds: [] }).success,
+    ).toBe(false)
   })
 
   it('allows rejecting an order without marking anything sold out', () => {
-    const result = cancelOrderSchema.safeParse({ reason: 'Kitchen at capacity' })
+    const result = cancelOrderSchema.safeParse({
+      reason: 'Kitchen at capacity',
+    })
     expect(result.success).toBe(true)
     if (result.success) expect(result.data.soldOutDishIds).toEqual([])
   })

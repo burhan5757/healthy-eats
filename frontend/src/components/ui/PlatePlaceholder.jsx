@@ -9,19 +9,15 @@ import { cn } from '@/lib/utils'
  * omitted here. This renders as a quiet, deliberate slot rather than a
  * broken-image state.
  */
-export function PlatePlaceholder({
-  label,
-  className,
-  src,
-  alt,
-}   
-                
-                    
-              
-              
- ) {
+export function PlatePlaceholder({ label, className, src, alt }) {
   if (src) {
-    return <img src={src} alt={alt ?? ''} className={cn('h-full w-full object-cover', className)} />
+    return (
+      <img
+        src={src}
+        alt={alt ?? ''}
+        className={cn('h-full w-full object-cover', className)}
+      />
+    )
   }
 
   return (

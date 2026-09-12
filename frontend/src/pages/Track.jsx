@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CircleX, Phone } from 'lucide-react'
-import { BRAND, PREP_TIME_MINUTES, SOCKET_EVENTS,            } from '@shared/index'
+import { BRAND, PREP_TIME_MINUTES, SOCKET_EVENTS } from '@shared/index'
 import { api } from '@/lib/api'
 import { getSocket } from '@/lib/socket'
 import { Container } from '@/components/ui/primitives'
@@ -24,7 +24,7 @@ export default function Track() {
   // to this page, so the customer never has to refresh.
   useEffect(() => {
     const socket = getSocket()
-    const refresh = ({ order }                  ) => {
+    const refresh = ({ order }) => {
       if (order.orderNumber === orderNumber) {
         queryClient.setQueryData(['order', orderNumber], { order })
       }
@@ -35,8 +35,13 @@ export default function Track() {
     }
   }, [orderNumber, queryClient])
 
-  if (isPending) return <Shell><p className="text-muted-foreground">Finding your order…</p></Shell>
-  if (isError) return <NotFound message={(error         ).message} />
+  if (isPending)
+    return (
+      <Shell>
+        <p className="text-muted-foreground">Finding your order…</p>
+      </Shell>
+    )
+  if (isError) return <NotFound message={error.message} />
 
   const order = data.order
   const cancelled = order.status === 'cancelled'
@@ -50,11 +55,14 @@ export default function Track() {
 
 /* ---------------------------------------------------------------- live ---- */
 
-function LiveView({ order }                  ) {
+function LiveView({ order }) {
   const placedAt = new Date(order.timeline[0]?.at ?? order.createdAt)
-  const eta = new Date(placedAt.getTime() + PREP_TIME_MINUTES * 60000 + 15 * 60000)
+  const eta = new Date(
+    placedAt.getTime() + PREP_TIME_MINUTES * 60000 + 15 * 60000,
+  )
   const etaEnd = new Date(eta.getTime() + 15 * 60000)
-  const hhmm = (d      ) => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  const hhmm = (d) =>
+    d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
   const minsAway = Math.max(0, Math.round((eta.getTime() - Date.now()) / 60000))
 
   const accepted = order.timeline.find((t) => t.status === 'preparing')
@@ -63,13 +71,15 @@ function LiveView({ order }                  ) {
     <div className="overflow-hidden rounded-md border border-border bg-surface">
       <div className="grid gap-8 p-8 lg:grid-cols-[1fr_minmax(0,320px)]">
         <div>
-          <p className="eyebrow text-muted-foreground">Order received · keep this number</p>
+          <p className="eyebrow text-muted-foreground">
+            Order received · keep this number
+          </p>
           <p className="mt-3 font-display text-[clamp(2.75rem,7vw,4rem)] leading-none tabular-nums">
             {order.orderNumber}
           </p>
           <p className="mt-4 max-w-[46ch] text-[14px] leading-relaxed text-muted-foreground">
-            No account needed — bookmark this page or type the order number on the site to see
-            where your food is.
+            No account needed — bookmark this page or type the order number on
+            the site to see where your food is.
           </p>
         </div>
 
@@ -77,7 +87,9 @@ function LiveView({ order }                  ) {
           <div className="rounded-sm bg-badge/60 p-5">
             <p className="eyebrow text-terracotta-dark">Estimated delivery</p>
             <p className="mt-2">
-              <span className="font-display text-[30px] tabular-nums">{hhmm(eta)}</span>
+              <span className="font-display text-[30px] tabular-nums">
+                {hhmm(eta)}
+              </span>
               <span className="ml-2 text-[13px] text-muted-foreground">
                 – {hhmm(etaEnd)} · in about {minsAway} min
               </span>
@@ -86,7 +98,10 @@ function LiveView({ order }                  ) {
 
           {accepted && (
             <div className="flex items-center gap-2.5 rounded-sm bg-primary/8 p-4">
-              <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
+              <span
+                className="size-1.5 shrink-0 rounded-full bg-primary"
+                aria-hidden
+              />
               <p className="text-[13px] text-foreground">
                 Accepted at{' '}
                 {new Date(accepted.at).toLocaleTimeString('en-GB', {
@@ -110,11 +125,17 @@ function LiveView({ order }                  ) {
 
           <ul className="mt-6 divide-y divide-border border-t border-border">
             {order.items.map((item) => (
-              <li key={item.dishId} className="flex justify-between gap-4 py-3.5 text-[14px]">
+              <li
+                key={item.dishId}
+                className="flex justify-between gap-4 py-3.5 text-[14px]"
+              >
                 <span>
-                  {item.name} <span className="text-muted-foreground">× {item.qty}</span>
+                  {item.name}{' '}
+                  <span className="text-muted-foreground">× {item.qty}</span>
                 </span>
-                <span className="tabular-nums">{formatINR(item.price * item.qty)}</span>
+                <span className="tabular-nums">
+                  {formatINR(item.price * item.qty)}
+                </span>
               </li>
             ))}
           </ul>
@@ -123,7 +144,9 @@ function LiveView({ order }                  ) {
             <div className="flex justify-between">
               <dt>Delivery</dt>
               <dd className="tabular-nums">
-                {order.deliveryFee === 0 ? 'Free' : formatINR(order.deliveryFee)}
+                {order.deliveryFee === 0
+                  ? 'Free'
+                  : formatINR(order.deliveryFee)}
               </dd>
             </div>
             <div className="flex justify-between">
@@ -133,7 +156,9 @@ function LiveView({ order }                  ) {
           </dl>
 
           <div className="mt-6 flex items-center justify-between gap-4 rounded-sm bg-forest px-6 py-5">
-            <span className="eyebrow text-on-dark-muted">Cash to pay on delivery</span>
+            <span className="eyebrow text-on-dark-muted">
+              Cash to pay on delivery
+            </span>
             <span className="font-display text-[26px] tabular-nums text-on-dark">
               {formatINR(order.total)}
             </span>
@@ -156,9 +181,13 @@ function LiveView({ order }                  ) {
           <address className="mt-6 space-y-1 text-[14px] not-italic">
             <p className="font-semibold">{order.address.name}</p>
             <p className="text-muted-foreground">{order.address.line1}</p>
-            <p className="text-muted-foreground">Pune {order.address.pincode}</p>
+            <p className="text-muted-foreground">
+              Pune {order.address.pincode}
+            </p>
             {order.address.landmark && (
-              <p className="text-terracotta-text">Landmark: {order.address.landmark}</p>
+              <p className="text-terracotta-text">
+                Landmark: {order.address.landmark}
+              </p>
             )}
           </address>
 
@@ -185,7 +214,7 @@ function LiveView({ order }                  ) {
 
 /* ----------------------------------------------------------- cancelled ---- */
 
-function CancelledView({ order }                  ) {
+function CancelledView({ order }) {
   const at = order.timeline.find((t) => t.status === 'cancelled')
 
   return (
@@ -212,15 +241,17 @@ function CancelledView({ order }                  ) {
             {order.orderNumber}
           </p>
           <p className="mt-5 max-w-[48ch] text-[14px] leading-relaxed text-muted-foreground">
-            Nothing was charged — there&apos;s nothing to refund because payment is cash on
-            delivery.
+            Nothing was charged — there&apos;s nothing to refund because payment
+            is cash on delivery.
           </p>
         </div>
 
         <div className="space-y-4">
           {order.cancellation?.reason && (
             <div className="rounded-sm bg-badge/60 p-5">
-              <p className="eyebrow text-terracotta-dark">Reason from the kitchen</p>
+              <p className="eyebrow text-terracotta-dark">
+                Reason from the kitchen
+              </p>
               <p className="mt-2 text-[14px]">{order.cancellation.reason}</p>
             </div>
           )}
@@ -243,13 +274,15 @@ function CancelledView({ order }                  ) {
 
 /* --------------------------------------------------------------- shell ---- */
 
-function Shell({ children }                               ) {
+function Shell({ children }) {
   return (
     <div className="pb-24">
       <div className="border-b border-border">
         <Container className="flex h-[64px] items-center justify-between gap-6">
           <Link to="/" className="flex items-baseline gap-2">
-            <span className="font-display text-[21px] leading-none">{BRAND.name}</span>
+            <span className="font-display text-[21px] leading-none">
+              {BRAND.name}
+            </span>
             <span className="eyebrow text-muted-foreground">{BRAND.city}</span>
           </Link>
           <p className="text-[13px] text-muted-foreground">
@@ -269,11 +302,13 @@ function Shell({ children }                               ) {
   )
 }
 
-function NotFound({ message }                     ) {
+function NotFound({ message }) {
   return (
     <Shell>
       <div className="rounded-md border border-border bg-surface px-8 py-24 text-center">
-        <h1 className="font-display text-[30px]">We can&apos;t find that order</h1>
+        <h1 className="font-display text-[30px]">
+          We can&apos;t find that order
+        </h1>
         <p className="mx-auto mt-4 max-w-[44ch] text-[15px] leading-relaxed text-muted-foreground">
           {message}
         </p>

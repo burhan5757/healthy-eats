@@ -23,19 +23,26 @@ const STEPS = [
     title: 'Pay cash on delivery',
     body: 'Exact change helps. No cards, no wallets, nothing stored online.',
   },
-];        
+]
 
 /**
  * Appears twice: as a dark full-width band on the homepage, and as a light card
  * on the About page. Same content, two treatments — hence the variant.
  */
-export function HowDeliveryWorks({ variant = 'dark' }                               ) {
+export function HowDeliveryWorks({ variant = 'dark' }) {
   const dark = variant === 'dark'
 
   const body = (
     <>
       <Eyebrow onDark={dark}>How delivery works</Eyebrow>
-      <h2 className={cn('mt-5', dark ? 'text-[clamp(2rem,4.2vw,3rem)]' : 'text-[clamp(1.75rem,3vw,2.25rem)]')}>
+      <h2
+        className={cn(
+          'mt-5',
+          dark
+            ? 'text-[clamp(2rem,4.2vw,3rem)]'
+            : 'text-[clamp(1.75rem,3vw,2.25rem)]',
+        )}
+      >
         Four steps, cash at the door
       </h2>
 
@@ -49,14 +56,24 @@ export function HowDeliveryWorks({ variant = 'dark' }                           
           <li
             key={step.title}
             className={cn(
-              dark && 'lg:border-l lg:border-on-dark-border lg:pl-9 lg:first:border-l-0 lg:first:pl-0',
+              dark &&
+                'lg:border-l lg:border-on-dark-border lg:pl-9 lg:first:border-l-0 lg:first:pl-0',
             )}
           >
             {dark && (
-              <step.icon className="size-7 text-on-dark" strokeWidth={1.25} aria-hidden />
+              <step.icon
+                className="size-7 text-on-dark"
+                strokeWidth={1.25}
+                aria-hidden
+              />
             )}
 
-            <p className={cn('eyebrow', dark ? 'mt-9 text-terracotta' : 'text-terracotta-text')}>
+            <p
+              className={cn(
+                'eyebrow',
+                dark ? 'mt-9 text-terracotta' : 'text-terracotta-text',
+              )}
+            >
               {String(i + 1).padStart(2, '0')}
             </p>
 
@@ -82,7 +99,9 @@ export function HowDeliveryWorks({ variant = 'dark' }                           
     return (
       <section aria-labelledby="how-heading" className="pb-24">
         <Container>
-          <div className="rounded-md border border-border bg-surface px-8 py-12 lg:px-12">{body}</div>
+          <div className="rounded-md border border-border bg-surface px-8 py-12 lg:px-12">
+            {body}
+          </div>
         </Container>
       </section>
     )

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { DELIVERY_FEE, FREE_DELIVERY_ABOVE, PACKAGING_FEE } from '../../shared/index'
+import {
+  DELIVERY_FEE,
+  FREE_DELIVERY_ABOVE,
+  PACKAGING_FEE,
+} from '../../shared/index'
 
 /**
  * The client mirrors the server's total calculation so the customer never sees a
@@ -9,17 +13,28 @@ import { DELIVERY_FEE, FREE_DELIVERY_ABOVE, PACKAGING_FEE } from '../../shared/i
  * Re-implemented here rather than imported from the client store, which pulls in
  * zustand and a browser localStorage — the formula is what matters.
  */
-function totals(lines                                  ) {
+function totals(lines) {
   const subtotal = lines.reduce((sum, l) => sum + l.price * l.qty, 0)
   const empty = lines.length === 0
-  const deliveryFee = empty || subtotal >= FREE_DELIVERY_ABOVE ? 0 : DELIVERY_FEE
+  const deliveryFee =
+    empty || subtotal >= FREE_DELIVERY_ABOVE ? 0 : DELIVERY_FEE
   const packaging = empty ? 0 : PACKAGING_FEE
-  return { subtotal, deliveryFee, packaging, total: subtotal + deliveryFee + packaging }
+  return {
+    subtotal,
+    deliveryFee,
+    packaging,
+    total: subtotal + deliveryFee + packaging,
+  }
 }
 
 describe('cart totals', () => {
   it('is entirely zero for an empty cart', () => {
-    expect(totals([])).toEqual({ subtotal: 0, deliveryFee: 0, packaging: 0, total: 0 })
+    expect(totals([])).toEqual({
+      subtotal: 0,
+      deliveryFee: 0,
+      packaging: 0,
+      total: 0,
+    })
   })
 
   it('adds delivery and packaging to a small order', () => {

@@ -1,4 +1,4 @@
-import { expect, test,                        } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 /**
  * "There is only one admin and no one else has access" is the user's hardest
@@ -8,8 +8,10 @@ import { expect, test,                        } from '@playwright/test'
 
 const API = 'http://localhost:4000/api'
 
-async function login(request                   , email        , password        ) {
-  const res = await request.post(`${API}/auth/login`, { data: { email, password } })
+async function login(request, email, password) {
+  const res = await request.post(`${API}/auth/login`, {
+    data: { email, password },
+  })
   expect(res.ok()).toBeTruthy()
 }
 
@@ -39,7 +41,9 @@ test.describe('admin-only endpoints', () => {
     }
   })
 
-  test('let the chef read the kitchen queue but nothing more', async ({ request }) => {
+  test('let the chef read the kitchen queue but nothing more', async ({
+    request,
+  }) => {
     await login(request, 'chef@healthyeats.in', 'chef123')
 
     expect((await request.get(`${API}/orders/kitchen`)).status()).toBe(200)
@@ -48,7 +52,9 @@ test.describe('admin-only endpoints', () => {
 })
 
 test.describe('privilege escalation', () => {
-  test('registering with role:"admin" still creates a customer', async ({ request }) => {
+  test('registering with role:"admin" still creates a customer', async ({
+    request,
+  }) => {
     const email = `probe-${Date.now()}@example.com`
 
     const res = await request.post(`${API}/auth/register`, {
@@ -70,13 +76,18 @@ test.describe('privilege escalation', () => {
     expect((await request.get(`${API}/orders/kitchen`)).status()).toBe(403)
   })
 
-  test('menu availability cannot be changed without admin rights', async ({ request }) => {
+  test('menu availability cannot be changed without admin rights', async ({
+    request,
+  }) => {
     const menu = await (await request.get(`${API}/menu`)).json()
     const dishId = menu.dishes[0].id
 
-    const anonymous = await request.patch(`${API}/menu/${dishId}/availability`, {
-      data: { availableToday: false },
-    })
+    const anonymous = await request.patch(
+      `${API}/menu/${dishId}/availability`,
+      {
+        data: { availableToday: false },
+      },
+    )
     expect(anonymous.status()).toBe(401)
 
     await login(request, 'chef@healthyeats.in', 'chef123')
@@ -90,7 +101,7 @@ test.describe('privilege escalation', () => {
 test.describe('state machine is enforced server-side', () => {
   test('an order cannot be cancelled once it is ready', async ({ request }) => {
     const menu = await (await request.get(`${API}/menu`)).json()
-    const dish = menu.dishes.find((d                             ) => d.availableToday)
+    const dish = menu.dishes.find((d) => d.availableToday)
 
     const created = await request.post(`${API}/orders`, {
       data: {
@@ -106,12 +117,18 @@ test.describe('state machine is enforced server-side', () => {
     const { order } = await created.json()
 
     await login(request, 'admin@healthyeats.in', 'admin123')
-    expect((await request.post(`${API}/orders/${order.id}/accept`)).status()).toBe(200)
+    expect(
+      (await request.post(`${API}/orders/${order.id}/accept`)).status(),
+    ).toBe(200)
 
     // Skipping straight to delivered must fail — the food isn't cooked.
-    expect((await request.post(`${API}/orders/${order.id}/deliver`)).status()).toBe(409)
+    expect(
+      (await request.post(`${API}/orders/${order.id}/deliver`)).status(),
+    ).toBe(409)
 
-    expect((await request.post(`${API}/orders/${order.id}/ready`)).status()).toBe(200)
+    expect(
+      (await request.post(`${API}/orders/${order.id}/ready`)).status(),
+    ).toBe(200)
 
     // Now it is cooked, cancelling must fail.
     const cancel = await request.post(`${API}/orders/${order.id}/cancel`, {
@@ -123,9 +140,11 @@ test.describe('state machine is enforced server-side', () => {
     await request.post(`${API}/orders/${order.id}/deliver`)
   })
 
-  test('totals are computed by the server, not taken from the client', async ({ request }) => {
+  test('totals are computed by the server, not taken from the client', async ({
+    request,
+  }) => {
     const menu = await (await request.get(`${API}/menu`)).json()
-    const dish = menu.dishes.find((d                             ) => d.availableToday)
+    const dish = menu.dishes.find((d) => d.availableToday)
 
     const res = await request.post(`${API}/orders`, {
       data: {
@@ -142,6 +161,8 @@ test.describe('state machine is enforced server-side', () => {
 
     const { order } = await res.json()
     expect(order.subtotal).toBe(dish.price * 2)
-    expect(order.total).toBe(order.subtotal + order.deliveryFee + order.packaging)
+    expect(order.total).toBe(
+      order.subtotal + order.deliveryFee + order.packaging,
+    )
   })
 })

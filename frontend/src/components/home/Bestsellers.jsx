@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { GOAL_LABELS, TIMING_LABELS,           } from '@shared/index'
-import { Container, Eyebrow, GoalBadge, ButtonOutline } from '@/components/ui/primitives'
+import { GOAL_LABELS, TIMING_LABELS } from '@shared/index'
+import {
+  Container,
+  Eyebrow,
+  GoalBadge,
+  ButtonOutline,
+} from '@/components/ui/primitives'
 import { PlatePlaceholder } from '@/components/ui/PlatePlaceholder'
 import { QtyStepper } from '@/components/menu/QtyStepper'
 import { useCart, useQtyOf } from '@/store/cart'
@@ -12,10 +17,14 @@ import { cn, formatINR } from '@/lib/utils'
  * "This week's regulars" — the bestsellers rail that opens the page, above the
  * brand block. Drag/swipe AND arrows, per the design's control affordances.
  */
-export function Bestsellers({ dishes }                    ) {
-  const [emblaRef, embla] = useEmblaCarousel({ align: 'start', loop: false, dragFree: false })
+export function Bestsellers({ dishes }) {
+  const [emblaRef, embla] = useEmblaCarousel({
+    align: 'start',
+    loop: false,
+    dragFree: false,
+  })
   const [selected, setSelected] = useState(0)
-  const [snaps, setSnaps] = useState          ([])
+  const [snaps, setSnaps] = useState([])
   const [canPrev, setCanPrev] = useState(false)
   const [canNext, setCanNext] = useState(false)
 
@@ -41,7 +50,10 @@ export function Bestsellers({ dishes }                    ) {
         <div className="flex items-end justify-between gap-8">
           <div>
             <Eyebrow>Most ordered</Eyebrow>
-            <h2 id="bestsellers-heading" className="mt-4 text-[clamp(2.25rem,4.5vw,3.25rem)]">
+            <h2
+              id="bestsellers-heading"
+              className="mt-4 text-[clamp(2.25rem,4.5vw,3.25rem)]"
+            >
               This week&apos;s regulars
             </h2>
           </div>
@@ -90,7 +102,9 @@ export function Bestsellers({ dishes }                    ) {
               onClick={() => embla?.scrollTo(i)}
               className={cn(
                 'size-2 rounded-full transition-colors duration-200',
-                i === selected ? 'bg-primary' : 'bg-border hover:bg-muted-foreground/50',
+                i === selected
+                  ? 'bg-primary'
+                  : 'bg-border hover:bg-muted-foreground/50',
               )}
             />
           ))}
@@ -100,17 +114,7 @@ export function Bestsellers({ dishes }                    ) {
   )
 }
 
-function CarouselButton({
-  children,
-  label,
-  disabled,
-  onClick,
-}   
-                           
-               
-                   
-                     
- ) {
+function CarouselButton({ children, label, disabled, onClick }) {
   return (
     <button
       type="button"
@@ -128,7 +132,7 @@ function CarouselButton({
   )
 }
 
-function DishCard({ dish }                ) {
+function DishCard({ dish }) {
   // Design shows the goal tag, falling back to timing for items like the shake
   // whose badge reads POST-WORKOUT.
   const tag = dish.goals[0]
@@ -155,7 +159,9 @@ function DishCard({ dish }                ) {
         <PlatePlaceholder src={dish.image} alt={dish.name} />
         {soldOut && (
           <div className="absolute inset-x-0 bottom-0 bg-destructive px-4 py-2 text-center">
-            <span className="eyebrow text-destructive-foreground">Unavailable today</span>
+            <span className="eyebrow text-destructive-foreground">
+              Unavailable today
+            </span>
           </div>
         )}
       </div>
@@ -163,7 +169,9 @@ function DishCard({ dish }                ) {
       <div className="flex flex-1 flex-col p-6">
         {tag && <GoalBadge className="self-start">{tag}</GoalBadge>}
 
-        <h3 className="mt-4 font-display text-[26px] leading-tight">{dish.name}</h3>
+        <h3 className="mt-4 font-display text-[26px] leading-tight">
+          {dish.name}
+        </h3>
 
         {dish.nutrition && (
           <p className="mt-2 text-[15px] text-muted-foreground">
@@ -175,7 +183,9 @@ function DishCard({ dish }                ) {
             doesn't knock this card out of alignment with its neighbours.
             min-h-11 holds the row height steady when Add swaps to the stepper. */}
         <div className="mt-auto flex min-h-11 items-center justify-between gap-4 pt-7">
-          <p className="font-display text-[22px] tabular-nums">{formatINR(dish.price)}</p>
+          <p className="font-display text-[22px] tabular-nums">
+            {formatINR(dish.price)}
+          </p>
 
           {soldOut ? (
             <ButtonOutline disabled>Sold out</ButtonOutline>

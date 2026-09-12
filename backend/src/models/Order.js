@@ -1,11 +1,16 @@
-import mongoose, { Schema,                      } from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 import { ORDER_STATUSES } from '../../../shared/index.js'
 
 const orderSchema = new Schema(
   {
     orderNumber: { type: String, required: true, unique: true, index: true },
     /** Absent for guest orders — the normal case. Present only for staff-placed ones. */
-    customerId: { type: Schema.Types.ObjectId, ref: 'User', required: false, index: true },
+    customerId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+      index: true,
+    },
 
     items: [
       {
@@ -34,7 +39,13 @@ const orderSchema = new Schema(
     /** Kitchen note from the customer — allergies etc. Shown on the chef ticket. */
     notes: { type: String, default: '', maxlength: 200 },
 
-    status: { type: String, enum: ORDER_STATUSES, required: true, default: 'placed', index: true },
+    status: {
+      type: String,
+      enum: ORDER_STATUSES,
+      required: true,
+      default: 'placed',
+      index: true,
+    },
     timeline: [
       {
         status: { type: String, enum: ORDER_STATUSES, required: true },
@@ -53,11 +64,9 @@ const orderSchema = new Schema(
   { timestamps: true },
 )
 
-;                                                                                            
-
-export const Order = mongoose.model          ('Order', orderSchema)
+export const Order = mongoose.model('Order', orderSchema)
 
 /** Human-friendly, kitchen-shoutable order number: HE-4821 */
-export function generateOrderNumber()         {
+export function generateOrderNumber() {
   return `HE-${Math.floor(1000 + Math.random() * 9000)}`
 }

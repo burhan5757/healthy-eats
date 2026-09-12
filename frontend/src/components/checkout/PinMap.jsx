@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { LocateFixed, Loader2, MapPin, Minus, Plus, Search, TriangleAlert } from 'lucide-react'
+import {
+  LocateFixed,
+  Loader2,
+  MapPin,
+  Minus,
+  Plus,
+  Search,
+  TriangleAlert,
+} from 'lucide-react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { BRAND } from '@shared/index'
@@ -9,12 +17,11 @@ import {
   isOutsideDeliveryRange,
   kmFromKitchen,
   searchPlaces,
-                   
 } from '@/lib/geocode'
 import { cn } from '@/lib/utils'
 
 /** The map opens on the kitchen so the customer starts somewhere recognisable. */
-const KITCHEN                   = [BRAND.geo.lat, BRAND.geo.lng]
+const KITCHEN = [BRAND.geo.lat, BRAND.geo.lng]
 
 const pinIcon = L.divIcon({
   className: '',
@@ -49,27 +56,21 @@ const kitchenIcon = L.divIcon({
  * takes a search, reads back the street it landed on, and says how far that is
  * from the kitchen.
  */
-export function PinMap({
-  value,
-  onChange,
-}   
-                                            
-                                                       
- ) {
-  const containerRef = useRef                (null)
-  const mapRef = useRef              (null)
-  const markerRef = useRef                 (null)
+export function PinMap({ value, onChange }) {
+  const containerRef = useRef(null)
+  const mapRef = useRef(null)
+  const markerRef = useRef(null)
 
   const [locating, setLocating] = useState(false)
-  const [geoError, setGeoError] = useState               (null)
+  const [geoError, setGeoError] = useState(null)
 
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState               ([])
+  const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
-  const [searchError, setSearchError] = useState               (null)
+  const [searchError, setSearchError] = useState(null)
   const [open, setOpen] = useState(false)
 
-  const [label, setLabel] = useState               (null)
+  const [label, setLabel] = useState(null)
   const [labelLoading, setLabelLoading] = useState(false)
   const skipSearchRef = useRef(false)
 
@@ -85,12 +86,16 @@ export function PinMap({
    * showing one parked on the kitchen would send the rider a pin that looks
    * deliberate but points at the restaurant.
    */
-  const placePin = useCallback((pos                              , zoom         ) => {
+  const placePin = useCallback((pos, zoom) => {
     const map = mapRef.current
     if (!map) return
 
     if (!markerRef.current) {
-      const marker = L.marker(pos, { icon: pinIcon, draggable: true, keyboard: true })
+      const marker = L.marker(pos, {
+        icon: pinIcon,
+        draggable: true,
+        keyboard: true,
+      })
       marker.on('dragend', () => {
         const { lat, lng } = marker.getLatLng()
         onChangeRef.current({ lat, lng })
@@ -122,14 +127,18 @@ export function PinMap({
       maxZoom: 19,
     }).addTo(map)
 
-    L.marker(KITCHEN, { icon: kitchenIcon, interactive: false, keyboard: false })
+    L.marker(KITCHEN, {
+      icon: kitchenIcon,
+      interactive: false,
+      keyboard: false,
+    })
       .addTo(map)
       .bindTooltip(BRAND.kitchenLabel, { direction: 'top', offset: [0, -8] })
 
     if (value) placePin(value)
 
     // Tapping the map is faster than dragging on a phone.
-    map.on('click', (e                     ) => {
+    map.on('click', (e) => {
       placePin({ lat: e.latlng.lat, lng: e.latlng.lng })
     })
 
@@ -181,13 +190,19 @@ export function PinMap({
       searchPlaces(q, controller.signal)
         .then((found) => {
           setResults(found)
-          setSearchError(found.length === 0 ? 'No match. Try a landmark, or tap the map.' : null)
+          setSearchError(
+            found.length === 0
+              ? 'No match. Try a landmark, or tap the map.'
+              : null,
+          )
           setOpen(true)
         })
-        .catch((err         ) => {
+        .catch((err) => {
           if (controller.signal.aborted) return
           setResults([])
-          setSearchError('Search is unavailable. Tap the map to place your pin.')
+          setSearchError(
+            'Search is unavailable. Tap the map to place your pin.',
+          )
           console.error(err)
         })
         .finally(() => {
@@ -244,14 +259,16 @@ export function PinMap({
         setLocating(false)
       },
       () => {
-        setGeoError('We could not get your location. Search or tap the map instead.')
+        setGeoError(
+          'We could not get your location. Search or tap the map instead.',
+        )
         setLocating(false)
       },
       { enableHighAccuracy: true, timeout: 10000 },
     )
   }
 
-  const chooseResult = (r             ) => {
+  const chooseResult = (r) => {
     placePin({ lat: r.lat, lng: r.lng }, 17)
     skipSearchRef.current = true
     setQuery(r.title)
@@ -270,8 +287,8 @@ export function PinMap({
         <div>
           <h2 className="font-display text-[24px]">Drop your pin</h2>
           <p className="mt-1 text-[13px] text-muted-foreground">
-            Search your building, or tap the map. Drag the pin to your gate — this is what the
-            rider sees.
+            Search your building, or tap the map. Drag the pin to your gate —
+            this is what the rider sees.
           </p>
         </div>
 
@@ -288,7 +305,10 @@ export function PinMap({
 
       {/* --- Search ---------------------------------------------------------- */}
       <div className="relative mt-5">
-        <label htmlFor="pin-search" className="eyebrow block text-muted-foreground">
+        <label
+          htmlFor="pin-search"
+          className="eyebrow block text-muted-foreground"
+        >
           Find your address
         </label>
 
@@ -339,7 +359,11 @@ export function PinMap({
               // The address text, which `searchPlaces` has already deduped —
               // coordinates are not unique enough, the same point comes back
               // under more than one name.
-              <li key={`${r.title}, ${r.detail}`} role="option" aria-selected={false}>
+              <li
+                key={`${r.title}, ${r.detail}`}
+                role="option"
+                aria-selected={false}
+              >
                 <button
                   type="button"
                   onClick={() => chooseResult(r)}
@@ -351,7 +375,9 @@ export function PinMap({
                     aria-hidden
                   />
                   <span className="min-w-0">
-                    <span className="block truncate text-[14px] font-semibold">{r.title}</span>
+                    <span className="block truncate text-[14px] font-semibold">
+                      {r.title}
+                    </span>
                     <span className="block truncate text-[12px] text-muted-foreground">
                       {r.detail}
                     </span>
@@ -384,10 +410,16 @@ export function PinMap({
         </span>
 
         <div className="absolute right-3 bottom-3 z-[500] flex flex-col overflow-hidden rounded-md border border-border bg-surface">
-          <MapZoomButton label="Zoom in" onClick={() => mapRef.current?.zoomIn()}>
+          <MapZoomButton
+            label="Zoom in"
+            onClick={() => mapRef.current?.zoomIn()}
+          >
             <Plus className="size-4" strokeWidth={2} />
           </MapZoomButton>
-          <MapZoomButton label="Zoom out" onClick={() => mapRef.current?.zoomOut()}>
+          <MapZoomButton
+            label="Zoom out"
+            onClick={() => mapRef.current?.zoomOut()}
+          >
             <Minus className="size-4" strokeWidth={2} />
           </MapZoomButton>
         </div>
@@ -404,12 +436,18 @@ export function PinMap({
                 aria-hidden
               />
               <span>
-                <span className={cn('font-semibold', labelLoading && !label && 'text-muted-foreground')}>
-                  {label ?? (labelLoading ? 'Finding the street…' : 'Pin placed')}
+                <span
+                  className={cn(
+                    'font-semibold',
+                    labelLoading && !label && 'text-muted-foreground',
+                  )}
+                >
+                  {label ??
+                    (labelLoading ? 'Finding the street…' : 'Pin placed')}
                 </span>
                 <span className="text-muted-foreground">
                   {' · '}
-                  {km .toFixed(1)} km from the kitchen
+                  {km.toFixed(1)} km from the kitchen
                   {eta && !tooFar && ` · ETA ${eta.from}–${eta.to} min`}
                 </span>
               </span>
@@ -417,10 +455,15 @@ export function PinMap({
 
             {tooFar && (
               <p className="mt-2 flex items-start gap-2 rounded-sm bg-badge/60 p-3 text-[13px] text-terracotta-dark">
-                <TriangleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+                <TriangleAlert
+                  className="mt-0.5 size-4 shrink-0"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
                 <span>
-                  That is outside our usual {BRAND.deliveryRadiusKm} km range. You can still order
-                  and we will call to confirm, or move the pin closer.
+                  That is outside our usual {BRAND.deliveryRadiusKm} km range.
+                  You can still order and we will call to confirm, or move the
+                  pin closer.
                 </span>
               </p>
             )}
@@ -439,15 +482,7 @@ export function PinMap({
   )
 }
 
-function MapZoomButton({
-  children,
-  label,
-  onClick,
-}   
-                           
-               
-                     
- ) {
+function MapZoomButton({ children, label, onClick }) {
   return (
     <button
       type="button"

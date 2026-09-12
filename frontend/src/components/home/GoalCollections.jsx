@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { GOALS, GOAL_LABELS,           } from '@shared/index'
+import { GOALS, GOAL_LABELS } from '@shared/index'
 import { Container, Eyebrow } from '@/components/ui/primitives'
 import { PlatePlaceholder } from '@/components/ui/PlatePlaceholder'
 
@@ -10,9 +10,9 @@ import { PlatePlaceholder } from '@/components/ui/PlatePlaceholder'
  * Note: this section was cut in planning, then appeared in the user's design.
  * The design wins — flagged in CLAUDE.md.
  */
-const CUISINE_SECTIONS = ['Indian & Tandoor', 'Salads & Steam'];        
+const CUISINE_SECTIONS = ['Indian & Tandoor', 'Salads & Steam']
 
-export function GoalCollections({ dishes }                    ) {
+export function GoalCollections({ dishes }) {
   const goalTiles = GOALS.map((goal) => ({
     key: goal,
     title: GOAL_LABELS[goal],
@@ -33,7 +33,10 @@ export function GoalCollections({ dishes }                    ) {
     <section aria-labelledby="collections-heading" className="pb-8">
       <Container>
         <Eyebrow>Eat for your goal</Eyebrow>
-        <h2 id="collections-heading" className="mt-4 text-[clamp(2rem,4.2vw,3rem)]">
+        <h2
+          id="collections-heading"
+          className="mt-4 text-[clamp(2rem,4.2vw,3rem)]"
+        >
           Pick the plate that matches the day
         </h2>
 

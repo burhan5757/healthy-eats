@@ -1,27 +1,18 @@
-                                      
 import { cn } from '@/lib/utils'
 
 /** Page gutter — one width, used by every section so edges line up. */
-export function Container({
-  children,
-  className,
-}   
-                     
-                    
- ) {
-  return <div className={cn('mx-auto w-full max-w-[1360px] px-6 lg:px-14', className)}>{children}</div>
+export function Container({ children, className }) {
+  return (
+    <div
+      className={cn('mx-auto w-full max-w-[1360px] px-6 lg:px-14', className)}
+    >
+      {children}
+    </div>
+  )
 }
 
 /** Letterspaced section eyebrow, e.g. MOST ORDERED. */
-export function Eyebrow({
-  children,
-  onDark = false,
-  className,
-}   
-                     
-                  
-                    
- ) {
+export function Eyebrow({ children, onDark = false, className }) {
   return (
     <p
       className={cn(
@@ -36,7 +27,7 @@ export function Eyebrow({
 }
 
 /** Goal badge — tan pill, e.g. FAT LOSS. */
-export function GoalBadge({ children, className }                                             ) {
+export function GoalBadge({ children, className }) {
   return (
     <span
       className={cn(
@@ -55,12 +46,7 @@ export function ButtonPill({
   className,
   as: As = 'button',
   ...rest
-}   
-                     
-                    
-                     
-                                                   
-                                               ) {
+}) {
   return (
     <As
       className={cn(
@@ -78,11 +64,7 @@ export function ButtonPill({
 }
 
 /** Outlined pill — the "Add" / "Add to order" treatment. */
-export function ButtonOutline({
-  children,
-  className,
-  ...rest
-}                                                                                             ) {
+export function ButtonOutline({ children, className, ...rest }) {
   return (
     <button
       className={cn(
@@ -105,13 +87,7 @@ export function ButtonOutline({
  * specials cards. Protein carries no special colour here; the design keeps
  * the whole row in one ink.
  */
-export function MacroRow({
-  nutrition,
-  className,
-}   
-                                                                          
-                    
- ) {
+export function MacroRow({ nutrition, className }) {
   const cells = [
     { value: nutrition.kcal, unit: '', label: 'kcal' },
     { value: nutrition.protein, unit: ' g', label: 'protein' },

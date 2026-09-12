@@ -1,12 +1,12 @@
-import { clsx,                 } from 'clsx'
+import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
-export function cn(...inputs              ) {
+export function cn(...inputs) {
   return twMerge(clsx(inputs))
 }
 
 /** ₹ formatting — whole rupees, Indian digit grouping. */
-export function formatINR(amount        )         {
+export function formatINR(amount) {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
@@ -15,6 +15,6 @@ export function formatINR(amount        )         {
 }
 
 /** "12 min ago" style elapsed label for kitchen tickets. */
-export function minutesSince(iso        )         {
+export function minutesSince(iso) {
   return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000))
 }

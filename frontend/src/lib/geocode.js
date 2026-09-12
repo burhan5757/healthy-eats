@@ -19,22 +19,13 @@ const NOMINATIM = 'https://nominatim.openstreetmap.org'
 /** Bias results to greater Pune so "Sunrise Heights" doesn't land in Delhi. */
 const PUNE_VIEWBOX = '73.62,18.65,74.02,18.36'
 
-;                          
-                                                 
-               
-                                                     
-                
-             
-             
- 
-
 /** Splits Nominatim's one long display_name into a title + the remainder. */
-function splitLabel(displayName        )                                    {
+function splitLabel(displayName) {
   const [head, ...tail] = displayName.split(', ')
   return { title: head ?? displayName, detail: tail.join(', ') }
 }
 
-export async function searchPlaces(query        , signal              )                         {
+export async function searchPlaces(query, signal) {
   const url = new URL(`${NOMINATIM}/search`)
   url.searchParams.set('q', query)
   url.searchParams.set('format', 'jsonv2')
@@ -46,44 +37,50 @@ export async function searchPlaces(query        , signal              )         
   // wants to find it, they just want the local match ranked first.
   url.searchParams.set('bounded', '0')
 
-  const res = await fetch(url, { signal, headers: { Accept: 'application/json' } })
+  const res = await fetch(url, {
+    signal,
+    headers: { Accept: 'application/json' },
+  })
   if (!res.ok) throw new Error(`Search failed (${res.status})`)
 
-  const body                                                       = await res.json()
+  const body = await res.json()
 
   // Nominatim happily returns the same place several times — a node and the way
   // around it, metres apart, under one address. Deduping on the address text
   // rather than the coordinates is what removes them: the rows a customer
   // cannot tell apart are exactly the rows that read identically.
-  const seen = new Set        ()
-  const out                = []
+  const seen = new Set()
+  const out = []
 
   for (const r of body) {
     const key = r.display_name.toLowerCase()
     if (seen.has(key)) continue
     seen.add(key)
-    out.push({ ...splitLabel(r.display_name), lat: Number(r.lat), lng: Number(r.lon) })
+    out.push({
+      ...splitLabel(r.display_name),
+      lat: Number(r.lat),
+      lng: Number(r.lon),
+    })
   }
 
   return out
 }
 
 /** Turns a dropped pin into something a human can check — "Dahanukar Colony, Kothrud". */
-export async function describePoint(
-  lat        ,
-  lng        ,
-  signal              ,
-)                         {
+export async function describePoint(lat, lng, signal) {
   const url = new URL(`${NOMINATIM}/reverse`)
   url.searchParams.set('lat', String(lat))
   url.searchParams.set('lon', String(lng))
   url.searchParams.set('format', 'jsonv2')
   url.searchParams.set('zoom', '18')
 
-  const res = await fetch(url, { signal, headers: { Accept: 'application/json' } })
+  const res = await fetch(url, {
+    signal,
+    headers: { Accept: 'application/json' },
+  })
   if (!res.ok) return null
 
-  const body                            = await res.json()
+  const body = await res.json()
   if (!body.display_name) return null
 
   // The full string runs to the country and postcode; the first few parts are
@@ -94,13 +91,10 @@ export async function describePoint(
 /* --- Distance -------------------------------------------------------------- */
 
 const EARTH_RADIUS_KM = 6371
-const toRad = (deg        ) => (deg * Math.PI) / 180
+const toRad = (deg) => (deg * Math.PI) / 180
 
 /** Straight-line distance in km. Good enough to flag an out-of-range pin. */
-export function distanceKm(
-  a                              ,
-  b                              ,
-)         {
+export function distanceKm(a, b) {
   const dLat = toRad(b.lat - a.lat)
   const dLng = toRad(b.lng - a.lng)
   const h =
@@ -109,7 +103,7 @@ export function distanceKm(
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(h))
 }
 
-export function kmFromKitchen(pos                              )         {
+export function kmFromKitchen(pos) {
   return distanceKm(BRAND.geo, pos)
 }
 
@@ -118,13 +112,13 @@ export function kmFromKitchen(pos                              )         {
  * which is what a two-wheeler actually averages across Pune traffic. Rounded
  * to a 10-minute band so it reads as an estimate, not a promise.
  */
-export function etaMinutes(km        )                               {
+export function etaMinutes(km) {
   const ride = (km / 18) * 60
   const mid = 20 + ride
   const from = Math.max(20, Math.round((mid - 5) / 5) * 5)
   return { from, to: from + 10 }
 }
 
-export function isOutsideDeliveryRange(km        )          {
+export function isOutsideDeliveryRange(km) {
   return km > BRAND.deliveryRadiusKm
 }

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { ArrowLeft, Wallet } from 'lucide-react'
-import { BRAND, addressSchema,              } from '@shared/index'
+import { BRAND, addressSchema } from '@shared/index'
 import { api, ApiError } from '@/lib/api'
 import { cartTotals, useCart } from '@/store/cart'
 import { rememberOrder } from '@/store/myOrders'
@@ -12,7 +12,7 @@ import { PinMap } from '@/components/checkout/PinMap'
 import { PlatePlaceholder } from '@/components/ui/PlatePlaceholder'
 import { cn, formatINR } from '@/lib/utils'
 
-const STEPS = ['Your order', 'Delivery', 'Confirmed'];        
+const STEPS = ['Your order', 'Delivery', 'Confirmed']
 
 export default function Checkout() {
   const navigate = useNavigate()
@@ -20,16 +20,21 @@ export default function Checkout() {
   const setQty = useCart((s) => s.setQty)
   const clear = useCart((s) => s.clear)
 
-  const [form, setForm] = useState({ name: '', phone: '', line1: '', landmark: '' })
-  const [pin, setPin] = useState                                     (null)
+  const [form, setForm] = useState({
+    name: '',
+    phone: '',
+    line1: '',
+    landmark: '',
+  })
+  const [pin, setPin] = useState(null)
   const [notes, setNotes] = useState('')
-  const [errors, setErrors] = useState                        ({})
+  const [errors, setErrors] = useState({})
 
   /**
    * Updating a field clears that field's error. Without this, a message like
    * "Name is required" stays on screen after the customer has fixed it.
    */
-  const updateField = (key                   , value        ) => {
+  const updateField = (key, value) => {
     setForm((f) => ({ ...f, [key]: value }))
     setErrors((e) => {
       if (!e[key]) return e
@@ -51,11 +56,11 @@ export default function Checkout() {
 
   if (lines.length === 0 && !place.isPending) return <EmptyCart />
 
-  const submit = (e                 ) => {
+  const submit = (e) => {
     e.preventDefault()
 
     // Same Zod schema the server validates with, so the two can never disagree.
-    const address          = {
+    const address = {
       ...form,
       pincode: '411038', // Kothrud — pin drop is the real locator
       ...(pin ?? {}),
@@ -63,8 +68,9 @@ export default function Checkout() {
 
     const parsed = addressSchema.safeParse(address)
     if (!parsed.success) {
-      const next                         = {}
-      for (const issue of parsed.error.issues) next[String(issue.path[0])] = issue.message
+      const next = {}
+      for (const issue of parsed.error.issues)
+        next[String(issue.path[0])] = issue.message
       setErrors(next)
       return
     }
@@ -82,10 +88,17 @@ export default function Checkout() {
       <CheckoutHeader />
 
       <Container className="pt-12">
-        <p className="eyebrow text-muted-foreground">Checkout · No account needed</p>
-        <h1 className="mt-4 text-[clamp(2rem,4.5vw,3.25rem)]">Where should the rider come?</h1>
+        <p className="eyebrow text-muted-foreground">
+          Checkout · No account needed
+        </p>
+        <h1 className="mt-4 text-[clamp(2rem,4.5vw,3.25rem)]">
+          Where should the rider come?
+        </h1>
 
-        <form onSubmit={submit} className="mt-12 grid gap-6 lg:grid-cols-[minmax(0,420px)_1fr]">
+        <form
+          onSubmit={submit}
+          className="mt-12 grid gap-6 lg:grid-cols-[minmax(0,420px)_1fr]"
+        >
           {/* ---- Order summary ------------------------------------------- */}
           <section className="rounded-md border border-border bg-surface p-7">
             <div className="flex items-baseline justify-between gap-4">
@@ -134,10 +147,18 @@ export default function Checkout() {
               <Row label="Subtotal" value={formatINR(totals.subtotal)} />
               <Row
                 label={`Delivery — ${BRAND.deliveryAreas[0]}`}
-                value={totals.deliveryFee === 0 ? 'Free' : formatINR(totals.deliveryFee)}
+                value={
+                  totals.deliveryFee === 0
+                    ? 'Free'
+                    : formatINR(totals.deliveryFee)
+                }
                 muted
               />
-              <Row label="Packaging" value={formatINR(totals.packaging)} muted />
+              <Row
+                label="Packaging"
+                value={formatINR(totals.packaging)}
+                muted
+              />
             </dl>
 
             <div className="mt-5 flex items-baseline justify-between border-t border-border pt-5">
@@ -148,14 +169,17 @@ export default function Checkout() {
             </div>
 
             <div className="mt-6 flex gap-3 rounded-sm bg-badge/60 p-4">
-              <Wallet className="mt-0.5 size-4 shrink-0 text-terracotta-dark" strokeWidth={1.75} />
+              <Wallet
+                className="mt-0.5 size-4 shrink-0 text-terracotta-dark"
+                strokeWidth={1.75}
+              />
               <div>
                 <p className="text-[13px] font-semibold text-terracotta-dark">
                   Cash on delivery only
                 </p>
                 <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-                  Pay the rider at your door. We don&apos;t take cards, UPI or wallets, and nothing
-                  is stored online.
+                  Pay the rider at your door. We don&apos;t take cards, UPI or
+                  wallets, and nothing is stored online.
                 </p>
               </div>
             </div>
@@ -217,9 +241,14 @@ export default function Checkout() {
 
                 {/* Goes straight onto the chef's ticket — allergies matter. */}
                 <div>
-                  <label htmlFor="notes" className="eyebrow block text-muted-foreground">
+                  <label
+                    htmlFor="notes"
+                    className="eyebrow block text-muted-foreground"
+                  >
                     Note for the kitchen{' '}
-                    <span className="normal-case opacity-70">(allergies, preferences)</span>
+                    <span className="normal-case opacity-70">
+                      (allergies, preferences)
+                    </span>
                   </label>
                   <textarea
                     id="notes"
@@ -239,7 +268,10 @@ export default function Checkout() {
             </section>
 
             {place.isError && (
-              <p role="alert" className="rounded-sm bg-destructive/10 p-4 text-[14px] text-destructive">
+              <p
+                role="alert"
+                className="rounded-sm bg-destructive/10 p-4 text-[14px] text-destructive"
+              >
                 {place.error instanceof ApiError
                   ? place.error.message
                   : 'We could not place that order. Please try again.'}
@@ -252,7 +284,8 @@ export default function Checkout() {
                   Cash to pay on delivery: {formatINR(totals.total)}
                 </p>
                 <p className="mt-1 text-[13px] text-on-dark-muted">
-                  By placing this order you agree to be reachable on the phone number above.
+                  By placing this order you agree to be reachable on the phone
+                  number above.
                 </p>
               </div>
 
@@ -276,17 +309,26 @@ function CheckoutHeader() {
     <div className="border-b border-border">
       <Container className="flex h-[72px] items-center justify-between gap-6">
         <Link to="/" className="flex items-baseline gap-2">
-          <span className="font-display text-[22px] leading-none">{BRAND.name}</span>
+          <span className="font-display text-[22px] leading-none">
+            {BRAND.name}
+          </span>
           <span className="eyebrow text-muted-foreground">{BRAND.city}</span>
         </Link>
 
         <ol className="hidden items-center gap-3 md:flex">
           {STEPS.map((step, i) => (
             <li key={step} className="flex items-center gap-3">
-              <span className={cn('eyebrow', i <= 1 ? 'text-foreground' : 'text-muted-foreground')}>
+              <span
+                className={cn(
+                  'eyebrow',
+                  i <= 1 ? 'text-foreground' : 'text-muted-foreground',
+                )}
+              >
                 {i + 1} · {step}
               </span>
-              {i < STEPS.length - 1 && <span className="h-px w-8 bg-border" aria-hidden />}
+              {i < STEPS.length - 1 && (
+                <span className="h-px w-8 bg-border" aria-hidden />
+              )}
             </li>
           ))}
         </ol>
@@ -303,37 +345,25 @@ function CheckoutHeader() {
   )
 }
 
-function Row({ label, value, muted }                                                   ) {
+function Row({ label, value, muted }) {
   return (
     <div className="flex justify-between gap-4">
       <dt className={muted ? 'text-muted-foreground' : ''}>{label}</dt>
-      <dd className={cn('tabular-nums', muted && 'text-muted-foreground')}>{value}</dd>
+      <dd className={cn('tabular-nums', muted && 'text-muted-foreground')}>
+        {value}
+      </dd>
     </div>
   )
 }
 
-function Field({
-  id,
-  label,
-  hint,
-  value,
-  error,
-  onChange,
-  ...rest
-}   
-            
-               
-               
-               
-                
-                               
-                                                                              
-                                                                                  ) {
+function Field({ id, label, hint, value, error, onChange, ...rest }) {
   return (
     <div>
       <label htmlFor={id} className="eyebrow block text-muted-foreground">
         {label}
-        {hint && <span className="ml-1.5 normal-case opacity-70">({hint})</span>}
+        {hint && (
+          <span className="ml-1.5 normal-case opacity-70">({hint})</span>
+        )}
       </label>
       <input
         id={id}
@@ -349,7 +379,11 @@ function Field({
         {...rest}
       />
       {error && (
-        <p id={`${id}-error`} role="alert" className="mt-1.5 text-[13px] text-destructive">
+        <p
+          id={`${id}-error`}
+          role="alert"
+          className="mt-1.5 text-[13px] text-destructive"
+        >
           {error}
         </p>
       )}
@@ -363,7 +397,8 @@ function EmptyCart() {
       <p className="eyebrow text-muted-foreground">Checkout</p>
       <h1 className="mt-4 text-4xl">Nothing in the order yet</h1>
       <p className="mx-auto mt-4 max-w-[44ch] text-[15px] leading-relaxed text-muted-foreground">
-        Add a plate or two from the menu and come back — the kitchen is open till 22:30.
+        Add a plate or two from the menu and come back — the kitchen is open
+        till 22:30.
       </p>
       <Link
         to="/menu"

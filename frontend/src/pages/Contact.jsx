@@ -24,8 +24,9 @@ export default function Contact() {
       </h1>
 
       <p className="mt-7 max-w-[58ch] text-[17px] leading-relaxed text-muted-foreground">
-        Questions about a plate, a macro or an order already on its way — call during service and
-        you&apos;ll get someone standing next to the hob, not a call centre.
+        Questions about a plate, a macro or an order already on its way — call
+        during service and you&apos;ll get someone standing next to the hob, not
+        a call centre.
       </p>
 
       <div className="mt-14 grid gap-6 lg:grid-cols-[1fr_minmax(0,480px)]">
@@ -87,7 +88,8 @@ export default function Contact() {
               ))}
             </ul>
             <p className="mt-5 text-[14px] text-muted-foreground">
-              Outside these four? Call the kitchen — some evenings the rider can stretch a little.
+              Outside these four? Call the kitchen — some evenings the rider can
+              stretch a little.
             </p>
           </div>
         </div>
@@ -115,9 +117,12 @@ export default function Contact() {
 
       <div className="mt-16 flex flex-col gap-6 border-t border-border pt-12 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-[clamp(1.6rem,3vw,2rem)]">Hungry now, not curious?</h2>
+          <h2 className="text-[clamp(1.6rem,3vw,2rem)]">
+            Hungry now, not curious?
+          </h2>
           <p className="mt-2 text-[15px] text-muted-foreground">
-            Skip the call — the menu shows exactly what&apos;s on the pass today.
+            Skip the call — the menu shows exactly what&apos;s on the pass
+            today.
           </p>
         </div>
         <Link
@@ -131,15 +136,7 @@ export default function Contact() {
   )
 }
 
-function Card({
-  icon: Icon,
-  label,
-  children,
-}   
-                                                                         
-               
-                           
- ) {
+function Card({ icon: Icon, label, children }) {
   return (
     <section className="rounded-md border border-border bg-surface p-7">
       <div className="flex items-center gap-2.5">

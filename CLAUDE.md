@@ -12,10 +12,10 @@
 
 **The USP:** every dish is tagged along two axes —
 
-| Axis | Values |
-|---|---|
+| Axis             | Values                                |
+| ---------------- | ------------------------------------- |
 | **Fitness goal** | weight loss · lean body · muscle gain |
-| **Timing** | pre-workout · post-workout · meal |
+| **Timing**       | pre-workout · post-workout · meal     |
 
 Nutrition data (kcal + protein/carbs/fat) is **first-class from day one**. It drives the menu
 taxonomy, the filters, and the dish cards. This is what separates the product from a generic
@@ -31,23 +31,23 @@ delivery platform, not a brochure site.
 
 ## 2. Stack (confirmed by user, 2026-08-14)
 
-| Layer | Choice |
-|---|---|
-| Frontend | **React + Vite** |
-| Language | **TypeScript** |
-| Styling | **Tailwind CSS** |
-| UI components | **shadcn/ui** |
-| Backend | **Node.js + Express** |
-| API validation | **Zod** |
-| Database | **MongoDB + Mongoose** |
-| Auth | Protected admin authentication |
-| HTTP client | **fetch** (no axios) |
-| Testing | **Vitest** (unit) + **Playwright** (e2e) |
-| Code quality | **ESLint + Prettier** |
-| Version control | **Git + GitHub** |
-| DB hosting | **MongoDB Atlas** |
-| Frontend hosting | **Vercel** |
-| Backend hosting | **Render / Railway** |
+| Layer            | Choice                                   |
+| ---------------- | ---------------------------------------- |
+| Frontend         | **React + Vite**                         |
+| Language         | **TypeScript**                           |
+| Styling          | **Tailwind CSS**                         |
+| UI components    | **shadcn/ui**                            |
+| Backend          | **Node.js + Express**                    |
+| API validation   | **Zod**                                  |
+| Database         | **MongoDB + Mongoose**                   |
+| Auth             | Protected admin authentication           |
+| HTTP client      | **fetch** (no axios)                     |
+| Testing          | **Vitest** (unit) + **Playwright** (e2e) |
+| Code quality     | **ESLint + Prettier**                    |
+| Version control  | **Git + GitHub**                         |
+| DB hosting       | **MongoDB Atlas**                        |
+| Frontend hosting | **Vercel**                               |
+| Backend hosting  | **Render / Railway**                     |
 
 ### Scope note
 
@@ -59,17 +59,17 @@ actually needs. No speculative API surface.
 
 ## 3. Product decisions (confirmed)
 
-| Decision | Choice |
-|---|---|
-| Theme | **Fresh Citrus** — light, lively, happy. Explicitly *not* dark. |
-| Currency | **₹ INR** |
-| Payment | **Cash on Delivery only** |
-| Checkout | Standard: cart → address → summary → place → live tracking |
-| Cancel behaviour | Admin cancels order, **then picks which dish(es) sold out today** |
-| Order closeout | **Admin** marks delivered (not chef, no driver role) |
-| Chef dashboard | Deliberately minimal — **one button per ticket** |
+| Decision                | Choice                                                                                 |
+| ----------------------- | -------------------------------------------------------------------------------------- |
+| Theme                   | **Fresh Citrus** — light, lively, happy. Explicitly _not_ dark.                        |
+| Currency                | **₹ INR**                                                                              |
+| Payment                 | **Cash on Delivery only**                                                              |
+| Checkout                | Standard: cart → address → summary → place → live tracking                             |
+| Cancel behaviour        | Admin cancels order, **then picks which dish(es) sold out today**                      |
+| Order closeout          | **Admin** marks delivered (not chef, no driver role)                                   |
+| Chef dashboard          | Deliberately minimal — **one button per ticket**                                       |
 | Membership / meal plans | **Out of scope for now.** Business will launch it later; leave room in the data model. |
-| Menu content | **Supplied by the user.** Do not invent dishes. See §8. |
+| Menu content            | **Supplied by the user.** Do not invent dishes. See §8.                                |
 
 ---
 
@@ -96,9 +96,9 @@ placeholder #DED9CD   dish image slots until photography lands
 ```
 
 - **Type:** **Playfair Display** (high-contrast serif — all display headings, prices, dish names)
-  + **Inter** (body, UI, labels). The serif is the whole character of the brand.
+  - **Inter** (body, UI, labels). The serif is the whole character of the brand.
 - **Shape:** small radii (`--radius: 0.5rem`) on cards; **fully-round pills** on buttons only.
-  The design is restrained and editorial, *not* the rounded-friendly look originally planned.
+  The design is restrained and editorial, _not_ the rounded-friendly look originally planned.
 - **Macros:** big figure over an uppercase letterspaced caption (`820` / `KCAL`), all one ink.
   No per-macro colour — the design keeps the row monochrome.
 - **Goal badges:** tan pill, uppercase letterspaced, terracotta-brown text. No dots.
@@ -125,6 +125,7 @@ placeholder #DED9CD   dish image slots until photography lands
 ```
 
 Rules:
+
 - Cancel is allowed from `placed` and `preparing`. **Never after `ready`.**
 - `PREPARING` is entered **automatically** when admin accepts — this is what keeps the chef
   screen to a single button.
@@ -163,11 +164,12 @@ No nav chrome. Oversized type for across-the-kitchen legibility.
 **No revenue, no order counts, no performance stats.**
 
 **Admin** — four screens:
-- *Overview* — today's revenue, order count, average order value, pending count, 7-day chart, live feed.
-- *Orders* — filterable by status. `placed` rows get **Accept** / **Cancel** (cancel dialog picks
+
+- _Overview_ — today's revenue, order count, average order value, pending count, 7-day chart, live feed.
+- _Orders_ — filterable by status. `placed` rows get **Accept** / **Cancel** (cancel dialog picks
   sold-out dishes + reason). `ready` rows get **Mark Delivered**.
-- *Revenue* — today/week/month, revenue by dish, revenue by goal category, value lost to cancellations.
-- *Menu* — availability manager, sold-out list, daily reset.
+- _Revenue_ — today/week/month, revenue by dish, revenue by goal category, value lost to cancellations.
+- _Menu_ — availability manager, sold-out list, daily reset.
 
 ---
 
@@ -175,20 +177,20 @@ No nav chrome. Oversized type for across-the-kitchen legibility.
 
 Do **not** invent dishes. The user is supplying the real menu. Required fields per dish:
 
-| Field | Notes |
-|---|---|
-| Name | |
-| Description | 1–2 lines |
-| Price | ₹ |
-| Category | e.g. Bowls, Salads, Wraps, Shakes |
-| Calories | kcal |
-| Protein / Carbs / Fat | grams |
-| Goal tag(s) | weight loss · lean body · muscle gain |
-| Timing tag(s) | pre-workout · post-workout · meal |
-| Diet tag(s) | veg · non-veg · vegan · gluten-free |
-| Bestseller? | drives the homepage top carousel |
-| Today's special? | drives the specials section |
-| Photo | one per dish |
+| Field                 | Notes                                 |
+| --------------------- | ------------------------------------- |
+| Name                  |                                       |
+| Description           | 1–2 lines                             |
+| Price                 | ₹                                     |
+| Category              | e.g. Bowls, Salads, Wraps, Shakes     |
+| Calories              | kcal                                  |
+| Protein / Carbs / Fat | grams                                 |
+| Goal tag(s)           | weight loss · lean body · muscle gain |
+| Timing tag(s)         | pre-workout · post-workout · meal     |
+| Diet tag(s)           | veg · non-veg · vegan · gluten-free   |
+| Bestseller?           | drives the homepage top carousel      |
+| Today's special?      | drives the specials section           |
+| Photo                 | one per dish                          |
 
 Also wanted: logo / name treatment, tagline, delivery fee and radius, contact details, address,
 brand photos.
@@ -200,14 +202,14 @@ transcribed in full into `backend/src/seed.ts`: **104 dishes + 15 add-ons = 119 
 
 Counts match the website design exactly, which confirms the design was drawn from this menu:
 
-| Section | Count | Design said |
-|---|---|---|
-| Fat Loss | 28 | 28 ✓ |
-| Muscle Gain | 28 | 28 ✓ |
-| Basic Fitness | 21 | 21 ✓ |
+| Section                 | Count  | Design said  |
+| ----------------------- | ------ | ------------ |
+| Fat Loss                | 28     | 28 ✓         |
+| Muscle Gain             | 28     | 28 ✓         |
+| Basic Fitness           | 21     | 21 ✓         |
 | **Goal packages total** | **77** | "77 meals" ✓ |
-| Indian & Tandoor | 19 | 19 ✓ |
-| Salads & Steam | 8 | 8 ✓ |
+| Indian & Tandoor        | 19     | 19 ✓         |
+| Salads & Steam          | 8      | 8 ✓          |
 
 ### ⚠️ Open question 1 — the brand does not match
 
@@ -239,7 +241,7 @@ Supply real macros and they appear everywhere automatically.
 
 ## 9. Homepage section order (user-specified)
 
-1. **Bestsellers carousel** — full-bleed, at the very top, *above* the brand. Auto-advancing **and** drag/swipe.
+1. **Bestsellers carousel** — full-bleed, at the very top, _above_ the brand. Auto-advancing **and** drag/swipe.
 2. **Brand block** — "HEALTHY EATS" wordmark as a title card.
 3. **Today's Specials** — visually distinct from the carousel (asymmetric editorial grid, date stamp).
 4. ~~Goal picker~~ — **CUT** by user ("if we need it we will add it later on"). Goal filtering
@@ -266,16 +268,16 @@ Supply real macros and they appear everywhere automatically.
 
 The user asked for a working prototype rather than more questions, so these were decided:
 
-| Item | Decision | Rationale |
-|---|---|---|
-| Repo layout | One repo: `frontend/` + `backend/` + `shared/` | User: "decide it later, I just want a working prototype." This forecloses nothing. |
-| Real-time | **Socket.IO** | User-confirmed. |
-| Admin account | Single seeded account, credentials from env | User-confirmed, stated three times. |
-| Chef account | Single seeded account. No self-signup. | Someone must be authenticated to mark tickets ready. |
+| Item              | Decision                                               | Rationale                                                                                                                                                                                            |
+| ----------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Repo layout       | One repo: `frontend/` + `backend/` + `shared/`         | User: "decide it later, I just want a working prototype." This forecloses nothing.                                                                                                                   |
+| Real-time         | **Socket.IO**                                          | User-confirmed.                                                                                                                                                                                      |
+| Admin account     | Single seeded account, credentials from env            | User-confirmed, stated three times.                                                                                                                                                                  |
+| Chef account      | Single seeded account. No self-signup.                 | Someone must be authenticated to mark tickets ready.                                                                                                                                                 |
 | Customer accounts | ~~Email + password signup/login~~ → **GUEST CHECKOUT** | **Overridden by the checkout design**, which reads "CHECKOUT · NO ACCOUNT NEEDED" and "Guest checkout — we only keep this for today's delivery". Orders are tracked by order number, not by account. |
-| Client data layer | TanStack Query (server state) + Zustand (cart) | Keeps three screens in sync under Socket.IO invalidation. Uses `fetch` underneath as specified. |
-| Local database | `mongodb-memory-server` when `MONGODB_URI` is unset | Prototype runs with zero setup; real Mongoose models throughout, so switching to Atlas is one env var. |
-| Dish images | Local `frontend/public/` for now | Cloudinary/S3 can come with admin uploads later. |
+| Client data layer | TanStack Query (server state) + Zustand (cart)         | Keeps three screens in sync under Socket.IO invalidation. Uses `fetch` underneath as specified.                                                                                                      |
+| Local database    | `mongodb-memory-server` when `MONGODB_URI` is unset    | Prototype runs with zero setup; real Mongoose models throughout, so switching to Atlas is one env var.                                                                                               |
+| Dish images       | Local `frontend/public/` for now                       | Cloudinary/S3 can come with admin uploads later.                                                                                                                                                     |
 
 Still open, non-blocking:
 
@@ -295,56 +297,56 @@ Still open, non-blocking:
 
 Append newest at the bottom. Format: date — decision — reason.
 
-| Date | Decision | Reason |
-|---|---|---|
-| 2026-08-14 | Project scoped: fitness restaurant + delivery platform, 3 role dashboards | Initial brief |
-| 2026-08-14 | Nutrition/macros + two-axis goal×timing taxonomy made core to the data model | It is the business USP; retrofitting later would force a data-model rework |
-| 2026-08-14 | Theme = Fresh Citrus, light mode only | User rejected all three dark/muted proposals: "should feel lively and happy" |
-| 2026-08-14 | Cancel = reject order **and** mark selected dish(es) sold out for the day | User's definition of "unavailable"; admin picks which dish ran out |
-| 2026-08-14 | Admin marks delivered; no driver role | User choice — keeps it to three dashboards |
-| 2026-08-14 | Membership/subscription model deferred | Business will launch it later |
-| 2026-08-14 | Payment = COD only, ₹ INR | User choice |
-| 2026-08-14 | ~~Next.js App Router~~ **superseded** → React + Vite | User supplied a full explicit stack; Next.js was my assumption, not their choice |
-| 2026-08-14 | ~~No backend, mock data layer~~ **superseded** → real Express + MongoDB, kept lean | User's stack list includes Express, Mongoose, Atlas, and backend hosting |
-| 2026-08-14 | Adopted working agreement: confirm stack before building, log decisions here | User feedback after I began scaffolding on assumption |
-| 2026-08-14 | **Exactly one monitoring dashboard — admin only.** Order + money monitoring appear nowhere else. Chef and customer screens are operational, not analytical. | User instruction |
-| 2026-08-14 | **Exactly one admin account, seeded and non-registerable. Enforced server-side.** | User instruction, stated repeatedly — treat as a hard requirement, not a UI preference |
-| 2026-08-14 | Socket.IO for real-time order updates | User choice |
-| 2026-08-14 | Repo = one repo, `frontend/` + `backend/` + `shared/` | User deferred; prototype-first. Reversible. |
-| 2026-08-14 | TanStack Query + Zustand on the client | Decided by me — needed to keep three screens in sync; `fetch` still the transport |
-| 2026-08-14 | `mongodb-memory-server` fallback when `MONGODB_URI` is unset | Prototype must run with zero setup; Atlas is a one-env-var switch |
-| 2026-08-14 | Homepage **goal picker section cut** | User: "if we need it we will add it later on" |
-| 2026-08-14 | Landing page to follow the user's Claude design; URL is private/403, so source comes via screenshots | Design is not machine-readable from the link |
-| 2026-08-14 | **Palette replaced: Fresh Citrus → cream/forest/terracotta** | The user's landing design uses it; design beats the earlier proposal |
-| 2026-08-14 | **Display face = Playfair Display** (was Bricolage Grotesque) | Design uses a high-contrast serif throughout |
-| 2026-08-14 | **Goals renamed: `fat-loss`, `muscle-gain`, `basic-fitness`** (was weight-loss/lean-body/muscle-gain) | Badge names read off the design |
-| 2026-08-14 | **Goal-collections section reinstated** after being cut | It appears in the design ("Pick the plate that matches the day") |
-| 2026-08-14 | Brand facts (address, phone, FSSAI, hours, delivery areas, tagline) captured in `shared/index.ts` `BRAND` | Read off the design footer — single source for the whole app |
-| 2026-08-14 | Added `sortOrder` to Dish | The bestsellers rail is merchandised, not alphabetical |
-| 2026-08-14 | Added mobile nav drawer (not in design) | Design showed desktop only; without it phones had no navigation at all |
-| 2026-08-14 | **Guest checkout — customers do NOT log in** | Checkout design reads "NO ACCOUNT NEEDED" / "Guest checkout". Supersedes the earlier customer-accounts decision. |
-| 2026-08-14 | Added **packaging fee ₹15** as a separate line | Appears in the checkout design's order summary |
-| 2026-08-14 | Added `ingredients` to Dish (short line) alongside `description` (long copy) | Menu cards show a terse ingredient list; specials cards show fuller copy |
-| 2026-08-14 | Cart = Zustand + localStorage, purely client-side | No account needed; server still recomputes every total from the DB on order placement |
-| 2026-08-14 | Seeded **12 dishes** transcribed from the menu design | Matches the design's "12 DISHES TODAY". See §8b for the three with estimated figures. |
-| 2026-08-14 | Order tracking is **public by order number** (`/track/HE-1234`) | Tracking design says "type the order number on the site". ⚠️ See §10b — privacy trade-off. |
-| 2026-08-14 | Map = **Leaflet + OpenStreetMap tiles** | Checkout design has a draggable pin. OSM needs no API key or billing account. |
-| 2026-08-14 | Added `lat`/`lng` to address | The dropped pin is what the rider actually navigates to |
-| 2026-08-14 | Checkout and tracking use a **stripped header, no site chrome** | Both designs drop the nav so nothing competes with completing/reading the order |
-| 2026-08-14 | **Kitchen display is DARK** — the only dark screen in the product | The chef design is dark, and it is right for a wall-mounted screen read across a bright kitchen. Explicit exception to light-mode-only. |
-| 2026-08-14 | Kitchen has three columns: **Incoming / Cooking / Ready** | From the chef design. Incoming = `placed` (visible but Ready button DISABLED until admin accepts), Cooking = `preparing`, Ready = `ready`. Keeps the chef to one button while matching the layout. |
-| 2026-08-14 | Added `notes` to Order + a kitchen-note field at checkout | The chef design shows allergy notes ("No peanut — allergy") on tickets; there was no field for them |
-| 2026-08-14 | Login page designed from scratch | No design was supplied; built from existing tokens. No signup link — staff accounts are seeded only. |
-| 2026-08-14 | Money monitoring lives on **admin → Order history** | The design's sidebar has no dedicated revenue item, but revenue monitoring was an explicit requirement. Folded in there rather than inventing a nav item. |
-| 2026-08-14 | Admin → Settings is **read-only** | Sidebar shows it; no screen was designed. Surfaces real config rather than fake controls. |
-| 2026-08-14 | About page built from the 3 About screenshots; `HowDeliveryWorks` gained a light `card` variant | The block appears on both Home (dark band) and About (light card) |
-| 2026-08-14 | Contact page designed from scratch, **with no message form** | No design was supplied. A form with no endpoint would silently discard messages — worse than not offering one. Phone/Instagram/map instead. |
-| 2026-08-14 | **Palette darkened for WCAG AA**: added `--he-terracotta-text` (#8A6443), `--he-terracotta-dark` → #885E36, `--he-muted` → #6A6F66, placeholder caption → #5A5F56 | The design's terracotta only reached 2.9:1 on cream — well under the 4.5:1 AA needs for small text. Hue held; only lightness moved. `--he-terracotta` is unchanged and still used for decoration and on-dark text. |
-| 2026-08-15 | **Landing-page dish cards wired to the cart**; `CartBar` now renders on Home as well as Menu | The bestsellers and specials cards rendered their Add buttons with no `onClick` — dead controls. They now use the same add → `QtyStepper` pattern as `MenuDishCard`. The cart bar came with it: without it a click on the landing page has no visible effect and no route to checkout. Covered by an e2e regression test. |
-| 2026-08-15 | **The checkout pin no longer defaults to the kitchen.** No pin exists until the customer places one | On mount the map emitted the kitchen's own coordinates, so any order where nobody touched the map shipped a delivery pin pointing at the restaurant — wrong data that looked deliberate. Absent beats wrong; the UI now says so plainly. |
-| 2026-08-15 | **Address search + reverse geocoding added** via OSM Nominatim (`frontend/src/lib/geocode.ts`) | Dragging from Kothrud was the only way to find an address, and the pin read back as bare coordinates the customer could not verify. Same OSM family as the tiles, so still no API key. ⚠️ Public Nominatim is rate-limited and not for production volume — see §15. |
-| 2026-08-15 | Kitchen coordinates and a **12 km delivery radius** moved into `BRAND` (`geo`, `deliveryRadiusKm`) | Brand facts live in one place. Drives the distance readout, the ETA, and the out-of-range notice. |
-| 2026-08-15 | An out-of-range pin **warns, never blocks** | The kitchen may still want a Hinjewadi order it can service; a hard block silently loses revenue. The customer is told and the kitchen calls to confirm. |
+| Date       | Decision                                                                                                                                                          | Reason                                                                                                                                                                                                                                                                                                                    |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-14 | Project scoped: fitness restaurant + delivery platform, 3 role dashboards                                                                                         | Initial brief                                                                                                                                                                                                                                                                                                             |
+| 2026-08-14 | Nutrition/macros + two-axis goal×timing taxonomy made core to the data model                                                                                      | It is the business USP; retrofitting later would force a data-model rework                                                                                                                                                                                                                                                |
+| 2026-08-14 | Theme = Fresh Citrus, light mode only                                                                                                                             | User rejected all three dark/muted proposals: "should feel lively and happy"                                                                                                                                                                                                                                              |
+| 2026-08-14 | Cancel = reject order **and** mark selected dish(es) sold out for the day                                                                                         | User's definition of "unavailable"; admin picks which dish ran out                                                                                                                                                                                                                                                        |
+| 2026-08-14 | Admin marks delivered; no driver role                                                                                                                             | User choice — keeps it to three dashboards                                                                                                                                                                                                                                                                                |
+| 2026-08-14 | Membership/subscription model deferred                                                                                                                            | Business will launch it later                                                                                                                                                                                                                                                                                             |
+| 2026-08-14 | Payment = COD only, ₹ INR                                                                                                                                         | User choice                                                                                                                                                                                                                                                                                                               |
+| 2026-08-14 | ~~Next.js App Router~~ **superseded** → React + Vite                                                                                                              | User supplied a full explicit stack; Next.js was my assumption, not their choice                                                                                                                                                                                                                                          |
+| 2026-08-14 | ~~No backend, mock data layer~~ **superseded** → real Express + MongoDB, kept lean                                                                                | User's stack list includes Express, Mongoose, Atlas, and backend hosting                                                                                                                                                                                                                                                  |
+| 2026-08-14 | Adopted working agreement: confirm stack before building, log decisions here                                                                                      | User feedback after I began scaffolding on assumption                                                                                                                                                                                                                                                                     |
+| 2026-08-14 | **Exactly one monitoring dashboard — admin only.** Order + money monitoring appear nowhere else. Chef and customer screens are operational, not analytical.       | User instruction                                                                                                                                                                                                                                                                                                          |
+| 2026-08-14 | **Exactly one admin account, seeded and non-registerable. Enforced server-side.**                                                                                 | User instruction, stated repeatedly — treat as a hard requirement, not a UI preference                                                                                                                                                                                                                                    |
+| 2026-08-14 | Socket.IO for real-time order updates                                                                                                                             | User choice                                                                                                                                                                                                                                                                                                               |
+| 2026-08-14 | Repo = one repo, `frontend/` + `backend/` + `shared/`                                                                                                             | User deferred; prototype-first. Reversible.                                                                                                                                                                                                                                                                               |
+| 2026-08-14 | TanStack Query + Zustand on the client                                                                                                                            | Decided by me — needed to keep three screens in sync; `fetch` still the transport                                                                                                                                                                                                                                         |
+| 2026-08-14 | `mongodb-memory-server` fallback when `MONGODB_URI` is unset                                                                                                      | Prototype must run with zero setup; Atlas is a one-env-var switch                                                                                                                                                                                                                                                         |
+| 2026-08-14 | Homepage **goal picker section cut**                                                                                                                              | User: "if we need it we will add it later on"                                                                                                                                                                                                                                                                             |
+| 2026-08-14 | Landing page to follow the user's Claude design; URL is private/403, so source comes via screenshots                                                              | Design is not machine-readable from the link                                                                                                                                                                                                                                                                              |
+| 2026-08-14 | **Palette replaced: Fresh Citrus → cream/forest/terracotta**                                                                                                      | The user's landing design uses it; design beats the earlier proposal                                                                                                                                                                                                                                                      |
+| 2026-08-14 | **Display face = Playfair Display** (was Bricolage Grotesque)                                                                                                     | Design uses a high-contrast serif throughout                                                                                                                                                                                                                                                                              |
+| 2026-08-14 | **Goals renamed: `fat-loss`, `muscle-gain`, `basic-fitness`** (was weight-loss/lean-body/muscle-gain)                                                             | Badge names read off the design                                                                                                                                                                                                                                                                                           |
+| 2026-08-14 | **Goal-collections section reinstated** after being cut                                                                                                           | It appears in the design ("Pick the plate that matches the day")                                                                                                                                                                                                                                                          |
+| 2026-08-14 | Brand facts (address, phone, FSSAI, hours, delivery areas, tagline) captured in `shared/index.ts` `BRAND`                                                         | Read off the design footer — single source for the whole app                                                                                                                                                                                                                                                              |
+| 2026-08-14 | Added `sortOrder` to Dish                                                                                                                                         | The bestsellers rail is merchandised, not alphabetical                                                                                                                                                                                                                                                                    |
+| 2026-08-14 | Added mobile nav drawer (not in design)                                                                                                                           | Design showed desktop only; without it phones had no navigation at all                                                                                                                                                                                                                                                    |
+| 2026-08-14 | **Guest checkout — customers do NOT log in**                                                                                                                      | Checkout design reads "NO ACCOUNT NEEDED" / "Guest checkout". Supersedes the earlier customer-accounts decision.                                                                                                                                                                                                          |
+| 2026-08-14 | Added **packaging fee ₹15** as a separate line                                                                                                                    | Appears in the checkout design's order summary                                                                                                                                                                                                                                                                            |
+| 2026-08-14 | Added `ingredients` to Dish (short line) alongside `description` (long copy)                                                                                      | Menu cards show a terse ingredient list; specials cards show fuller copy                                                                                                                                                                                                                                                  |
+| 2026-08-14 | Cart = Zustand + localStorage, purely client-side                                                                                                                 | No account needed; server still recomputes every total from the DB on order placement                                                                                                                                                                                                                                     |
+| 2026-08-14 | Seeded **12 dishes** transcribed from the menu design                                                                                                             | Matches the design's "12 DISHES TODAY". See §8b for the three with estimated figures.                                                                                                                                                                                                                                     |
+| 2026-08-14 | Order tracking is **public by order number** (`/track/HE-1234`)                                                                                                   | Tracking design says "type the order number on the site". ⚠️ See §10b — privacy trade-off.                                                                                                                                                                                                                                |
+| 2026-08-14 | Map = **Leaflet + OpenStreetMap tiles**                                                                                                                           | Checkout design has a draggable pin. OSM needs no API key or billing account.                                                                                                                                                                                                                                             |
+| 2026-08-14 | Added `lat`/`lng` to address                                                                                                                                      | The dropped pin is what the rider actually navigates to                                                                                                                                                                                                                                                                   |
+| 2026-08-14 | Checkout and tracking use a **stripped header, no site chrome**                                                                                                   | Both designs drop the nav so nothing competes with completing/reading the order                                                                                                                                                                                                                                           |
+| 2026-08-14 | **Kitchen display is DARK** — the only dark screen in the product                                                                                                 | The chef design is dark, and it is right for a wall-mounted screen read across a bright kitchen. Explicit exception to light-mode-only.                                                                                                                                                                                   |
+| 2026-08-14 | Kitchen has three columns: **Incoming / Cooking / Ready**                                                                                                         | From the chef design. Incoming = `placed` (visible but Ready button DISABLED until admin accepts), Cooking = `preparing`, Ready = `ready`. Keeps the chef to one button while matching the layout.                                                                                                                        |
+| 2026-08-14 | Added `notes` to Order + a kitchen-note field at checkout                                                                                                         | The chef design shows allergy notes ("No peanut — allergy") on tickets; there was no field for them                                                                                                                                                                                                                       |
+| 2026-08-14 | Login page designed from scratch                                                                                                                                  | No design was supplied; built from existing tokens. No signup link — staff accounts are seeded only.                                                                                                                                                                                                                      |
+| 2026-08-14 | Money monitoring lives on **admin → Order history**                                                                                                               | The design's sidebar has no dedicated revenue item, but revenue monitoring was an explicit requirement. Folded in there rather than inventing a nav item.                                                                                                                                                                 |
+| 2026-08-14 | Admin → Settings is **read-only**                                                                                                                                 | Sidebar shows it; no screen was designed. Surfaces real config rather than fake controls.                                                                                                                                                                                                                                 |
+| 2026-08-14 | About page built from the 3 About screenshots; `HowDeliveryWorks` gained a light `card` variant                                                                   | The block appears on both Home (dark band) and About (light card)                                                                                                                                                                                                                                                         |
+| 2026-08-14 | Contact page designed from scratch, **with no message form**                                                                                                      | No design was supplied. A form with no endpoint would silently discard messages — worse than not offering one. Phone/Instagram/map instead.                                                                                                                                                                               |
+| 2026-08-14 | **Palette darkened for WCAG AA**: added `--he-terracotta-text` (#8A6443), `--he-terracotta-dark` → #885E36, `--he-muted` → #6A6F66, placeholder caption → #5A5F56 | The design's terracotta only reached 2.9:1 on cream — well under the 4.5:1 AA needs for small text. Hue held; only lightness moved. `--he-terracotta` is unchanged and still used for decoration and on-dark text.                                                                                                        |
+| 2026-08-15 | **Landing-page dish cards wired to the cart**; `CartBar` now renders on Home as well as Menu                                                                      | The bestsellers and specials cards rendered their Add buttons with no `onClick` — dead controls. They now use the same add → `QtyStepper` pattern as `MenuDishCard`. The cart bar came with it: without it a click on the landing page has no visible effect and no route to checkout. Covered by an e2e regression test. |
+| 2026-08-15 | **The checkout pin no longer defaults to the kitchen.** No pin exists until the customer places one                                                               | On mount the map emitted the kitchen's own coordinates, so any order where nobody touched the map shipped a delivery pin pointing at the restaurant — wrong data that looked deliberate. Absent beats wrong; the UI now says so plainly.                                                                                  |
+| 2026-08-15 | **Address search + reverse geocoding added** via OSM Nominatim (`frontend/src/lib/geocode.ts`)                                                                    | Dragging from Kothrud was the only way to find an address, and the pin read back as bare coordinates the customer could not verify. Same OSM family as the tiles, so still no API key. ⚠️ Public Nominatim is rate-limited and not for production volume — see §15.                                                       |
+| 2026-08-15 | Kitchen coordinates and a **12 km delivery radius** moved into `BRAND` (`geo`, `deliveryRadiusKm`)                                                                | Brand facts live in one place. Drives the distance readout, the ETA, and the out-of-range notice.                                                                                                                                                                                                                         |
+| 2026-08-15 | An out-of-range pin **warns, never blocks**                                                                                                                       | The kitchen may still want a Hinjewadi order it can service; a hard block silently loses revenue. The customer is told and the kitchen calls to confirm.                                                                                                                                                                  |
 
 ## 13. Accessibility status
 
@@ -387,6 +389,7 @@ because the tracking design says customers can "type the order number on the sit
 person could enumerate numbers and read a customer's **name, phone and address**.
 
 Fine for a prototype. Before real customers use it, do one of:
+
 - lengthen/randomise the order number, or
 - require the phone's last 4 digits as a second factor on the tracking lookup.
 

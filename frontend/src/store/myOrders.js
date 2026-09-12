@@ -8,17 +8,19 @@ const KEY = 'healthy-eats-orders'
  * anyone who types the number in — this just saves the customer doing so.
  */
 
-export function rememberOrder(orderNumber        )       {
+export function rememberOrder(orderNumber) {
   const all = myOrders()
   if (all.includes(orderNumber)) return
   localStorage.setItem(KEY, JSON.stringify([orderNumber, ...all].slice(0, 20)))
 }
 
-export function myOrders()           {
+export function myOrders() {
   try {
     const raw = localStorage.getItem(KEY)
     const parsed = raw ? JSON.parse(raw) : []
-    return Array.isArray(parsed) ? parsed.filter((x)              => typeof x === 'string') : []
+    return Array.isArray(parsed)
+      ? parsed.filter((x) => typeof x === 'string')
+      : []
   } catch {
     return []
   }

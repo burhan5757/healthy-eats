@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { SOCKET_EVENTS,            } from '@shared/index'
+import { SOCKET_EVENTS } from '@shared/index'
 import { api } from '@/lib/api'
 import { getSocket } from '@/lib/socket'
 import { useAuth } from '@/store/auth'
@@ -42,7 +42,8 @@ export default function Kitchen() {
 
   useEffect(() => {
     const socket = getSocket()
-    const refresh = () => queryClient.invalidateQueries({ queryKey: ['kitchen'] })
+    const refresh = () =>
+      queryClient.invalidateQueries({ queryKey: ['kitchen'] })
     socket.on(SOCKET_EVENTS.orderCreated, refresh)
     socket.on(SOCKET_EVENTS.orderUpdated, refresh)
     return () => {
@@ -81,9 +82,14 @@ export default function Kitchen() {
         </div>
 
         <div className="flex items-center gap-3 sm:gap-5">
-          <span className="hidden text-[12px] text-[#93A398] sm:inline">Service till 22:30</span>
+          <span className="hidden text-[12px] text-[#93A398] sm:inline">
+            Service till 22:30
+          </span>
           <span className="text-[22px] font-bold tabular-nums sm:text-[26px]">
-            {new Date(now).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+            {new Date(now).toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
           </span>
 
           {/* Deliberately understated — the kitchen should never hit this by
@@ -136,15 +142,7 @@ export default function Kitchen() {
   )
 }
 
-function Column({
-  title,
-  count,
-  children,
-}   
-               
-               
-                           
- ) {
+function Column({ title, count, children }) {
   return (
     // The full-height column only makes sense once the three sit side by side.
     // On a phone they stack, and full-height empties mean scrolling through
@@ -152,14 +150,16 @@ function Column({
     <section className="bg-[#16251C] p-4 md:min-h-[calc(100dvh-61px)]">
       <div className="flex items-center justify-between px-1 pb-3">
         <h2 className="eyebrow font-sans text-[#E8A33D]">{title}</h2>
-        <span className="text-[14px] font-semibold text-[#93A398] tabular-nums">{count}</span>
+        <span className="text-[14px] font-semibold text-[#93A398] tabular-nums">
+          {count}
+        </span>
       </div>
       <div className="space-y-4">{children}</div>
     </section>
   )
 }
 
-function Empty({ children }                               ) {
+function Empty({ children }) {
   return (
     <p className="rounded-md border border-dashed border-[#2C4033] px-4 py-10 text-center text-[13px] text-[#5E7466]">
       {children}
@@ -168,7 +168,7 @@ function Empty({ children }                               ) {
 }
 
 /** mm:ss since the order was placed. */
-function elapsed(order       , now        )                                     {
+function elapsed(order, now) {
   const placed = new Date(order.timeline[0]?.at ?? order.createdAt).getTime()
   const secs = Math.max(0, Math.floor((now - placed) / 1000))
   const m = Math.floor(secs / 60)
@@ -176,25 +176,17 @@ function elapsed(order       , now        )                                     
   return { label: `${m}:${String(s).padStart(2, '0')}`, minutes: m }
 }
 
-function Ticket({
-  order,
-  now,
-  tone,
-  onReady,
-  busy,
-}   
-              
-             
-                                        
-                      
-                
- ) {
+function Ticket({ order, now, tone, onReady, busy }) {
   const { label, minutes } = elapsed(order, now)
   const isReady = tone === 'ready'
 
   // Ticket ages amber past 10 minutes, red past 20 — visible across the kitchen.
   const timerColor =
-    minutes >= 20 ? 'text-[#F0684B]' : minutes >= 10 ? 'text-[#E8A33D]' : 'text-[#93A398]'
+    minutes >= 20
+      ? 'text-[#F0684B]'
+      : minutes >= 10
+        ? 'text-[#E8A33D]'
+        : 'text-[#93A398]'
 
   const readyAt = order.timeline.find((t) => t.status === 'ready')
 
@@ -230,7 +222,14 @@ function Ticket({
                 })}
             </p>
           ) : (
-            <p className={cn('text-[15px] font-semibold tabular-nums', timerColor)}>{label}</p>
+            <p
+              className={cn(
+                'text-[15px] font-semibold tabular-nums',
+                timerColor,
+              )}
+            >
+              {label}
+            </p>
           )}
         </div>
 
@@ -245,7 +244,12 @@ function Ticket({
               >
                 {item.qty}×
               </span>
-              <span className={cn('font-semibold', isReady ? 'text-[#6E8375]' : 'text-white')}>
+              <span
+                className={cn(
+                  'font-semibold',
+                  isReady ? 'text-[#6E8375]' : 'text-white',
+                )}
+              >
                 {item.name}
               </span>
             </li>

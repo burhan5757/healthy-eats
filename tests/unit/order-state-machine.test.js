@@ -5,7 +5,6 @@ import {
   ORDER_STATUSES,
   TRANSITION_ROLE,
   canTransition,
-                   
 } from '../../shared/index'
 
 /**
@@ -69,16 +68,21 @@ describe('order state machine', () => {
   })
 
   it('keeps cancelled off the customer-facing progress track', () => {
-    expect(ORDER_PROGRESS).not.toContain('cancelled'               )
-    expect([...ORDER_PROGRESS]).toEqual(['placed', 'preparing', 'ready', 'delivered'])
+    expect(ORDER_PROGRESS).not.toContain('cancelled')
+    expect([...ORDER_PROGRESS]).toEqual([
+      'placed',
+      'preparing',
+      'ready',
+      'delivered',
+    ])
   })
 
   it('can reach every non-initial status from placed', () => {
     // Guards against a status being added to the enum but orphaned from the graph.
-    const seen = new Set             (['placed'])
-    const queue                = ['placed']
+    const seen = new Set(['placed'])
+    const queue = ['placed']
     while (queue.length) {
-      for (const next of ALLOWED_TRANSITIONS[queue.shift() ]) {
+      for (const next of ALLOWED_TRANSITIONS[queue.shift()]) {
         if (!seen.has(next)) {
           seen.add(next)
           queue.push(next)

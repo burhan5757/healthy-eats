@@ -1,4 +1,4 @@
-import mongoose, { Schema,                      } from 'mongoose'
+import mongoose, { Schema } from 'mongoose'
 import { DIETS, GOALS, TIMINGS } from '../../../shared/index.js'
 
 const dishSchema = new Schema(
@@ -41,12 +41,10 @@ const dishSchema = new Schema(
   { timestamps: true },
 )
 
-;                                                                                          
-
-export const Dish = mongoose.model         ('Dish', dishSchema)
+export const Dish = mongoose.model('Dish', dishSchema)
 
 /** Local (IST-agnostic) calendar day key used for the sold-out reset. */
-export function todayKey()         {
+export function todayKey() {
   return new Date().toLocaleDateString('en-CA') // YYYY-MM-DD
 }
 
@@ -54,7 +52,7 @@ export function todayKey()         {
  * Restores availability for dishes sold out on a previous day.
  * Cheap enough to call before any menu read.
  */
-export async function resetStaleSoldOut()                {
+export async function resetStaleSoldOut() {
   await Dish.updateMany(
     { availableToday: false, soldOutOn: { $ne: todayKey() } },
     { $set: { availableToday: true, soldOutOn: null } },

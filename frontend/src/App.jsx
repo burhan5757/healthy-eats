@@ -1,4 +1,8 @@
-import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from '@tanstack/react-query'
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
 import { Header } from '@/components/site/Header'
 import { Footer } from '@/components/site/Footer'

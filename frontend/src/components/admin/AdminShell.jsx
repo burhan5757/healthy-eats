@@ -1,5 +1,11 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { ClipboardList, Clock, UtensilsCrossed, Settings2, LogOut } from 'lucide-react'
+import {
+  ClipboardList,
+  Clock,
+  UtensilsCrossed,
+  Settings2,
+  LogOut,
+} from 'lucide-react'
 import { BRAND } from '@shared/index'
 import { useAuth } from '@/store/auth'
 import { cn } from '@/lib/utils'
@@ -11,7 +17,7 @@ const NAV = [
   { to: '/admin/settings', label: 'Settings', icon: Settings2, end: false },
 ]
 
-export function AdminShell({ liveCount }                        ) {
+export function AdminShell({ liveCount }) {
   const { user, logout } = useAuth()
 
   return (
@@ -19,7 +25,9 @@ export function AdminShell({ liveCount }                        ) {
       <aside className="sticky top-0 hidden h-dvh w-[215px] shrink-0 flex-col bg-forest-deep text-on-dark lg:flex">
         <div className="border-b border-on-dark-border px-6 py-6">
           <p className="font-display text-[24px] leading-none">{BRAND.name}</p>
-          <p className="eyebrow mt-2 text-on-dark-muted">Kitchen admin · Kothrud</p>
+          <p className="eyebrow mt-2 text-on-dark-muted">
+            Kitchen admin · Kothrud
+          </p>
         </div>
 
         <nav className="flex-1 py-4" aria-label="Admin">
@@ -38,7 +46,11 @@ export function AdminShell({ liveCount }                        ) {
                     )
                   }
                 >
-                  <item.icon className="size-4 shrink-0" strokeWidth={1.5} aria-hidden />
+                  <item.icon
+                    className="size-4 shrink-0"
+                    strokeWidth={1.5}
+                    aria-hidden
+                  />
                   <span className="flex-1">{item.label}</span>
                   {item.end && liveCount ? (
                     <span className="rounded-full bg-terracotta px-2 py-0.5 text-[11px] font-bold text-forest-deep tabular-nums">
