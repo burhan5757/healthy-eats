@@ -37,10 +37,7 @@ const orderSchema = new Schema(
     status: { type: String, enum: ORDER_STATUSES, required: true, default: 'placed', index: true },
     timeline: [
       {
-        /** Kitchen note from the customer — allergies etc. Shown on the chef ticket. */
-    notes: { type: String, default: '', maxlength: 200 },
-
-    status: { type: String, enum: ORDER_STATUSES, required: true },
+        status: { type: String, enum: ORDER_STATUSES, required: true },
         at: { type: String, required: true },
       },
     ],
