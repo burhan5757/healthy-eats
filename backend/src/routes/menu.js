@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { SOCKET_EVENTS } from '../../../shared/index.js'
+import { SOCKET_EVENTS } from '../shared/index.js'
 import { Dish, resetStaleSoldOut, todayKey } from '../models/Dish.js'
 import { asyncRoute, validate } from '../middleware/validate.js'
 import { requireRole } from '../middleware/auth.js'

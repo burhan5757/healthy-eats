@@ -2,10 +2,14 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
-  // Frontend modules under test import shared code by alias, as the app does.
+  // Frontend modules under test import shared code by alias, as the app does —
+  // matching frontend/vite.config.js's resolution to frontend's own committed
+  // copy (see scripts/sync-shared.mjs), not the repo-root canonical source.
   resolve: {
     alias: {
-      '@shared': fileURLToPath(new URL('./shared', import.meta.url)),
+      '@shared': fileURLToPath(
+        new URL('./frontend/src/shared', import.meta.url),
+      ),
     },
   },
   test: {

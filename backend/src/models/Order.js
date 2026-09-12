@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose'
-import { ORDER_STATUSES } from '../../../shared/index.js'
+import { ORDER_STATUSES } from '../shared/index.js'
 
 const orderSchema = new Schema(
   {

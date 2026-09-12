@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { loginSchema, registerSchema } from '../../../shared/index.js'
+import { loginSchema, registerSchema } from '../shared/index.js'
 import { User, hashPassword } from '../models/User.js'
 import { asyncRoute, validate } from '../middleware/validate.js'
 import {

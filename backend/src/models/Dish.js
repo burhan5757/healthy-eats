@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose'
-import { DIETS, GOALS, TIMINGS } from '../../../shared/index.js'
+import { DIETS, GOALS, TIMINGS } from '../shared/index.js'
 
 const dishSchema = new Schema(
   {
@@ -12,7 +12,7 @@ const dishSchema = new Schema(
     price: { type: Number, required: true, min: 0 },
     image: { type: String, default: '' },
 
-    // Optional — see the note on `nutrition` in shared/index.ts.
+    // Optional — see the note on `nutrition` in shared/index.js.
     nutrition: {
       type: {
         kcal: { type: Number, required: true, min: 0 },

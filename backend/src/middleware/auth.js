@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { config } from '../config.js'
-import { authPayloadSchema } from '../../../shared/index.js'
+import { authPayloadSchema } from '../shared/index.js'
 
 export const AUTH_COOKIE = 'he_token'
 

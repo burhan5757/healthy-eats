@@ -9,7 +9,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
-      '@shared': path.resolve(import.meta.dirname, '../shared'),
+      // A committed copy inside src/, not the sibling ../shared/ — this
+      // package builds and deploys standalone with no outside folder needed.
+      // Canonical source is repo-root shared/index.js; see
+      // scripts/sync-shared.mjs and CLAUDE.md §2b.
+      '@shared': path.resolve(import.meta.dirname, './src/shared'),
     },
   },
   server: {

@@ -7,7 +7,7 @@ import {
   cancelOrderSchema,
   canTransition,
   placeOrderSchema,
-} from '../../../shared/index.js'
+} from '../shared/index.js'
 import { Dish, resetStaleSoldOut, todayKey } from '../models/Dish.js'
 import { Order, generateOrderNumber } from '../models/Order.js'
 import { asyncRoute, validate } from '../middleware/validate.js'
@@ -111,11 +111,9 @@ ordersRouter.get(
       orderNumber: String(req.params.orderNumber).toUpperCase(),
     })
     if (!order) {
-      res
-        .status(404)
-        .json({
-          error: 'No order with that number. Check the digits and try again.',
-        })
+      res.status(404).json({
+        error: 'No order with that number. Check the digits and try again.',
+      })
       return
     }
     res.json({ order: toOrder(order) })

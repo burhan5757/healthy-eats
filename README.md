@@ -66,13 +66,16 @@ Cancelling is blocked once an order is `ready` — it has already been cooked.
 React + Vite · JavaScript · Tailwind · shadcn/ui · TanStack Query · Zustand · Leaflet
 Node + Express · Mongoose · Zod · Socket.IO · JWT in httpOnly cookies
 
-`shared/` holds the Zod schemas used by **both** frontend and backend, so validation can
-never drift between them.
+`shared/index.js` is the canonical Zod-schema source. Frontend and backend host on separate
+services, so each keeps its own committed copy (`frontend/src/shared/`, `backend/src/shared/`)
+rather than importing the sibling folder — run `npm run sync-shared` after editing the
+canonical file (also runs automatically on `dev`/`build`), then commit all three together.
+`tests/unit/shared-sync.test.js` fails loudly if a copy ever drifts.
 
 ```
-frontend/   React app
-backend/    Express API
-shared/     Zod schemas (single source of truth)
+frontend/   React app (with its own committed copy of shared/)
+backend/    Express API (with its own committed copy of shared/)
+shared/     Zod schemas — canonical source, hand-edited here only
 design/     design handoff
 ```
 
