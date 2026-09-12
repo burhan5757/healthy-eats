@@ -1,0 +1,80 @@
+/**
+ * Thin fetch wrapper. Components never call fetch directly — everything goes
+ * through here (CLAUDE.md §6 principle 2), so auth, errors and the base path
+ * are handled in exactly one place.
+ *
+ * VITE_API_URL is empty by default, which keeps today's relative /api path
+ * (the Vite dev proxy forwards it). Set it when the frontend and backend are
+ * hosted on separate domains — see CLAUDE.md's production-wiring note.
+ */
+const BASE = import.meta.env.VITE_API_URL ?? ''
+
+export class ApiError extends Error {
+  constructor(message, status, fields) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.fields = fields
+  }
+}
+
+async function request(path, init) {
+  const res = await fetch(`${BASE}/api${path}`, {
+    credentials: 'include',
+    headers: init?.body ? { 'Content-Type': 'application/json' } : undefined,
+    ...init,
+  })
+
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    throw new ApiError(body.error ?? 'Something went wrong.', res.status, body.fields)
+  }
+  return body
+}
+
+export const api = {
+  menu: {
+    list: () => request('/menu'),
+    get: (slug) => request(`/menu/${slug}`),
+  },
+  orders: {
+    /** Guest checkout — no auth required (CLAUDE.md §10a). */
+    place: (input) => request('/orders', { method: 'POST', body: JSON.stringify(input) }),
+    /** Public lookup by order number, per the tracking design. */
+    track: (orderNumber) => request(`/orders/track/${encodeURIComponent(orderNumber)}`),
+
+    /** Chef + admin: the active kitchen queue. */
+    kitchen: () => request('/orders/kitchen'),
+
+    /** Admin only. */
+    all: () => request('/orders'),
+    stats: () => request('/orders/stats'),
+
+    accept: (id) => request(`/orders/${id}/accept`, { method: 'POST' }),
+    ready: (id) => request(`/orders/${id}/ready`, { method: 'POST' }),
+    deliver: (id) => request(`/orders/${id}/deliver`, { method: 'POST' }),
+    cancel: (id, input) =>
+      request(`/orders/${id}/cancel`, {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+  },
+
+  auth: {
+    login: (input) =>
+      request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+    logout: () => request('/auth/logout', { method: 'POST' }),
+    me: () => request('/auth/me'),
+  },
+
+  menuAdmin: {
+    setAvailability: (id, availableToday) =>
+      request(`/menu/${id}/availability`, {
+        method: 'PATCH',
+        body: JSON.stringify({ availableToday }),
+      }),
+  },
+}
