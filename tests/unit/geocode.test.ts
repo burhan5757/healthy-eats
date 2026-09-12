@@ -5,7 +5,7 @@ import {
   etaMinutes,
   isOutsideDeliveryRange,
   kmFromKitchen,
-} from '../../client/src/lib/geocode'
+} from '../../frontend/src/lib/geocode'
 
 /**
  * The checkout pin decides what the rider is told and whether an address is

@@ -14,8 +14,8 @@ Payment is **cash on delivery only**. Customers order as guests — no account n
 ## Quick start
 
 ```bash
-npm run install:all   # installs root, client and server
-npm run dev           # API on :4000, client on :5173
+npm run install:all   # installs root, frontend and backend
+npm run dev           # API on :4000, frontend on :5173
 ```
 
 Open **http://localhost:5173**.
@@ -31,7 +31,7 @@ nothing else changes.
 | Admin | `admin@healthyeats.in` | `admin123` |
 | Chef | `chef@healthyeats.in` | `chef123` |
 
-Both are seeded server-side and **cannot be registered**. Change them via `server/.env`
+Both are seeded server-side and **cannot be registered**. Change them via `backend/.env`
 before this goes anywhere real.
 
 ---
@@ -70,10 +70,10 @@ Node + Express · Mongoose · Zod · Socket.IO · JWT in httpOnly cookies
 can never drift between them.
 
 ```
-client/   React app
-server/   Express API
-shared/   Zod schemas + types (single source of truth)
-design/   design handoff
+frontend/   React app
+backend/    Express API
+shared/     Zod schemas + types (single source of truth)
+design/     design handoff
 ```
 
 ---
@@ -82,7 +82,7 @@ design/   design handoff
 
 | Command | Does |
 |---|---|
-| `npm run dev` | client + server together |
+| `npm run dev` | frontend + backend together |
 | `npm run build` | production build of both |
 | `npm test` | Vitest unit tests |
 | `npm run test:e2e` | Playwright end-to-end tests |

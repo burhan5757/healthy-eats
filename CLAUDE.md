@@ -77,7 +77,7 @@ actually needs. No speculative API surface.
 
 > ⚠️ **"Fresh Citrus" is dead.** The user supplied a landing design (design screenshots) that uses
 > a completely different palette and typeface. The design wins. Tokens below are the real ones,
-> and they live in `client/src/index.css`.
+> and they live in `frontend/src/index.css`.
 
 Light mode only.
 
@@ -196,7 +196,7 @@ brand photos.
 ## 8b. Real menu — LOADED, with two open questions
 
 The kitchen's printed menu poster (`design/Screenshot 2026-08-14 030539.png`) has been
-transcribed in full into `server/src/seed.ts`: **104 dishes + 15 add-ons = 119 items**.
+transcribed in full into `backend/src/seed.ts`: **104 dishes + 15 add-ons = 119 items**.
 
 Counts match the website design exactly, which confirms the design was drawn from this menu:
 
@@ -268,14 +268,14 @@ The user asked for a working prototype rather than more questions, so these were
 
 | Item | Decision | Rationale |
 |---|---|---|
-| Repo layout | One repo: `client/` + `server/` + `shared/` | User: "decide it later, I just want a working prototype." This forecloses nothing. |
+| Repo layout | One repo: `frontend/` + `backend/` + `shared/` | User: "decide it later, I just want a working prototype." This forecloses nothing. |
 | Real-time | **Socket.IO** | User-confirmed. |
 | Admin account | Single seeded account, credentials from env | User-confirmed, stated three times. |
 | Chef account | Single seeded account. No self-signup. | Someone must be authenticated to mark tickets ready. |
 | Customer accounts | ~~Email + password signup/login~~ → **GUEST CHECKOUT** | **Overridden by the checkout design**, which reads "CHECKOUT · NO ACCOUNT NEEDED" and "Guest checkout — we only keep this for today's delivery". Orders are tracked by order number, not by account. |
 | Client data layer | TanStack Query (server state) + Zustand (cart) | Keeps three screens in sync under Socket.IO invalidation. Uses `fetch` underneath as specified. |
 | Local database | `mongodb-memory-server` when `MONGODB_URI` is unset | Prototype runs with zero setup; real Mongoose models throughout, so switching to Atlas is one env var. |
-| Dish images | Local `client/public/` for now | Cloudinary/S3 can come with admin uploads later. |
+| Dish images | Local `frontend/public/` for now | Cloudinary/S3 can come with admin uploads later. |
 
 Still open, non-blocking:
 
@@ -310,7 +310,7 @@ Append newest at the bottom. Format: date — decision — reason.
 | 2026-08-14 | **Exactly one monitoring dashboard — admin only.** Order + money monitoring appear nowhere else. Chef and customer screens are operational, not analytical. | User instruction |
 | 2026-08-14 | **Exactly one admin account, seeded and non-registerable. Enforced server-side.** | User instruction, stated repeatedly — treat as a hard requirement, not a UI preference |
 | 2026-08-14 | Socket.IO for real-time order updates | User choice |
-| 2026-08-14 | Repo = one repo, `client/` + `server/` + `shared/` | User deferred; prototype-first. Reversible. |
+| 2026-08-14 | Repo = one repo, `frontend/` + `backend/` + `shared/` | User deferred; prototype-first. Reversible. |
 | 2026-08-14 | TanStack Query + Zustand on the client | Decided by me — needed to keep three screens in sync; `fetch` still the transport |
 | 2026-08-14 | `mongodb-memory-server` fallback when `MONGODB_URI` is unset | Prototype must run with zero setup; Atlas is a one-env-var switch |
 | 2026-08-14 | Homepage **goal picker section cut** | User: "if we need it we will add it later on" |
@@ -342,7 +342,7 @@ Append newest at the bottom. Format: date — decision — reason.
 | 2026-08-14 | **Palette darkened for WCAG AA**: added `--he-terracotta-text` (#8A6443), `--he-terracotta-dark` → #885E36, `--he-muted` → #6A6F66, placeholder caption → #5A5F56 | The design's terracotta only reached 2.9:1 on cream — well under the 4.5:1 AA needs for small text. Hue held; only lightness moved. `--he-terracotta` is unchanged and still used for decoration and on-dark text. |
 | 2026-08-15 | **Landing-page dish cards wired to the cart**; `CartBar` now renders on Home as well as Menu | The bestsellers and specials cards rendered their Add buttons with no `onClick` — dead controls. They now use the same add → `QtyStepper` pattern as `MenuDishCard`. The cart bar came with it: without it a click on the landing page has no visible effect and no route to checkout. Covered by an e2e regression test. |
 | 2026-08-15 | **The checkout pin no longer defaults to the kitchen.** No pin exists until the customer places one | On mount the map emitted the kitchen's own coordinates, so any order where nobody touched the map shipped a delivery pin pointing at the restaurant — wrong data that looked deliberate. Absent beats wrong; the UI now says so plainly. |
-| 2026-08-15 | **Address search + reverse geocoding added** via OSM Nominatim (`client/src/lib/geocode.ts`) | Dragging from Kothrud was the only way to find an address, and the pin read back as bare coordinates the customer could not verify. Same OSM family as the tiles, so still no API key. ⚠️ Public Nominatim is rate-limited and not for production volume — see §15. |
+| 2026-08-15 | **Address search + reverse geocoding added** via OSM Nominatim (`frontend/src/lib/geocode.ts`) | Dragging from Kothrud was the only way to find an address, and the pin read back as bare coordinates the customer could not verify. Same OSM family as the tiles, so still no API key. ⚠️ Public Nominatim is rate-limited and not for production volume — see §15. |
 | 2026-08-15 | Kitchen coordinates and a **12 km delivery radius** moved into `BRAND` (`geo`, `deliveryRadiusKm`) | Brand facts live in one place. Drives the distance readout, the ETA, and the out-of-range notice. |
 | 2026-08-15 | An out-of-range pin **warns, never blocks** | The kitchen may still want a Hinjewadi order it can service; a hard block silently loses revenue. The customer is told and the kitchen calls to confirm. |
 
@@ -378,7 +378,7 @@ When adding behaviour to the order lifecycle or access rules, extend these rathe
 testing by hand — they already cover the paths that matter.
 
 **A real bug the tests caught:** an empty cart was charging a ₹39 delivery fee, because a
-subtotal of 0 falls below the free-delivery threshold. Fixed in `client/src/store/cart.ts`.
+subtotal of 0 falls below the free-delivery threshold. Fixed in `frontend/src/store/cart.ts`.
 
 ## 10b. Known privacy trade-off — decide before launch
 
@@ -390,12 +390,12 @@ Fine for a prototype. Before real customers use it, do one of:
 - lengthen/randomise the order number, or
 - require the phone's last 4 digits as a second factor on the tracking lookup.
 
-Flagged in code at `server/src/routes/orders.ts`.
+Flagged in code at `backend/src/routes/orders.ts`.
 
 ## 15. Geocoding — decide before launch
 
 The checkout pin's address search and reverse lookup use **OpenStreetMap's public Nominatim**
-(`client/src/lib/geocode.ts`). It needs no API key, which is why it suits a prototype.
+(`frontend/src/lib/geocode.ts`). It needs no API key, which is why it suits a prototype.
 
 Its usage policy allows roughly **one request per second** and forbids heavy use. Every call is
 debounced and abortable, but that is a courtesy, not a guarantee — under real checkout traffic the
