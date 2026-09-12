@@ -1,4 +1,4 @@
-import mongoose, { Schema, type InferSchemaType } from 'mongoose'
+import mongoose, { Schema,                      } from 'mongoose'
 import { ORDER_STATUSES } from '../../../shared/index.js'
 
 const orderSchema = new Schema(
@@ -53,11 +53,11 @@ const orderSchema = new Schema(
   { timestamps: true },
 )
 
-export type OrderDoc = InferSchemaType<typeof orderSchema> & { _id: mongoose.Types.ObjectId }
+;                                                                                            
 
-export const Order = mongoose.model<OrderDoc>('Order', orderSchema)
+export const Order = mongoose.model          ('Order', orderSchema)
 
 /** Human-friendly, kitchen-shoutable order number: HE-4821 */
-export function generateOrderNumber(): string {
+export function generateOrderNumber()         {
   return `HE-${Math.floor(1000 + Math.random() * 9000)}`
 }

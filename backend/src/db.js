@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { config } from './config.js'
 
-let memoryServer: { stop: () => Promise<unknown> } | null = null
+let memoryServer                                          = null
 
 /**
  * Connects to MongoDB.
@@ -10,7 +10,7 @@ let memoryServer: { stop: () => Promise<unknown> } | null = null
  * with zero setup. Switching to Atlas is a single env var — the Mongoose models
  * and every query are identical either way (CLAUDE.md §10a).
  */
-export async function connectDb(): Promise<void> {
+export async function connectDb()                {
   let uri = config.mongoUri
 
   if (!uri) {
@@ -25,7 +25,7 @@ export async function connectDb(): Promise<void> {
   console.log(`[db] connected (${memoryServer ? 'in-memory' : 'remote'})`)
 }
 
-export async function disconnectDb(): Promise<void> {
+export async function disconnectDb()                {
   await mongoose.disconnect()
   if (memoryServer) await memoryServer.stop()
 }

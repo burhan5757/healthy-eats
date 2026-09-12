@@ -7,7 +7,7 @@ import {
   cancelOrderSchema,
   canTransition,
   placeOrderSchema,
-  type OrderStatus,
+                   
 } from '../../../shared/index.js'
 import { Dish, resetStaleSoldOut, todayKey } from '../models/Dish.js'
 import { Order, generateOrderNumber } from '../models/Order.js'
@@ -18,7 +18,7 @@ import { emit } from '../realtime.js'
 
 export const ordersRouter = Router()
 
-function stamp(status: OrderStatus) {
+function stamp(status             ) {
   return { status, at: new Date().toISOString() }
 }
 
@@ -38,7 +38,7 @@ ordersRouter.post(
     await resetStaleSoldOut()
 
     const { items, address, notes } = req.body
-    const dishes = await Dish.find({ _id: { $in: items.map((i: { dishId: string }) => i.dishId) } })
+    const dishes = await Dish.find({ _id: { $in: items.map((i                    ) => i.dishId) } })
 
     if (dishes.length !== items.length) {
       res.status(400).json({ error: 'One of those dishes no longer exists.' })
@@ -56,13 +56,13 @@ ordersRouter.post(
 
     // Totals are computed from the database, never from the client payload.
     const byId = new Map(dishes.map((d) => [String(d._id), d]))
-    const orderItems = items.map((i: { dishId: string; qty: number }) => {
-      const dish = byId.get(i.dishId)!
+    const orderItems = items.map((i                                 ) => {
+      const dish = byId.get(i.dishId) 
       return { dishId: dish._id, name: dish.name, price: dish.price, qty: i.qty }
     })
 
     const subtotal = orderItems.reduce(
-      (sum: number, i: { price: number; qty: number }) => sum + i.price * i.qty,
+      (sum        , i                                ) => sum + i.price * i.qty,
       0,
     )
     const deliveryFee = subtotal >= FREE_DELIVERY_ABOVE ? 0 : DELIVERY_FEE
@@ -122,7 +122,7 @@ ordersRouter.get(
   '/mine',
   requireAuth,
   asyncRoute(async (req, res) => {
-    const orders = await Order.find({ customerId: req.auth!.sub }).sort({ createdAt: -1 })
+    const orders = await Order.find({ customerId: req.auth .sub }).sort({ createdAt: -1 })
     res.json({ orders: orders.map(toOrder) })
   }),
 )
@@ -146,7 +146,7 @@ ordersRouter.get(
   '/',
   requireRole('admin'),
   asyncRoute(async (req, res) => {
-    const status = req.query.status as OrderStatus | undefined
+    const status = req.query.status;                          
     const filter = status ? { status } : {}
     const orders = await Order.find(filter).sort({ createdAt: -1 }).limit(200)
     res.json({ orders: orders.map(toOrder) })
@@ -163,13 +163,13 @@ ordersRouter.get(
     const startOfToday = new Date()
     startOfToday.setHours(0, 0, 0, 0)
 
-    const isToday = (o: (typeof orders)[number]) =>
-      (o as unknown as { createdAt: Date }).createdAt >= startOfToday
+    const isToday = (o                         ) =>
+      (o                                  ).createdAt >= startOfToday
 
-    const sum = (list: typeof orders) => list.reduce((s, o) => s + o.total, 0)
+    const sum = (list               ) => list.reduce((s, o) => s + o.total, 0)
 
     // Revenue by dish, from delivered orders only.
-    const byDish = new Map<string, { name: string; qty: number; revenue: number }>()
+    const byDish = new Map                                                        ()
     for (const o of earned) {
       for (const i of o.items) {
         const key = String(i.dishId)
@@ -181,7 +181,7 @@ ordersRouter.get(
     }
 
     // Last 7 days of delivered revenue, oldest first.
-    const daily: { date: string; revenue: number }[] = []
+    const daily                                      = []
     for (let d = 6; d >= 0; d--) {
       const day = new Date()
       day.setDate(day.getDate() - d)
@@ -191,7 +191,7 @@ ordersRouter.get(
         revenue: sum(
           earned.filter(
             (o) =>
-              (o as unknown as { createdAt: Date }).createdAt.toLocaleDateString('en-CA') === key,
+              (o                                  ).createdAt.toLocaleDateString('en-CA') === key,
           ),
         ),
       })
@@ -220,8 +220,8 @@ ordersRouter.get(
       res.status(404).json({ error: 'Order not found.' })
       return
     }
-    const isOwner = String(order.customerId) === req.auth!.sub
-    const isStaff = req.auth!.role === 'admin' || req.auth!.role === 'chef'
+    const isOwner = String(order.customerId) === req.auth .sub
+    const isStaff = req.auth .role === 'admin' || req.auth .role === 'chef'
     if (!isOwner && !isStaff) {
       res.status(403).json({ error: 'You do not have access to this order.' })
       return
@@ -234,13 +234,13 @@ ordersRouter.get(
    Transitions — the state machine (CLAUDE.md §5)
    ========================================================================= */
 
-async function transition(id: string, to: OrderStatus) {
+async function transition(id        , to             ) {
   const order = await Order.findById(id)
-  if (!order) return { error: 'notfound' as const }
+  if (!order) return { error: 'notfound'          }
 
-  const from = order.status as OrderStatus
+  const from = order.status;              
   if (!canTransition(from, to)) {
-    return { error: 'illegal' as const, from, to }
+    return { error: 'illegal'         , from, to }
   }
 
   order.status = to
@@ -250,8 +250,8 @@ async function transition(id: string, to: OrderStatus) {
 }
 
 function respond(
-  res: import('express').Response,
-  result: Awaited<ReturnType<typeof transition>>,
+  res                            ,
+  result                                        ,
 ) {
   if ('error' in result) {
     if (result.error === 'notfound') {
@@ -312,7 +312,7 @@ ordersRouter.post(
       return
     }
 
-    const from = order.status as OrderStatus
+    const from = order.status;              
     if (!canTransition(from, 'cancelled')) {
       res.status(409).json({
         error:
@@ -325,11 +325,11 @@ ordersRouter.post(
 
     // Only dishes actually in this order may be marked sold out.
     const orderDishIds = new Set(order.items.map((i) => String(i.dishId)))
-    const validSoldOut = (soldOutDishIds as string[]).filter((id) => orderDishIds.has(id))
+    const validSoldOut = (soldOutDishIds            ).filter((id) => orderDishIds.has(id))
 
     order.status = 'cancelled'
     order.timeline.push(stamp('cancelled'))
-    order.cancellation = { reason, soldOutDishIds: validSoldOut as never }
+    order.cancellation = { reason, soldOutDishIds: validSoldOut          }
     await order.save()
 
     if (validSoldOut.length > 0) {

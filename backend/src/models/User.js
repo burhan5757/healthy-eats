@@ -1,4 +1,4 @@
-import mongoose, { Schema, type InferSchemaType } from 'mongoose'
+import mongoose, { Schema,                      } from 'mongoose'
 import bcrypt from 'bcryptjs'
 import { ROLES } from '../../../shared/index.js'
 
@@ -16,17 +16,17 @@ const userSchema = new Schema(
   { timestamps: true },
 )
 
-userSchema.methods.verifyPassword = function (password: string): Promise<boolean> {
+userSchema.methods.verifyPassword = function (password        )                   {
   return bcrypt.compare(password, this.passwordHash)
 }
 
-export async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password        )                  {
   return bcrypt.hash(password, 10)
 }
 
-export type UserDoc = InferSchemaType<typeof userSchema> & {
-  _id: mongoose.Types.ObjectId
-  verifyPassword(password: string): Promise<boolean>
-}
+;                                                           
+                              
+                                                    
+ 
 
-export const User = mongoose.model<UserDoc>('User', userSchema)
+export const User = mongoose.model         ('User', userSchema)

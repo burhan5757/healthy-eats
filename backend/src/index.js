@@ -28,10 +28,10 @@ app.use((_req, res) => res.status(404).json({ error: 'Not found.' }))
 // Error handler — must keep all four params for Express to recognise it.
 app.use(
   (
-    err: Error,
-    _req: express.Request,
-    res: express.Response,
-    _next: express.NextFunction,
+    err       ,
+    _req                 ,
+    res                  ,
+    _next                      ,
   ) => {
     console.error('[error]', err)
     res.status(500).json({ error: 'Something went wrong on our end.' })

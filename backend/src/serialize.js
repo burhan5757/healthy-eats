@@ -1,11 +1,11 @@
-import type { Dish, Order, PublicUser } from '../../shared/index.js'
-import type { DishDoc } from './models/Dish.js'
-import type { OrderDoc } from './models/Order.js'
-import type { UserDoc } from './models/User.js'
+                                                                    
+                                               
+                                                 
+                                               
 
 /** Mongoose docs → the shared wire shapes. `_id` never leaks to the client. */
 
-export function toDish(d: DishDoc): Dish {
+export function toDish(d         )       {
   const nutrition = d.nutrition
   return {
     id: String(d._id),
@@ -24,17 +24,17 @@ export function toDish(d: DishDoc): Dish {
           fat: nutrition.fat,
         }
       : undefined,
-    goals: d.goals as Dish['goals'],
-    timing: d.timing as Dish['timing'],
-    diet: d.diet as Dish['diet'],
+    goals: d.goals                 ,
+    timing: d.timing                  ,
+    diet: d.diet                ,
     isBestseller: d.isBestseller,
     isTodaysSpecial: d.isTodaysSpecial,
     availableToday: d.availableToday,
   }
 }
 
-export function toOrder(o: OrderDoc): Order {
-  const address = o.address!
+export function toOrder(o          )        {
+  const address = o.address 
   return {
     id: String(o._id),
     orderNumber: o.orderNumber,
@@ -59,23 +59,23 @@ export function toOrder(o: OrderDoc): Order {
       lng: address.lng ?? undefined,
     },
     notes: o.notes ?? '',
-    status: o.status as Order['status'],
-    timeline: o.timeline.map((t) => ({ status: t.status as Order['status'], at: t.at })),
+    status: o.status                   ,
+    timeline: o.timeline.map((t) => ({ status: t.status                   , at: t.at })),
     cancellation: o.cancellation
       ? {
           reason: o.cancellation.reason,
           soldOutDishIds: o.cancellation.soldOutDishIds.map(String),
         }
       : undefined,
-    createdAt: (o as unknown as { createdAt: Date }).createdAt.toISOString(),
+    createdAt: (o                                  ).createdAt.toISOString(),
   }
 }
 
-export function toPublicUser(u: UserDoc): PublicUser {
+export function toPublicUser(u         )             {
   return {
     id: String(u._id),
     name: u.name,
     email: u.email,
-    role: u.role as PublicUser['role'],
+    role: u.role                      ,
   }
 }

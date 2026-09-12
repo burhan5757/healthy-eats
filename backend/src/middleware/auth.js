@@ -1,26 +1,14 @@
-import type { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { config } from '../config.js'
-import type { Role } from '../../../shared/index.js'
+import { authPayloadSchema } from '../../../shared/index.js'
 
 export const AUTH_COOKIE = 'he_token'
 
-export type AuthPayload = { sub: string; role: Role }
-
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Express {
-    interface Request {
-      auth?: AuthPayload
-    }
-  }
-}
-
-export function signToken(payload: AuthPayload): string {
+export function signToken(payload) {
   return jwt.sign(payload, config.jwtSecret, { expiresIn: config.jwtExpiresIn })
 }
 
-export function setAuthCookie(res: Response, token: string): void {
+export function setAuthCookie(res, token) {
   res.cookie(AUTH_COOKIE, token, {
     httpOnly: true,
     secure: config.isProd,
@@ -29,7 +17,7 @@ export function setAuthCookie(res: Response, token: string): void {
   })
 }
 
-export function clearAuthCookie(res: Response): void {
+export function clearAuthCookie(res) {
   res.clearCookie(AUTH_COOKIE, {
     httpOnly: true,
     secure: config.isProd,
@@ -38,11 +26,18 @@ export function clearAuthCookie(res: Response): void {
 }
 
 /** Populates req.auth when a valid token is present. Never rejects. */
-export function readAuth(req: Request, _res: Response, next: NextFunction): void {
+export function readAuth(req, _res, next) {
   const token = req.cookies?.[AUTH_COOKIE]
   if (token) {
     try {
-      req.auth = jwt.verify(token, config.jwtSecret) as AuthPayload
+      // jwt.verify only proves the signature; it says nothing about the shape
+      // of the decoded payload. Validate it too — a stale token from an older
+      // code version could otherwise carry a different claim shape and leave
+      // req.auth.role silently undefined.
+      const parsed = authPayloadSchema.safeParse(jwt.verify(token, config.jwtSecret))
+      if (parsed.success) {
+        req.auth = parsed.data
+      }
     } catch {
       /* expired or tampered — treat as anonymous */
     }
@@ -50,7 +45,7 @@ export function readAuth(req: Request, _res: Response, next: NextFunction): void
   next()
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+export function requireAuth(req, res, next) {
   if (!req.auth) {
     res.status(401).json({ error: 'You need to be signed in.' })
     return
@@ -62,8 +57,8 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
  * Role gate. This is the real enforcement — hiding UI is not access control.
  * A logged-in chef or customer hitting an admin route must get 403 (CLAUDE.md §10).
  */
-export function requireRole(...roles: Role[]) {
-  return (req: Request, res: Response, next: NextFunction): void => {
+export function requireRole(...roles) {
+  return (req, res, next) => {
     if (!req.auth) {
       res.status(401).json({ error: 'You need to be signed in.' })
       return

@@ -25,21 +25,21 @@ import { Dish } from './models/Dish.js'
    website design; all seven exist on this poster.
    ========================================================================= */
 
-type SeedDish = {
-  sortOrder: number
-  slug: string
-  name: string
-  price: number
-  category: string
-  nutrition: { kcal: number; protein: number; carbs: number; fat: number }
-  goals: readonly string[]
-  timing: readonly string[]
-  diet: readonly string[]
-  isBestseller: boolean
-  isTodaysSpecial: boolean
-}
+;                
+                   
+              
+              
+               
+                  
+                                                                          
+                          
+                           
+                         
+                       
+                          
+ 
 
-const MENU: SeedDish[] = [
+const MENU             = [
   /* --- Fat Loss - pre-workout --- */
   { sortOrder: 1, slug: 'sweet-potato-bowl', name: 'Sweet Potato Bowl', price: 99, category: 'Pre-Workout', nutrition: { kcal: 180, protein: 3, carbs: 40, fat: 1 }, goals: ['fat-loss'], timing: ['pre-workout'], diet: ['veg'], isBestseller: false, isTodaysSpecial: false },
   { sortOrder: 2, slug: 'apple-peanut-butter', name: 'Apple & Peanut Butter', price: 99, category: 'Pre-Workout', nutrition: { kcal: 230, protein: 7, carbs: 28, fat: 11 }, goals: ['fat-loss'], timing: ['pre-workout'], diet: ['veg'], isBestseller: false, isTodaysSpecial: false },
@@ -198,7 +198,7 @@ const MENU: SeedDish[] = [
  * The admin and chef accounts exist ONLY here - no route can create them.
  * This is what makes "only one admin" enforceable (CLAUDE.md 10).
  */
-export async function seed(): Promise<void> {
+export async function seed()                {
   await seedStaffAccount('admin', config.admin)
   await seedStaffAccount('chef', config.chef)
 
@@ -212,9 +212,9 @@ export async function seed(): Promise<void> {
 }
 
 async function seedStaffAccount(
-  role: 'admin' | 'chef',
-  account: { name: string; email: string; password: string },
-): Promise<void> {
+  role                  ,
+  account                                                   ,
+)                {
   const existing = await User.findOne({ role })
   if (existing) return
 

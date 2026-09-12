@@ -1,8 +1,8 @@
-import type { Server as HttpServer } from 'node:http'
+                                                     
 import { Server } from 'socket.io'
 import { config } from './config.js'
 
-let io: Server | null = null
+let io                = null
 
 /**
  * Socket.IO keeps the chef and admin screens live without polling.
@@ -11,7 +11,7 @@ let io: Server | null = null
  * still fetches through the role-guarded REST API — sockets are an invalidation
  * signal, not an authorization bypass.
  */
-export function initRealtime(server: HttpServer): void {
+export function initRealtime(server            )       {
   io = new Server(server, {
     cors: { origin: config.clientOrigin, credentials: true },
   })
@@ -23,6 +23,6 @@ export function initRealtime(server: HttpServer): void {
   console.log('[realtime] socket.io ready')
 }
 
-export function emit(event: string, payload: unknown): void {
+export function emit(event        , payload         )       {
   io?.emit(event, payload)
 }
