@@ -6,7 +6,7 @@ const STEPS = [
   {
     icon: Soup,
     title: 'Pick your meal',
-    body: 'Filter by goal, read the macros, add to the order. No account needed.',
+    body: 'Filter by goal, pick a plate, add it to the order. No account needed.',
   },
   {
     icon: MapPin,

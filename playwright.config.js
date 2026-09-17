@@ -22,7 +22,9 @@ export default defineConfig({
   // before it was listening — this fixes that pre-existing gap.
   webServer: [
     {
-      command: 'npm run dev:backend',
+      // Plain start, not the --watch dev server: tests never need a reload, and
+      // a watcher restart mid-run resets connections (ECONNRESET).
+      command: 'npm --prefix backend start',
       url: 'http://localhost:4000/api/health',
       // Force the in-memory database regardless of backend/.env — e2e tests
       // place, cancel and mark-sold-out real orders/dishes, and must never do

@@ -26,15 +26,15 @@ Tick items off here as they are fixed, with the date and the commit.
       Without it `backend/src/config.js` issues a non-`Secure`, `SameSite=Lax` cookie (staff
       can't stay signed in cross-site) and `trust proxy` is 0, so every visitor shares the
       proxy's IP and therefore **one global rate-limit bucket** (20 orders / 10 min site-wide).
-- [ ] **2. Cross-site cookies will be blocked.** An `*.onrender.com` cookie on a `*.vercel.app`
+- [x] **2. Cross-site cookies will be blocked.** _Fixed 2026-09-17 (config + docs): API on `api.` subdomain with `COOKIE_SAME_SITE=lax`, Cloudflare `_headers`, README "Deploying". Takes effect when deployed that way._ An `*.onrender.com` cookie on a `*.vercel.app`
       page is third-party; Safari (all iPhones) and Chrome incognito block it, so staff logins
       fail there. Fix: same-site API — a custom domain with `api.` subdomain
       (`COOKIE_SAME_SITE=lax`), or a Vercel rewrite proxying `/api` to the backend.
-- [ ] **3. Placeholder brand data.** `BRAND` in `shared/index.js` has phone `+91 90000 00000`,
+- [ ] **3. Placeholder brand data.** _Guard added 2026-09-17: production won't start while `BRAND.placeholder` is true. Still open: the real details._ `BRAND` in `shared/index.js` has phone `+91 90000 00000`,
       address "Shop 0, Example Complex", FSSAI `00000000000000`, and placeholder `geo` —
       **delivery is priced from `geo`**, so every fee would be wrong. FSSAI display is a legal
       requirement for Indian food businesses.
-- [ ] **4. "Macros on every plate" hero pill is false.** No dish has nutrition data (§8b).
+- [ ] **4. Macro figures are unverified estimates.** _Corrected 2026-09-17: the audit said no dish had nutrition data — wrong, every dish has figures, but all except seven are estimates not checked by a dietitian, shown as plain facts. Copy that promised reviewed macros is fixed. Still open: label as estimates, hide, or get the kitchen to confirm._
 - [ ] **5. COD orders need no verification.** _Code done 2026-09-17 (SMS OTP, 3 open orders per phone, see CLAUDE.md §23). Still open: choose an SMS provider, add its adapter, register DLT._ Any phone number, no OTP; the only guard is
       20 orders per IP, which also blocks real customers behind Indian mobile CGNAT.
       Add OTP or a confirm-call step before the kitchen cooks.
@@ -56,14 +56,14 @@ Tick items off here as they are fixed, with the date and the commit.
       `findOneAndUpdate({ _id, status: from })`.
 - [x] **13. Opening hours and delivery radius not enforced** _Fixed 2026-09-17: orders 11:00–22:00 IST (server-enforced in prod); pins over 25 km refused._ — orders at 3 am, a 400 km pin
       is charged ₹4,000.
-- [ ] **14. No privacy policy / terms / refund page**, while names, phones and addresses are
-      stored indefinitely (India DPDP Act).
+- [x] **14. No privacy policy / terms / refund page**, while names, phones and addresses are
+      stored indefinitely (India DPDP Act). _Fixed 2026-09-17: draft `/privacy` and `/terms`, pending legal review._
 - [x] **15. Silent in-memory DB in production.** _Fixed 2026-09-17: `MONGODB_URI` is required when `NODE_ENV=production`._ If `MONGODB_URI` is unset and dev deps are
       installed, prod runs on `mongodb-memory-server` and loses every order on restart.
 - [ ] **16. Operability.** No graceful `SIGTERM` shutdown, no React error boundary, no error
       monitoring, `/api/health` ignores DB state.
-- [ ] **17. Stock dish photos** not captioned as illustrative (§16).
-- [ ] **18. Public Nominatim** is not for production traffic (§15).
+- [x] **17. Stock dish photos** not captioned as illustrative (§16). _Fixed 2026-09-17: "Illustrative photo" tag._
+- [ ] **18. Public Nominatim** is not for production traffic (§15). _Partly fixed 2026-09-17: `VITE_GEOCODER_URL` makes the switch an env change. Still open: pick a geocoder._
 - [ ] **19. No CI** running tests on push.
 - [x] **20. `qs` moderate advisory** _Fixed 2026-09-17: `npm audit fix`, 0 vulnerabilities._ in the backend (`npm audit fix`).
 
@@ -75,3 +75,14 @@ Tick items off here as they are fixed, with the date and the commit.
 - [x] **24.** _Fixed 2026-09-17._ Mongoose `new:` option deprecation warnings (use `returnDocument: 'after'`).
 - [x] **25.** _Fixed 2026-09-17: a dummy bcrypt compare runs when the account doesn't match._ Login timing difference reveals whether an email exists.
 - [x] **26.** _Fixed 2026-09-17: rejected by the schema with a clear message._ Duplicate `dishId` lines in an order return "dish no longer exists".
+
+## Found while fixing
+
+- [x] **27.** Footer "Track an order" linked to a non-existent `/account` page, and no page let a
+      customer type an order number. _Fixed 2026-09-17: `/track` lookup page._
+- [x] **28.** Header wordmark and Order Now button wrapped onto two lines on phones. _Fixed 2026-09-17._
+- [x] **29.** Contact page said orders after 22:00 are cooked next day; About said nothing is
+      stored online. _Fixed 2026-09-17._
+- [ ] **30.** `private/brand-real-details.md` exists (gitignored). The real details belong in
+      `BRAND`, which is committed — decide whether the repo is private enough for them.
+

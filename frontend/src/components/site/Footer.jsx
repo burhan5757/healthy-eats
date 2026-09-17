@@ -6,7 +6,7 @@ const EXPLORE = [
   { label: 'Home', to: '/' },
   { label: 'Full menu', to: '/menu' },
   { label: 'About', to: '/about' },
-  { label: 'Track an order', to: '/account' },
+  { label: 'Track an order', to: '/track' },
 ]
 
 export function Footer() {
@@ -78,7 +78,15 @@ export function Footer() {
           <p>
             © {new Date().getFullYear()} {BRAND.legalName}
           </p>
-          <p>Cash on delivery only · FSSAI {BRAND.fssai}</p>
+          <p className="flex flex-wrap gap-x-4 gap-y-1">
+            <span>Cash on delivery only · FSSAI {BRAND.fssai}</span>
+            <Link to="/privacy" className="hover:text-on-dark">
+              Privacy
+            </Link>
+            <Link to="/terms" className="hover:text-on-dark">
+              Terms
+            </Link>
+          </p>
         </div>
       </Container>
     </footer>

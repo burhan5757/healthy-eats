@@ -122,16 +122,30 @@ the order state machine, the Zod schemas, and the cart arithmetic.
 
 ---
 
-## Before this goes live
+## Deploying
 
-Two items need a decision:
+The target setup (CLAUDE.md §24): one domain, the site on **Cloudflare Pages** at
+`https://yourdomain.in`, the API on **Railway** (Singapore) at `https://api.yourdomain.in`,
+and **MongoDB Atlas** in the same region. Serving the API from a subdomain keeps the staff
+login cookie first-party, which Safari and privacy-mode browsers require.
 
-1. **Content Security Policy** — `frontend/vercel.json` sets the basic security headers, but no
-   CSP yet; add one once the production API, map-tile and geocoder URLs are fixed (§18).
-2. **Real menu** — 119 dishes are seeded from the kitchen's printed menu, but it carries no
-   calorie or macro figures; `nutrition` is optional and the UI shows "Macros on request"
-   rather than inventing numbers (§8b).
+**Backend (Railway, one service, root directory `backend/`, start command `npm start`)** —
+set in the service's variables:
 
-Also: set `JWT_SECRET` and both staff password hashes in the host's environment settings — the
-server refuses to boot without them. Security details and scaling notes: CLAUDE.md §18. If the frontend and backend end up on separate domains
-(e.g. Vercel + Render), set `VITE_API_URL` and `VITE_SOCKET_URL` — see `frontend/.env.example`.
+| Variable | Value |
+| --- | --- |
+| `NODE_ENV` | `production` (the server refuses to start on Railway without it) |
+| `MONGODB_URI`, `MONGODB_DB` | the Atlas connection string and database name |
+| `CLIENT_ORIGIN` | `https://yourdomain.in` — exactly the address customers open |
+| `COOKIE_SAME_SITE` | `lax` |
+| `JWT_SECRET`, `ADMIN_*`, `CHEF_*` | see `backend/.env.example` |
+| `SMS_PROVIDER` | a real provider (§23); or `OTP_REQUIRED=false` to launch without SMS codes |
+
+Add `api.yourdomain.in` as the service's custom domain. Run **one** instance only (§18).
+
+**Frontend (Cloudflare Pages, root directory `frontend/`, build `npm run build`, output
+`dist`)** — set `VITE_API_URL` and `VITE_SOCKET_URL` to `https://api.yourdomain.in`, and add
+`yourdomain.in` as the custom domain. `frontend/public/_headers` sets the security headers;
+`frontend/vercel.json` does the same if you deploy to Vercel instead.
+
+What is still open before real customers: `PRODUCTION_READINESS.md`.

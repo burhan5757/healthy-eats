@@ -45,9 +45,9 @@ export function Header() {
         scrolled && 'shadow-[0_1px_0_0_var(--color-border)]',
       )}
     >
-      <Container className="flex h-[76px] items-center justify-between gap-6 md:h-[92px]">
+      <Container className="flex h-[76px] items-center justify-between gap-3 sm:gap-6 md:h-[92px]">
         <Link to="/" className="flex items-baseline">
-          <span className="font-display text-[28px] leading-none md:text-[34px]">
+          <span className="font-display text-[24px] leading-none whitespace-nowrap min-[400px]:text-[28px] md:text-[34px]">
             {BRAND.name}
           </span>
         </Link>
@@ -79,7 +79,7 @@ export function Header() {
           {/* Link, not <a> — an anchor would force a full page reload. */}
           <Link
             to="/menu"
-            className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary-dark md:px-7 md:py-3"
+            className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm font-semibold whitespace-nowrap text-primary-foreground min-[400px]:px-5 transition-colors duration-200 hover:bg-primary-dark md:px-7 md:py-3"
           >
             Order Now
           </Link>

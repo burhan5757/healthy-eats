@@ -10,9 +10,9 @@ import { assetUrl } from '@/lib/api'
  * omitted here. This renders as a quiet, deliberate slot rather than a
  * broken-image state.
  */
-export function PlatePlaceholder({ label, className, src, alt }) {
+export function PlatePlaceholder({ label, className, src, alt, illustrative }) {
   if (src) {
-    return (
+    const img = (
       <img
         src={assetUrl(src)}
         alt={alt ?? ''}
@@ -20,6 +20,16 @@ export function PlatePlaceholder({ label, className, src, alt }) {
         decoding="async"
         className={cn('h-full w-full object-cover', className)}
       />
+    )
+    if (!illustrative) return img
+    // Stock photography of a similar dish, not this kitchen's plate (CLAUDE.md §16).
+    return (
+      <div className="relative h-full w-full">
+        {img}
+        <span className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-surface/90 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+          Illustrative photo
+        </span>
+      </div>
     )
   }
 

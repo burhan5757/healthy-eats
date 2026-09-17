@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import { BRAND } from './shared/index.js'
 
 /**
  * Server configuration.
@@ -18,6 +19,13 @@ const problems = []
 const onHost = Boolean(process.env.RENDER || process.env.RAILWAY_ENVIRONMENT)
 if (onHost && !isProd) {
   problems.push('NODE_ENV must be set to "production" on the hosting service')
+}
+// Demo brand details (phone, address, FSSAI number, kitchen coordinates) must
+// never reach customers — delivery fees are priced from BRAND.geo.
+if (isProd && BRAND.placeholder) {
+  problems.push(
+    'BRAND in src/shared/index.js still holds placeholder business details — fill in the real ones (both copies) and set placeholder: false',
+  )
 }
 // Without a URI the server falls back to an in-memory database, which loses
 // every order on restart — fine for development, never for production.

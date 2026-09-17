@@ -17,12 +17,12 @@ const RULES = [
     body: 'Plates are weighed before packing. A 180 g portion is 180 g.',
   },
   {
-    title: 'Macros reviewed regularly',
-    body: 'The nutrition card is checked periodically. If a figure changes, the site is updated to match.',
+    title: 'Built around your goal',
+    body: 'Every package dish is tagged fat loss, muscle gain or basic fitness, so you can order for the way you train.',
   },
   {
     title: 'Cash on delivery only',
-    body: 'No cards, no wallets, nothing stored online. Pay the rider when the food arrives.',
+    body: 'No cards, no wallets, no payment details stored online. Pay the rider when the food arrives.',
   },
 ]
 
@@ -153,7 +153,7 @@ export default function About() {
 
             <p className="mt-6 max-w-[62ch] text-[15px] leading-relaxed text-muted-foreground">
               Two people on the hob, one on tandoor, one on packing, cooking
-              every order to the goal-based macros on the card.
+              every order to the goal package on the card.
             </p>
           </div>
         </div>

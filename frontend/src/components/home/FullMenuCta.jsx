@@ -28,8 +28,8 @@ export function FullMenuCta({ dishes }) {
 
               <p className="mt-6 max-w-[52ch] text-[15px] leading-relaxed text-muted-foreground">
                 {packages.slice(0, -1).join(', ')} and {packages.at(-1)}{' '}
-                packages, plus the Indian, Tandoor and salad sections — macros
-                and prices on every plate.
+                packages, plus the Indian, Tandoor and salad sections, each
+                plate tagged with the goal it suits.
               </p>
 
               <p className="mt-6 text-[13px] text-muted-foreground">

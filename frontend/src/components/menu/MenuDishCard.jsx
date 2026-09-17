@@ -31,7 +31,12 @@ export function MenuDishCard({ dish }) {
       )}
     >
       <div className="relative aspect-[4/3] border-b border-border">
-        <PlatePlaceholder src={dish.image} alt={dish.name} label={dish.name} />
+        <PlatePlaceholder
+          src={dish.image}
+          alt={dish.name}
+          label={dish.name}
+          illustrative={dish.imageSource === 'stock'}
+        />
 
         <span className="absolute top-3 right-3 rounded-[3px] bg-surface/95 p-1">
           <VegMark diet={dish.diet} />

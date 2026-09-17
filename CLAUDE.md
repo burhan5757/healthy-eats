@@ -292,6 +292,13 @@ brand photos.
 
 ## 8b. Real menu — LOADED, with two open questions
 
+> ⚠️ **Open question 2 below is out of date** (found 2026-09-17). Commit `1d578bb`
+> (2026-08-15) gave **every dish** macro figures: the seven design dishes use the design's
+> numbers, the rest are **estimates from portion composition, not checked by a dietitian**
+> (see the header of `backend/src/seed.js`). The site shows them as plain figures. Whether to
+> label them as estimates or hide them until the kitchen confirms is an open decision —
+> `PRODUCTION_READINESS.md` item 4.
+
 The kitchen's printed menu poster (`design/Screenshot 2026-08-14 030539.png`) has been
 transcribed in full into `backend/src/seed.js`: **104 dishes + 15 add-ons = 119 items**.
 
@@ -495,6 +502,9 @@ Append newest at the bottom. Format: date — decision — reason.
 | 2026-09-17 | Checkout asks for the **pincode** (pre-filled from the pin's reverse lookup) instead of hardcoding `411038` | Every order and customer record had Kothrud's pincode. |
 | 2026-09-17 | Business dates use **IST** (`dayKey`) everywhere; orders use Mongoose optimistic concurrency | Hosts run UTC; concurrent staff actions could overwrite each other. |
 | 2026-09-17 | **Orders need an SMS-verified phone** (OTP, 30-minute token), max 3 unfinished orders per phone, per-IP order limit 20 → 60 | Audit item 5; user chose SMS OTP over a confirm-call step. Provider left undecided — see §23. |
+| 2026-09-17 | **Hosting: Cloudflare Pages + Railway (Singapore) on one domain, API at `api.` subdomain, `COOKIE_SAME_SITE=lax`** | User-confirmed. Vercel Hobby is non-commercial; separate hosts' default domains would make the login cookie third-party (blocked by Safari). See §24. |
+| 2026-09-17 | Draft privacy policy and terms added (`/privacy`, `/terms`), marked for legal review; `/track` lookup page added | User asked Claude to draft them. See §25. |
+| 2026-09-17 | Production refuses to start while `BRAND.placeholder` is true | The demo kitchen coordinates would misprice every delivery; the FSSAI number must be real. |
 
 ## 13. Accessibility status
 
@@ -883,4 +893,40 @@ kitchen cash-on-delivery orders for any number.
   reports `phoneVerification` so checkout hides the step.
 - Tests: `tests/e2e/otp.spec.js`; other specs get tokens through `phoneToken()` in
   `tests/e2e/fixtures.js` and use `uniquePhone()` so the open-order cap never trips them.
+
+## 24. Hosting (2026-09-17)
+
+Decided with the user after the production-readiness audit: **one domain**, the site on
+**Cloudflare Pages** (`yourdomain.in`) and the API on **Railway Hobby**, one service in the
+Singapore region (`api.yourdomain.in`), with **MongoDB Atlas** in the same region. This replaces
+Vercel as the default frontend host (§2): Vercel's free Hobby plan is non-commercial only, while
+Cloudflare Pages is free. `frontend/vercel.json` stays, so Vercel Pro remains a drop-in option.
+
+- **Why the `api.` subdomain:** a cookie from a different site (`*.up.railway.app` read on a
+  `*.pages.dev` or `*.vercel.app` page) is a third-party cookie, and Safari and private browsing
+  block those, so staff logins would fail. On a shared domain the cookie is first-party and the
+  backend runs with `COOKIE_SAME_SITE=lax`.
+- `frontend/public/_headers` carries the security headers for Cloudflare. No `_redirects` is
+  needed: with no `404.html` in the build, Cloudflare Pages serves `index.html` for app routes.
+- Full variable list and steps: the README's "Deploying" section.
+
+## 25. Legal pages, order lookup, copy fixes (2026-09-17)
+
+- **`/privacy` and `/terms`** (`frontend/src/pages/Legal.jsx`) — drafted by Claude at the user's
+  request, marked "Draft — pending legal review" on the page. They describe only what the code
+  really does (the data listed is exactly what `orders`, `customers`, `otps` and local storage
+  hold; the third parties are the hosts, the SMS provider, Nominatim/OSM tiles and Google
+  Fonts). Retention is stated honestly as "until you ask us to delete". Linked from the footer
+  and from checkout's agreement line.
+- **`/track`** (`TrackLookup.jsx`) — somewhere to type an order number, which the tracking page
+  has always told customers to do but no page offered; also lists orders placed in this
+  browser. The footer's "Track an order" link pointed at a non-existent `/account` route.
+- Copy made to match reality: the "Macros on every plate" hero pill is now "Goal-based plates";
+  the menu CTA, How-it-works step and About page no longer promise reviewed macros; About no
+  longer says "nothing stored online" (customer details are, since §16); Contact no longer says
+  late orders are cooked next day (they are refused, §20/Decision Log).
+- Stock dish photos carry an "Illustrative photo" tag (`PlatePlaceholder`'s `illustrative`).
+- The mobile header's wordmark and Order Now button no longer wrap at phone widths.
+- `BRAND.placeholder` (true until the real details are in) blocks a production start.
+- Checkout's geocoder is configurable with `VITE_GEOCODER_URL` (§15).
 

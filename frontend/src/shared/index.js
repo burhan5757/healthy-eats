@@ -481,6 +481,12 @@ export function isNonVeg(diet) {
  * before deploying for the actual business.
  */
 export const BRAND = {
+  /**
+   * True while any field below is still demo data. The backend refuses to start
+   * in production until this is false — the kitchen coordinates price every
+   * delivery, and the FSSAI number is a legal requirement.
+   */
+  placeholder: true,
   name: 'Healthy Eats',
   city: 'Pune',
   legalName: 'Healthy Eats Kitchen LLP, Pune',
@@ -505,7 +511,7 @@ export const BRAND = {
   fssai: '00000000000000',
   heroPills: [
     'Cooked fresh daily',
-    'Macros on every plate',
+    'Goal-based plates',
     'Delivering across Pune',
   ],
 }

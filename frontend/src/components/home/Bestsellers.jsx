@@ -192,7 +192,11 @@ function SpotlightCard({ dish }) {
       )}
     >
       <div className="relative aspect-[16/9] border-b border-border md:border-r md:border-b-0">
-        <PlatePlaceholder src={dish.image} alt={dish.name} />
+        <PlatePlaceholder
+          src={dish.image}
+          alt={dish.name}
+          illustrative={dish.imageSource === 'stock'}
+        />
         {soldOut && (
           <div className="absolute inset-x-0 bottom-0 bg-destructive px-4 py-2 text-center">
             <span className="eyebrow text-destructive-foreground">

@@ -45,7 +45,7 @@ export default function Contact() {
           <Card icon={Clock} label="Service hours">
             <p className="font-display text-[26px]">11:00 – 22:30</p>
             <p className="mt-2 text-[14px] text-muted-foreground">
-              Seven days. Orders after 22:00 are cooked the next day.
+              Seven days. Last order at {BRAND.orderingHours.lastOrder}.
             </p>
           </Card>
 

@@ -74,8 +74,8 @@ export default function Menu() {
             Everything on the pass today
           </h1>
           <p className="max-w-[42ch] text-[15px] leading-relaxed text-muted-foreground lg:pb-2">
-            Filter by what you&apos;re training for. Macros are per portion as
-            served — nothing is rounded up.
+            Filter by what you&apos;re training for. Where a dish lists macros,
+            they are per portion as served.
           </p>
         </div>
 

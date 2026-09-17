@@ -21,6 +21,13 @@ const About = lazy(() => import('@/pages/About'))
 const Contact = lazy(() => import('@/pages/Contact'))
 const Checkout = lazy(() => import('@/pages/Checkout'))
 const Track = lazy(() => import('@/pages/Track'))
+const TrackLookup = lazy(() => import('@/pages/TrackLookup'))
+const Privacy = lazy(() =>
+  import('@/pages/Legal').then((m) => ({ default: m.Privacy })),
+)
+const Terms = lazy(() =>
+  import('@/pages/Legal').then((m) => ({ default: m.Terms })),
+)
 const LoginHub = lazy(() => import('@/pages/Login'))
 const StaffLogin = lazy(() =>
   import('@/pages/Login').then((m) => ({ default: m.StaffLogin })),
@@ -90,6 +97,9 @@ export default function App() {
               <Route path="/menu" element={<Menu />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/track" element={<TrackLookup />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
               <Route path="*" element={<NotFound />} />
             </Route>
 

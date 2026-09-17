@@ -376,8 +376,15 @@ export default function Checkout() {
                   Cash to pay on delivery: {formatINR(totals.total)}
                 </p>
                 <p className="mt-1 text-[13px] text-on-dark-muted">
-                  By placing this order you agree to be reachable on the phone
-                  number above.
+                  By placing this order you agree to our{' '}
+                  <Link to="/terms" className="underline underline-offset-2">
+                    terms
+                  </Link>{' '}
+                  and{' '}
+                  <Link to="/privacy" className="underline underline-offset-2">
+                    privacy policy
+                  </Link>
+                  , and to be reachable on the phone number above.
                 </p>
               </div>
 

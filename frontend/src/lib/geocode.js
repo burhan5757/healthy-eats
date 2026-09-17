@@ -14,7 +14,12 @@ import { BRAND, MAX_DELIVERY_KM, distanceKm } from '@shared/index'
  * a paid geocoder — the public endpoint is not for production volume.
  */
 
-const NOMINATIM = 'https://nominatim.openstreetmap.org'
+/**
+ * Any Nominatim-compatible service (self-hosted, or a paid host). The public
+ * instance is only the default; set VITE_GEOCODER_URL before real traffic.
+ */
+const NOMINATIM =
+  import.meta.env.VITE_GEOCODER_URL || 'https://nominatim.openstreetmap.org'
 
 /** Bias results to greater Pune so "Sunrise Heights" doesn't land in Delhi. */
 const PUNE_VIEWBOX = '73.62,18.65,74.02,18.36'

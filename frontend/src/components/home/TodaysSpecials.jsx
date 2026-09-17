@@ -69,7 +69,11 @@ function HeroSpecial({ dish }) {
       )}
     >
       <div className="relative aspect-[16/11] border-b border-border">
-        <PlatePlaceholder src={dish.image} alt={dish.name} />
+        <PlatePlaceholder
+          src={dish.image}
+          alt={dish.name}
+          illustrative={dish.imageSource === 'stock'}
+        />
         {soldOut && <SoldOutRibbon />}
       </div>
 
@@ -135,7 +139,11 @@ function SideSpecial({ dish }) {
       )}
     >
       <div className="relative aspect-[4/3] border-b border-border sm:aspect-auto sm:border-r sm:border-b-0">
-        <PlatePlaceholder src={dish.image} alt={dish.name} />
+        <PlatePlaceholder
+          src={dish.image}
+          alt={dish.name}
+          illustrative={dish.imageSource === 'stock'}
+        />
         {soldOut && <SoldOutRibbon />}
       </div>
 
