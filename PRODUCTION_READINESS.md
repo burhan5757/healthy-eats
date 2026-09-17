@@ -20,6 +20,21 @@ Tick items off here as they are fixed, with the date and the commit.
 | `npm audit --omit=dev`        | Frontend 0; backend 1 moderate (`qs`, fixable)                |
 | Secrets in git history        | None found; `.env` and `private/` ignored                     |
 
+## Checks after the fixes (2026-09-17, commit `12b05c6`)
+
+| Check                  | Result                                              |
+| ---------------------- | --------------------------------------------------- |
+| Unit tests             | 86 / 86 pass                                        |
+| E2E tests              | 62 / 62 pass                                        |
+| Lint                   | Clean (same 2 fast-refresh warnings)                |
+| Frontend build         | Passes; main chunk 438 KB (136 KB gzip)             |
+| `npm audit --omit=dev` | 0 vulnerabilities in both packages                  |
+| CSP on production build | 0 violations across home → menu → checkout → track |
+
+**Still open — all need a decision or an account from the owner:** 3 (real business details),
+4 (what to do about estimated macros), 5 (SMS provider + DLT), 16 (error monitoring),
+18 (production geocoder), 30 (where the real details live).
+
 ## 🔴 Launch blockers
 
 - [x] **1. `NODE_ENV=production` is never set or documented.** _Fixed 2026-09-17: server refuses to start on Render/Railway without it; documented in `backend/.env.example`._ Render/Railway don't set it.
