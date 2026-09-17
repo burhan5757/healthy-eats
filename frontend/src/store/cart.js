@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { orderTotals } from '@shared/index'
+import { MAX_ORDER_LINES, MAX_QTY_PER_DISH, orderTotals } from '@shared/index'
 
 /**
  * The cart is purely local state — no account required, matching the checkout
@@ -22,10 +22,14 @@ export const useCart = create()(
           if (existing) {
             return {
               lines: state.lines.map((l) =>
-                l.dishId === dish.id ? { ...l, qty: l.qty + 1 } : l,
+                l.dishId === dish.id
+                  ? { ...l, qty: Math.min(MAX_QTY_PER_DISH, l.qty + 1) }
+                  : l,
               ),
             }
           }
+          // The server refuses more distinct dishes than this.
+          if (state.lines.length >= MAX_ORDER_LINES) return state
           return {
             lines: [
               ...state.lines,
@@ -49,7 +53,9 @@ export const useCart = create()(
             qty <= 0
               ? state.lines.filter((l) => l.dishId !== dishId)
               : state.lines.map((l) =>
-                  l.dishId === dishId ? { ...l, qty } : l,
+                  l.dishId === dishId
+                    ? { ...l, qty: Math.min(MAX_QTY_PER_DISH, qty) }
+                    : l,
                 ),
         })),
 

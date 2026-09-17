@@ -1,5 +1,6 @@
 import http from 'node:http'
 import express from 'express'
+import mongoose from 'mongoose'
 import compression from 'compression'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
@@ -52,6 +53,12 @@ app.use((_req, res) => res.status(404).json({ error: 'Not found.' }))
 
 // Error handler — must keep all four params for Express to recognise it.
 app.use((err, _req, res, _next) => {
+  if (err instanceof mongoose.Error.VersionError) {
+    res
+      .status(409)
+      .json({ error: 'This order just changed. Refresh and try again.' })
+    return
+  }
   console.error('[error]', err)
   res.status(500).json({ error: 'Something went wrong on our end.' })
 })

@@ -18,10 +18,12 @@ describe('distanceKm', () => {
   })
 
   it('measures a known Pune hop within a few hundred metres', () => {
-    // Kothrud kitchen → Viman Nagar, a delivery area, is about 15 km by air.
+    // Fixed points, not BRAND.geo, so replacing the kitchen's coordinates
+    // can't break this. Kothrud → Viman Nagar is ~13.1 km in a straight line.
+    const kothrud = { lat: 18.5074, lng: 73.8077 }
     const vimanNagar = { lat: 18.5679, lng: 73.9143 }
-    expect(distanceKm(BRAND.geo, vimanNagar)).toBeGreaterThan(13)
-    expect(distanceKm(BRAND.geo, vimanNagar)).toBeLessThan(16)
+    expect(distanceKm(kothrud, vimanNagar)).toBeGreaterThan(12.8)
+    expect(distanceKm(kothrud, vimanNagar)).toBeLessThan(13.4)
   })
 
   it('is symmetric', () => {

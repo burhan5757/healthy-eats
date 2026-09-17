@@ -5,6 +5,7 @@ import {
   assignDriverSchema,
   cancelOrderSchema,
   canTransition,
+  dayKey,
   orderTotals,
   placeOrderSchema,
 } from '../shared/index.js'
@@ -34,6 +35,15 @@ async function withPayments(orders) {
 }
 
 export const ordersRouter = Router()
+
+// A malformed :id is simply "not found" — never a CastError 500.
+ordersRouter.param('id', (req, res, next, id) => {
+  if (!mongoose.isValidObjectId(id)) {
+    res.status(404).json({ error: 'Order not found.' })
+    return
+  }
+  next()
+})
 
 function stamp(status) {
   return { status, at: new Date().toISOString() }
@@ -222,10 +232,9 @@ ordersRouter.get(
   asyncRoute(async (_req, res) => {
     const orders = await Order.find().sort({ createdAt: -1 })
     const earned = orders.filter((o) => o.status === 'delivered')
-    const startOfToday = new Date()
-    startOfToday.setHours(0, 0, 0, 0)
-
-    const isToday = (o) => o.createdAt >= startOfToday
+    // "Today" is the kitchen's day (IST), whatever zone the server runs in.
+    const today = dayKey()
+    const isToday = (o) => dayKey(o.createdAt) === today
 
     const sum = (list) => list.reduce((s, o) => s + o.total, 0)
 
@@ -244,14 +253,10 @@ ordersRouter.get(
     // Last 7 days of delivered revenue, oldest first.
     const daily = []
     for (let d = 6; d >= 0; d--) {
-      const day = new Date()
-      day.setDate(day.getDate() - d)
-      const key = day.toLocaleDateString('en-CA')
+      const key = dayKey(new Date(Date.now() - d * 24 * 60 * 60 * 1000))
       daily.push({
         date: key,
-        revenue: sum(
-          earned.filter((o) => o.createdAt.toLocaleDateString('en-CA') === key),
-        ),
+        revenue: sum(earned.filter((o) => dayKey(o.createdAt) === key)),
       })
     }
 
@@ -481,7 +486,7 @@ ordersRouter.post(
             collectedBy: req.auth.sub,
           },
         },
-        { new: true },
+        { returnDocument: 'after' },
       )
     }
     respond(res, result, payment)
@@ -529,7 +534,7 @@ ordersRouter.post(
     const payment = await Payment.findOneAndUpdate(
       { order: order._id },
       { $set: { status: 'void', voidedAt: new Date() } },
-      { new: true },
+      { returnDocument: 'after' },
     )
 
     if (validSoldOut.length > 0) {

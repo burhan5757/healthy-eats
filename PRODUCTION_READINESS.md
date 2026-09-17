@@ -38,20 +38,20 @@ Tick items off here as they are fixed, with the date and the commit.
 - [ ] **5. COD orders need no verification.** Any phone number, no OTP; the only guard is
       20 orders per IP, which also blocks real customers behind Indian mobile CGNAT.
       Add OTP or a confirm-call step before the kitchen cooks.
-- [ ] **6. Unit suite is red** — `geocode.test.js` distance assertion vs placeholder `geo`.
+- [x] **6. Unit suite is red** _Fixed 2026-09-17: test measures between fixed points, not the placeholder kitchen._ — `geocode.test.js` distance assertion vs placeholder `geo`.
 - [x] **7. Most recent work was uncommitted.** Committed as `2394a04` (2026-09-17).
 
 ## 🟠 Fix before real traffic
 
-- [ ] **8. Timezone.** `todayKey()` (`backend/src/models/Dish.js`) and `/orders/stats` use the
+- [x] **8. Timezone.** _Fixed 2026-09-17: `dayKey()` / `BUSINESS_TIME_ZONE` in shared; sold-out reset and stats use IST._ `todayKey()` (`backend/src/models/Dish.js`) and `/orders/stats` use the
       server's local zone; Render runs UTC, so sold-out resets at 05:30 IST and "today's
       revenue" is the wrong window. Pin to `Asia/Kolkata`.
 - [ ] **9. Every order's pincode is hardcoded to `411038`** (`frontend/src/pages/Checkout.jsx`).
-- [ ] **10. Unbounded input.** `placeOrderSchema` has no max qty / item count; `reason`,
+- [x] **10. Unbounded input.** _Fixed 2026-09-17: max 20 per dish, 30 lines, length caps on text fields; steppers stop at 20._ `placeOrderSchema` has no max qty / item count; `reason`,
       `name`, `line1`, `landmark` have no max length.
-- [ ] **11. Malformed ids → 500.** Bad `dishId` on `POST /orders`, bad `:id` on
+- [x] **11. Malformed ids → 500.** _Fixed 2026-09-17: ids validated in schemas and by `router.param` (404); e2e-covered._ Bad `dishId` on `POST /orders`, bad `:id` on
       `PATCH /menu/:id/availability` hit a Mongoose CastError (from code reading).
-- [ ] **12. Transition races.** Transitions do read → modify → `save()`; concurrent
+- [x] **12. Transition races.** _Fixed 2026-09-17: `optimisticConcurrency` on orders; a stale save returns 409._ Transitions do read → modify → `save()`; concurrent
       admin-cancel and chef-ready can leave a cancelled order that was ready. Use a conditional
       `findOneAndUpdate({ _id, status: from })`.
 - [ ] **13. Opening hours and delivery radius not enforced** — orders at 3 am, a 400 km pin
@@ -65,13 +65,13 @@ Tick items off here as they are fixed, with the date and the commit.
 - [ ] **17. Stock dish photos** not captioned as illustrative (§16).
 - [ ] **18. Public Nominatim** is not for production traffic (§15).
 - [ ] **19. No CI** running tests on push.
-- [ ] **20. `qs` moderate advisory** in the backend (`npm audit fix`).
+- [x] **20. `qs` moderate advisory** _Fixed 2026-09-17: `npm audit fix`, 0 vulnerabilities._ in the backend (`npm audit fix`).
 
 ## 🟡 Later
 
 - [ ] **21.** `/orders/stats` loads every order into memory on each call.
 - [ ] **22.** Every open tracking page refetches on any order change anywhere.
 - [ ] **23.** No Content-Security-Policy (§18).
-- [ ] **24.** Mongoose `new:` option deprecation warnings (use `returnDocument: 'after'`).
-- [ ] **25.** Login timing difference reveals whether an email exists.
-- [ ] **26.** Duplicate `dishId` lines in an order return "dish no longer exists".
+- [x] **24.** _Fixed 2026-09-17._ Mongoose `new:` option deprecation warnings (use `returnDocument: 'after'`).
+- [x] **25.** _Fixed 2026-09-17: a dummy bcrypt compare runs when the account doesn't match._ Login timing difference reveals whether an email exists.
+- [x] **26.** _Fixed 2026-09-17: rejected by the schema with a clear message._ Duplicate `dishId` lines in an order return "dish no longer exists".

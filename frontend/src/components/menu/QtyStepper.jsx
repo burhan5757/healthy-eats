@@ -1,4 +1,5 @@
 import { Minus, Plus } from 'lucide-react'
+import { MAX_QTY_PER_DISH } from '@shared/index'
 import { cn } from '@/lib/utils'
 
 /**
@@ -12,6 +13,7 @@ export function QtyStepper({
   dishName,
   className,
 }) {
+  const atMax = qty >= MAX_QTY_PER_DISH
   return (
     <div
       className={cn(
@@ -39,8 +41,13 @@ export function QtyStepper({
       <button
         type="button"
         onClick={onIncrease}
-        aria-label={`One more ${dishName}`}
-        className="grid size-7 place-items-center rounded-full bg-primary text-primary-foreground transition-colors duration-150 hover:bg-primary-dark"
+        disabled={atMax}
+        aria-label={
+          atMax
+            ? `${MAX_QTY_PER_DISH} is the most per order`
+            : `One more ${dishName}`
+        }
+        className="grid size-7 place-items-center rounded-full bg-primary text-primary-foreground transition-colors duration-150 hover:bg-primary-dark disabled:opacity-40 disabled:hover:bg-primary"
       >
         <Plus className="size-3.5" strokeWidth={2.5} />
       </button>

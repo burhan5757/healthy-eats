@@ -80,7 +80,9 @@ const orderSchema = new Schema(
       default: undefined,
     },
   },
-  { timestamps: true },
+  // Two staff acting on one order at once (admin cancels while the chef marks
+  // it ready) must not both win: every save checks the version it loaded.
+  { timestamps: true, optimisticConcurrency: true },
 )
 
 orderSchema.index({ status: 1, createdAt: -1 })

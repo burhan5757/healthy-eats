@@ -4,12 +4,15 @@ import {
   DELIVERY_FEE_PER_KM,
   GOALS,
   GOAL_LABELS,
+  MAX_ORDER_LINES,
+  MAX_QTY_PER_DISH,
   PACKAGING_FEE,
   PAYMENT_STATUS_LABELS,
   addressSchema,
   assignDriverSchema,
   cancelOrderSchema,
   createDriverSchema,
+  dayKey,
   deliveryFeeFor,
   isNonVeg,
   paymentSchema,
@@ -77,6 +80,8 @@ describe('address validation', () => {
   })
 })
 
+const DISH = '66e8f0c2a1b2c3d4e5f60001'
+
 describe('place order payload', () => {
   const address = {
     name: 'Rohit Kulkarni',
@@ -88,7 +93,7 @@ describe('place order payload', () => {
 
   it('requires a map pin, because delivery is priced by distance', () => {
     const result = placeOrderSchema.safeParse({
-      items: [{ dishId: 'a', qty: 1 }],
+      items: [{ dishId: DISH, qty: 1 }],
       address,
     })
     expect(result.success).toBe(false)
@@ -100,7 +105,7 @@ describe('place order payload', () => {
   it('rejects an impossible pin', () => {
     expect(
       placeOrderSchema.safeParse({
-        items: [{ dishId: 'a', qty: 1 }],
+        items: [{ dishId: DISH, qty: 1 }],
         address: { ...address, lat: 123, lng: 73.8 },
       }).success,
     ).toBe(false)
@@ -117,13 +122,13 @@ describe('place order payload', () => {
   it('rejects a zero or negative quantity', () => {
     expect(
       placeOrderSchema.safeParse({
-        items: [{ dishId: 'a', qty: 0 }],
+        items: [{ dishId: DISH, qty: 0 }],
         address: pinned,
       }).success,
     ).toBe(false)
     expect(
       placeOrderSchema.safeParse({
-        items: [{ dishId: 'a', qty: -2 }],
+        items: [{ dishId: DISH, qty: -2 }],
         address: pinned,
       }).success,
     ).toBe(false)
@@ -132,7 +137,7 @@ describe('place order payload', () => {
   it('rejects a fractional quantity', () => {
     expect(
       placeOrderSchema.safeParse({
-        items: [{ dishId: 'a', qty: 1.5 }],
+        items: [{ dishId: DISH, qty: 1.5 }],
         address: pinned,
       }).success,
     ).toBe(false)
@@ -140,14 +145,14 @@ describe('place order payload', () => {
 
   it('defaults the kitchen note to empty and caps its length', () => {
     const ok = placeOrderSchema.safeParse({
-      items: [{ dishId: 'a', qty: 1 }],
+      items: [{ dishId: DISH, qty: 1 }],
       address: pinned,
     })
     expect(ok.success).toBe(true)
     if (ok.success) expect(ok.data.notes).toBe('')
 
     const tooLong = placeOrderSchema.safeParse({
-      items: [{ dishId: 'a', qty: 1 }],
+      items: [{ dishId: DISH, qty: 1 }],
       address: pinned,
       notes: 'x'.repeat(201),
     })
@@ -158,13 +163,72 @@ describe('place order payload', () => {
     // Totals are recomputed server-side; a price in the payload must be ignored,
     // never trusted. Parsing strips it.
     const result = placeOrderSchema.safeParse({
-      items: [{ dishId: 'a', qty: 1, price: 1 }],
+      items: [{ dishId: DISH, qty: 1, price: 1 }],
       address: pinned,
     })
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.items[0]).not.toHaveProperty('price')
     }
+  })
+})
+
+describe('place order payload limits', () => {
+  const pinned = {
+    name: 'Rohit Kulkarni',
+    phone: '9860422190',
+    line1: 'Flat 12, Sunrise Heights, Baner Road',
+    pincode: '411045',
+    lat: 18.559,
+    lng: 73.786,
+  }
+  const parse = (items, address = pinned) =>
+    placeOrderSchema.safeParse({ items, address })
+
+  it('rejects a dish id that is not an ObjectId', () => {
+    expect(parse([{ dishId: 'not-an-id', qty: 1 }]).success).toBe(false)
+  })
+
+  it('caps the quantity of one dish', () => {
+    expect(parse([{ dishId: DISH, qty: MAX_QTY_PER_DISH }]).success).toBe(true)
+    expect(parse([{ dishId: DISH, qty: MAX_QTY_PER_DISH + 1 }]).success).toBe(
+      false,
+    )
+  })
+
+  it('caps the number of distinct dishes', () => {
+    const lines = Array.from({ length: MAX_ORDER_LINES + 1 }, (_, i) => ({
+      dishId: String(i).padStart(24, '0'),
+      qty: 1,
+    }))
+    expect(parse(lines).success).toBe(false)
+  })
+
+  it('rejects the same dish twice', () => {
+    const result = parse([
+      { dishId: DISH, qty: 1 },
+      { dishId: DISH, qty: 2 },
+    ])
+    expect(result.success).toBe(false)
+  })
+
+  it('caps free-text address fields', () => {
+    const items = [{ dishId: DISH, qty: 1 }]
+    expect(parse(items, { ...pinned, name: 'x'.repeat(81) }).success).toBe(false)
+    expect(parse(items, { ...pinned, line1: 'x'.repeat(201) }).success).toBe(
+      false,
+    )
+    expect(
+      parse(items, { ...pinned, landmark: 'x'.repeat(121) }).success,
+    ).toBe(false)
+  })
+})
+
+describe('business day', () => {
+  it('is the calendar day in India, not on the server', () => {
+    // 20:00 UTC is 01:30 the next morning in Pune.
+    expect(dayKey(new Date('2026-09-17T20:00:00Z'))).toBe('2026-09-18')
+    expect(dayKey(new Date('2026-09-17T18:00:00Z'))).toBe('2026-09-17')
   })
 })
 
@@ -273,7 +337,7 @@ describe('payment schema', () => {
 /** Driver assignment and account management — admin-only surfaces. */
 describe('assign driver payload', () => {
   it('accepts a driver id', () => {
-    expect(assignDriverSchema.safeParse({ driverId: 'abc123' }).success).toBe(
+    expect(assignDriverSchema.safeParse({ driverId: '66e8f0c2a1b2c3d4e5f60718' }).success).toBe(
       true,
     )
   })
@@ -286,6 +350,12 @@ describe('assign driver payload', () => {
 
   it('rejects an empty string', () => {
     expect(assignDriverSchema.safeParse({ driverId: '' }).success).toBe(false)
+  })
+
+  it('rejects a malformed id', () => {
+    expect(assignDriverSchema.safeParse({ driverId: 'abc123' }).success).toBe(
+      false,
+    )
   })
 })
 

@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import mongoose from 'mongoose'
 import { z } from 'zod'
 import { SOCKET_EVENTS } from '../shared/index.js'
 import { Dish, todayKey } from '../models/Dish.js'
@@ -9,6 +10,14 @@ import { toDish } from '../serialize.js'
 import { emit } from '../realtime.js'
 
 export const menuRouter = Router()
+
+menuRouter.param('id', (req, res, next, id) => {
+  if (!mongoose.isValidObjectId(id)) {
+    res.status(404).json({ error: 'Dish not found.' })
+    return
+  }
+  next()
+})
 
 /** Public menu. Sold-out dishes are returned too — greyed, never hidden (CLAUDE.md §5). */
 menuRouter.get(

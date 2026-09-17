@@ -263,3 +263,51 @@ test.describe('session and request hardening', () => {
     expect(headers['x-powered-by']).toBeUndefined()
   })
 })
+
+test.describe('malformed input is refused cleanly', () => {
+  test('a malformed order or dish id is a 404, never a 500', async ({
+    request,
+  }) => {
+    await request.post(`${API}/auth/admin/login`, {
+      data: { email: ADMIN.email, password: ADMIN.password },
+    })
+    for (const [method, path] of [
+      ['get', '/orders/not-an-id'],
+      ['post', '/orders/not-an-id/accept'],
+      ['post', '/orders/not-an-id/deliver'],
+      ['post', '/orders/not-an-id/assign'],
+      ['patch', '/menu/not-an-id/availability'],
+    ]) {
+      const res = await request[method](`${API}${path}`, {
+        data: { availableToday: true, driverId: null },
+      })
+      expect(res.status(), `${method} ${path}`).toBe(404)
+    }
+  })
+
+  test('oversized or malformed orders are a 400', async ({ request }) => {
+    const menu = await (await request.get(`${API}/menu`)).json()
+    const dish = menu.dishes.find((d) => d.availableToday)
+    const address = {
+      name: 'Limit Probe',
+      phone: '9823011255',
+      line1: 'Flat 9, Some Building, Kothrud',
+      pincode: '411038',
+      lat: 18.51,
+      lng: 73.81,
+    }
+    for (const items of [
+      [{ dishId: 'not-an-id', qty: 1 }],
+      [{ dishId: dish.id, qty: 21 }],
+      [
+        { dishId: dish.id, qty: 1 },
+        { dishId: dish.id, qty: 1 },
+      ],
+    ]) {
+      const res = await request.post(`${API}/orders`, {
+        data: { items, address },
+      })
+      expect(res.status(), JSON.stringify(items)).toBe(400)
+    }
+  })
+})

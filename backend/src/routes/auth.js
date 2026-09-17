@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import bcrypt from 'bcryptjs'
 import { loginSchema } from '../shared/index.js'
 import { User } from '../models/User.js'
 import { asyncRoute, validate } from '../middleware/validate.js'
@@ -17,6 +18,10 @@ import { toPublicUser } from '../serialize.js'
  */
 export const authRouter = Router()
 
+/** Cost-12 hash of a throwaway string; only ever compared against, never matched. */
+const TIMING_DUMMY_HASH =
+  '$2b$12$vApyuHfRvLeHyi3JNXRNZuu5YBHqJARhBfE3jnNazx7CmoVdA88Xe'
+
 /**
  * One login endpoint per role, each accepting only its own role. A role
  * mismatch gets the same 401 as a wrong password — the response never reveals
@@ -30,11 +35,13 @@ function loginFor(role) {
       const { email, password } = req.body
 
       const user = await User.findOne({ email: email.toLowerCase() })
-      if (
-        !user ||
-        user.role !== role ||
-        !(await user.verifyPassword(password))
-      ) {
+      // Always pay for one bcrypt comparison, so response time doesn't reveal
+      // whether the email exists or belongs to another role.
+      const passwordOk =
+        user && user.role === role
+          ? await user.verifyPassword(password)
+          : await bcrypt.compare(password, TIMING_DUMMY_HASH).then(() => false)
+      if (!passwordOk) {
         res.status(401).json({ error: 'Incorrect email or password.' })
         return
       }

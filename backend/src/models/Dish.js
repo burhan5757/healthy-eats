@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose'
-import { DIETS, GOALS, TIMINGS } from '../shared/index.js'
+import { DIETS, GOALS, TIMINGS, dayKey } from '../shared/index.js'
 
 const dishSchema = new Schema(
   {
@@ -52,9 +52,9 @@ const dishSchema = new Schema(
 
 export const Dish = mongoose.model('Dish', dishSchema)
 
-/** Local (IST-agnostic) calendar day key used for the sold-out reset. */
+/** Today's date in the kitchen's time zone (IST), used for the sold-out reset. */
 export function todayKey() {
-  return new Date().toLocaleDateString('en-CA') // YYYY-MM-DD
+  return dayKey()
 }
 
 let lastResetDay = null

@@ -44,7 +44,7 @@ export async function recordCustomerOrder(address) {
       $inc: { orderCount: 1 },
       $setOnInsert: { firstOrderAt: now },
     },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
+    { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
   )
 
   const existing = customer.addresses.find(

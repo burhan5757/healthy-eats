@@ -37,6 +37,16 @@ export const DIET_LABELS = {
   'gluten-free': 'Gluten Free',
 }
 
+/** Order-size caps — a real order is nowhere near these; they stop absurd totals. */
+export const MAX_QTY_PER_DISH = 20
+export const MAX_ORDER_LINES = 30
+
+/** A MongoDB ObjectId as a string. Rejecting anything else up front keeps
+ *  malformed ids from reaching a query (where they would be a 500). */
+export const objectIdSchema = z
+  .string()
+  .regex(/^[a-f\d]{24}$/i, 'Not a valid id')
+
 /* --- Roles ---------------------------------------------------------------- */
 
 export const ROLES = ['customer', 'chef', 'admin', 'driver']
@@ -122,12 +132,25 @@ export const ORDER_STATUS_LABELS = {
 export const ORDER_PROGRESS = ['placed', 'preparing', 'ready', 'delivered']
 
 export const addressSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Name is required')
+    .max(80, 'Keep the name under 80 characters'),
   phone: z
     .string()
     .regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Indian mobile number'),
-  line1: z.string().min(5, 'Address is required'),
-  landmark: z.string().optional().default(''),
+  line1: z
+    .string()
+    .trim()
+    .min(5, 'Address is required')
+    .max(200, 'Keep the address under 200 characters'),
+  landmark: z
+    .string()
+    .trim()
+    .max(120, 'Keep the landmark under 120 characters')
+    .optional()
+    .default(''),
   pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit pincode'),
   /** Dropped pin — what the rider actually navigates to. */
   lat: z.number().optional(),
@@ -239,8 +262,22 @@ export const deliveryAddressSchema = addressSchema.extend({
 
 export const placeOrderSchema = z.object({
   items: z
-    .array(z.object({ dishId: z.string(), qty: z.number().int().positive() }))
-    .min(1, 'Your cart is empty'),
+    .array(
+      z.object({
+        dishId: objectIdSchema,
+        qty: z
+          .number()
+          .int()
+          .positive()
+          .max(MAX_QTY_PER_DISH, `At most ${MAX_QTY_PER_DISH} of one dish`),
+      }),
+    )
+    .min(1, 'Your cart is empty')
+    .max(MAX_ORDER_LINES, `At most ${MAX_ORDER_LINES} different dishes`)
+    .refine(
+      (items) => new Set(items.map((i) => i.dishId)).size === items.length,
+      'Each dish may appear only once',
+    ),
   address: deliveryAddressSchema,
   notes: z
     .string()
@@ -250,22 +287,34 @@ export const placeOrderSchema = z.object({
 })
 
 export const cancelOrderSchema = z.object({
-  reason: z.string().min(1, 'Give the customer a reason'),
+  reason: z
+    .string()
+    .trim()
+    .min(1, 'Give the customer a reason')
+    .max(200, 'Keep the reason under 200 characters'),
   /** Empty array = reject the order without marking anything sold out. */
-  soldOutDishIds: z.array(z.string()).default([]),
+  soldOutDishIds: z.array(objectIdSchema).max(MAX_ORDER_LINES).default([]),
 })
 
 /** `null` unassigns — the order falls back to admin closing it out. */
 export const assignDriverSchema = z.object({
-  driverId: z.string().min(1).nullable(),
+  driverId: objectIdSchema.nullable(),
 })
 
 /** Drivers are created by admin only; role is never read from the body (CLAUDE.md §10). */
 export const createDriverSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
+  name: z
+    .string()
+    .trim()
+    .min(2, 'Name must be at least 2 characters')
+    .max(80, 'Keep the name under 80 characters'),
   phone: addressSchema.shape.phone,
   email: z.email('Enter a valid email'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  // bcrypt ignores everything past 72 bytes, so longer would be misleading.
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(72, 'Password must be at most 72 characters'),
 })
 
 export const updateDriverSchema = z.object({
@@ -315,6 +364,14 @@ export const SOCKET_EVENTS = {
 export const DELIVERY_FEE_PER_KM = 10
 export const PACKAGING_FEE = 15 // ₹ — matches the checkout design
 export const PREP_TIME_MINUTES = 30
+
+/** The kitchen's clock. Servers run on UTC; "today" always means today in Pune. */
+export const BUSINESS_TIME_ZONE = 'Asia/Kolkata'
+
+/** YYYY-MM-DD for `date` as a calendar day in the kitchen's time zone. */
+export function dayKey(date = new Date()) {
+  return date.toLocaleDateString('en-CA', { timeZone: BUSINESS_TIME_ZONE })
+}
 
 const EARTH_RADIUS_KM = 6371
 const toRad = (deg) => (deg * Math.PI) / 180
