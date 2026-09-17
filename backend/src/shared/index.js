@@ -93,6 +93,11 @@ export const dishSchema = z.object({
    * real values; the UI hides macro rows rather than showing zeros.
    */
   nutrition: nutritionSchema.optional(),
+  /** Whether `nutrition` is a confirmed figure (from the design/kitchen) or an
+   *  estimate from portion composition (CLAUDE.md §8b). Meaningless when
+   *  `nutrition` is absent. The UI marks 'estimated' figures as such rather
+   *  than showing them with the same confidence as a confirmed one. */
+  nutritionSource: z.enum(['estimated', 'confirmed']).default('estimated'),
   goals: z.array(goalSchema),
   timing: z.array(timingSchema),
   diet: z.array(dietSchema),

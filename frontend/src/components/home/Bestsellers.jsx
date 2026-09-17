@@ -216,6 +216,7 @@ function SpotlightCard({ dish }) {
         {dish.nutrition && (
           <MacroRow
             nutrition={dish.nutrition}
+            estimated={dish.nutritionSource === 'estimated'}
             className="mt-3 border-t border-border pt-3"
           />
         )}

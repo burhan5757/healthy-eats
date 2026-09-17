@@ -292,12 +292,12 @@ brand photos.
 
 ## 8b. Real menu — LOADED, with two open questions
 
-> ⚠️ **Open question 2 below is out of date** (found 2026-09-17). Commit `1d578bb`
-> (2026-08-15) gave **every dish** macro figures: the seven design dishes use the design's
-> numbers, the rest are **estimates from portion composition, not checked by a dietitian**
-> (see the header of `backend/src/seed.js`). The site shows them as plain figures. Whether to
-> label them as estimates or hide them until the kitchen confirms is an open decision —
-> `PRODUCTION_READINESS.md` item 4.
+> ⚠️ **Open question 2 below is out of date** (found 2026-09-17, resolved 2026-09-18). Commit
+> `1d578bb` (2026-08-15) gave **every dish** macro figures: the seven design dishes use the
+> design's numbers, the rest are **estimates from portion composition, not checked by a
+> dietitian** (see the header of `backend/src/seed.js`). §26 below is the resolution: every
+> dish now carries a `nutritionSource`, and the site labels estimated figures as such rather
+> than showing them with the same confidence as a confirmed one.
 
 The kitchen's printed menu poster (`design/Screenshot 2026-08-14 030539.png`) has been
 transcribed in full into `backend/src/seed.js`: **104 dishes + 15 add-ons = 119 items**.
@@ -504,6 +504,7 @@ Append newest at the bottom. Format: date — decision — reason.
 | 2026-09-17 | **Orders need an SMS-verified phone** (OTP, 30-minute token), max 3 unfinished orders per phone, per-IP order limit 20 → 60 | Audit item 5; user chose SMS OTP over a confirm-call step. Provider left undecided — see §23. |
 | 2026-09-17 | **Hosting: Cloudflare Pages + Railway (Singapore) on one domain, API at `api.` subdomain, `COOKIE_SAME_SITE=lax`** | User-confirmed. Vercel Hobby is non-commercial; separate hosts' default domains would make the login cookie third-party (blocked by Safari). See §24. |
 | 2026-09-17 | Draft privacy policy and terms added (`/privacy`, `/terms`), marked for legal review; `/track` lookup page added | User asked Claude to draft them. See §25. |
+| 2026-09-18 | Every dish carries `nutritionSource` (estimated/confirmed); the UI labels estimated macros; three more unsourced About-page specifics softened | Resolves audit item 4 and corrects the original audit's claim that no dish had nutrition data. Free fix, done while deferring items that need money or an account. |
 | 2026-09-17 | Production refuses to start while `BRAND.placeholder` is true | The demo kitchen coordinates would misprice every delivery; the FSSAI number must be real. |
 | 2026-09-17 | Graceful shutdown on SIGTERM/SIGINT; `/api/health` is 503 until the database is connected; React error boundary; GitHub Actions CI | Audit items 16 and 19. Railway sends SIGTERM on every deploy. The e2e backend now runs `npm start` instead of the `--watch` dev server, which fixed the §14 ECONNRESET flake. |
 | 2026-09-17 | Admin stats computed with a MongoDB aggregation (`backend/src/stats.js`); tracking pages use per-order socket rooms; CSP added | Audit items 21–23. Stats verified identical to the old in-memory version on 1,200 generated orders, including IST midnight edges. |
@@ -944,3 +945,31 @@ Cloudflare Pages is free. `frontend/vercel.json` stays, so Vercel Pro remains a 
 - `BRAND.placeholder` (true until the real details are in) blocks a production start.
 - Checkout's geocoder is configurable with `VITE_GEOCODER_URL` (§15).
 
+## 26. Nutrition figures are labelled by provenance (2026-09-18)
+
+Resolves `PRODUCTION_READINESS.md` item 4, and the mistake in the original audit that said
+no dish had nutrition data — every dish has figures (§8b), but only seven (the bestsellers and
+today's specials, which came from the website design) are confirmed; the other 112 are
+estimates from portion composition, never checked by a dietitian. Showing both the same way
+was the actual problem, not the absence of data.
+
+- `Dish.nutritionSource` (`'estimated' | 'confirmed'`, default `'estimated'`) added to the
+  Mongoose model, the shared Zod schema, and `toDish()`. The default covers a dish with no
+  value in the database, belt-and-braces with the explicit backfill below.
+- **Self-healing on boot**, the same pattern as `resetStaleSoldOut()`: `backfillNutritionSource()`
+  in `backend/src/seed.js` sets `'confirmed'` on the seven known slugs and `'estimated'` on
+  every other dish still missing the field, every time the server starts — so the already-seeded
+  Atlas database (§16) picks this up on its next boot without a migration script. Verified by
+  seeding a database the old way (no `nutritionSource` field at all, as pre-2026-09-18 code
+  would have left it) and confirming one boot fixes all 119 dishes, and a second boot changes
+  nothing.
+- **UI:** a dish card with `nutritionSource: 'estimated'` shows a small "Estimated figures"
+  line under its macro row (`MacroRow`'s new `estimated` prop, and `MenuDishCard`'s inline
+  equivalent); a confirmed dish's row is unchanged. The menu page intro explains what the tag
+  means once, rather than repeating an explanation on all 119 cards.
+- Also fixed while here: `frontend/src/pages/About.jsx` had three more unsourced specific
+  claims in the same vein as the ones §21 already removed — a "started as tiffins for one gym"
+  origin story, an exact "180 g portion is 180 g" weighing claim, and a specific "team of four /
+  two on the hob, one on tandoor, one on packing" staffing breakdown. None of these were ever
+  supplied by the user. Replaced with statements grounded in things the app actually does (the
+  goal-tagging system, the cook-to-order state machine) rather than invented specifics.

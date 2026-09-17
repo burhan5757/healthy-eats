@@ -49,7 +49,7 @@ Tick items off here as they are fixed, with the date and the commit.
       address "Shop 0, Example Complex", FSSAI `00000000000000`, and placeholder `geo` —
       **delivery is priced from `geo`**, so every fee would be wrong. FSSAI display is a legal
       requirement for Indian food businesses.
-- [ ] **4. Macro figures are unverified estimates.** _Corrected 2026-09-17: the audit said no dish had nutrition data — wrong, every dish has figures, but all except seven are estimates not checked by a dietitian, shown as plain facts. Copy that promised reviewed macros is fixed. Still open: label as estimates, hide, or get the kitchen to confirm._
+- [x] **4. Macro figures are unverified estimates.** _Corrected 2026-09-17: the audit said no dish had nutrition data — wrong, every dish has figures, but all except seven are estimates not checked by a dietitian, shown as plain facts. Copy that promised reviewed macros is fixed. **Fixed 2026-09-18: every dish now carries `nutritionSource`; the UI labels estimated figures "Estimated figures" (CLAUDE.md §26). Still worth doing eventually: getting the kitchen to actually confirm them, which needs their time, not money._
 - [ ] **5. COD orders need no verification.** _Code done 2026-09-17 (SMS OTP, 3 open orders per phone, see CLAUDE.md §23). Still open: choose an SMS provider, add its adapter, register DLT._ Any phone number, no OTP; the only guard is
       20 orders per IP, which also blocks real customers behind Indian mobile CGNAT.
       Add OTP or a confirm-call step before the kitchen cooks.
@@ -101,3 +101,15 @@ Tick items off here as they are fixed, with the date and the commit.
 - [ ] **30.** `private/brand-real-details.md` exists (gitignored). The real details belong in
       `BRAND`, which is committed — decide whether the repo is private enough for them.
 
+## Session 2 (2026-09-18) — fixing what doesn't need money or your input
+
+- [x] **4.** (moved up, see above) — every dish now labelled by nutrition provenance.
+- [x] **31.** `frontend/src/pages/About.jsx` had three more unsourced specific claims (an origin
+      anecdote, an exact portion-weight figure, a specific team headcount/role breakdown), the
+      same category §21 already flagged and partly fixed. Replaced with statements grounded in
+      real app behaviour.
+
+**Still blocked on money or an account — unchanged from session 1:** 3 (real business details —
+needs the owner's info, not money, but is genuinely blocking), 5 (SMS provider + DLT), 16 (error
+monitoring account), 18 (production geocoder — awaiting an Ola Maps reliability check), 30
+(where the real details should live).

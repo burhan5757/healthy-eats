@@ -87,7 +87,7 @@ export function ButtonOutline({ children, className, ...rest }) {
  * specials cards. Protein carries no special colour here; the design keeps
  * the whole row in one ink.
  */
-export function MacroRow({ nutrition, className }) {
+export function MacroRow({ nutrition, estimated, className }) {
   const cells = [
     { value: nutrition.kcal, unit: '', label: 'kcal' },
     { value: nutrition.protein, unit: ' g', label: 'protein' },
@@ -96,16 +96,25 @@ export function MacroRow({ nutrition, className }) {
   ]
 
   return (
-    <dl className={cn('flex gap-8', className)}>
-      {cells.map((c) => (
-        <div key={c.label}>
-          <dd className="text-[15px] font-bold tabular-nums">
-            {c.value}
-            {c.unit}
-          </dd>
-          <dt className="eyebrow mt-0.5 text-muted-foreground">{c.label}</dt>
-        </div>
-      ))}
-    </dl>
+    <div>
+      <dl className={cn('flex gap-8', className)}>
+        {cells.map((c) => (
+          <div key={c.label}>
+            <dd className="text-[15px] font-bold tabular-nums">
+              {c.value}
+              {c.unit}
+            </dd>
+            <dt className="eyebrow mt-0.5 text-muted-foreground">{c.label}</dt>
+          </div>
+        ))}
+      </dl>
+      {/* Most of the menu's figures are estimated from portion composition, not
+          measured by the kitchen (CLAUDE.md §8b) — said plainly, not buried. */}
+      {estimated && (
+        <p className="mt-1.5 text-[11px] text-muted-foreground">
+          Estimated figures
+        </p>
+      )}
+    </div>
   )
 }

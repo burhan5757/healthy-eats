@@ -75,7 +75,9 @@ export default function Menu() {
           </h1>
           <p className="max-w-[42ch] text-[15px] leading-relaxed text-muted-foreground lg:pb-2">
             Filter by what you&apos;re training for. Where a dish lists macros,
-            they are per portion as served.
+            they are per portion as served — figures marked
+            &ldquo;Estimated&rdquo; are calculated from the recipe, not yet
+            measured by the kitchen.
           </p>
         </div>
 

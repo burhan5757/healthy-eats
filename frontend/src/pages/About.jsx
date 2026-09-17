@@ -13,8 +13,8 @@ const RULES = [
     body: 'Nothing is pre-plated. Orders take 35–45 minutes because cooking starts after you place it.',
   },
   {
-    title: 'Portions are weighed',
-    body: 'Plates are weighed before packing. A 180 g portion is 180 g.',
+    title: 'Portioned to your goal',
+    body: 'Every package dish is sized to the goal it is tagged for, not eyeballed per order.',
   },
   {
     title: 'Built around your goal',
@@ -40,7 +40,7 @@ export default function About() {
     {
       figure: BRAND.since,
       label: 'Cooking since',
-      body: 'Started as tiffins for one gym in Kothrud.',
+      body: `Fitness meals cooked fresh in ${BRAND.address.line2.split(',')[0]} every day.`,
     },
     {
       figure: String(dishCount),
@@ -148,12 +148,12 @@ export default function About() {
           <div>
             <Eyebrow>Who cooks your food</Eyebrow>
             <h2 className="mt-5 text-[clamp(1.85rem,3.6vw,2.6rem)]">
-              A team of four
+              One kitchen, no commissary
             </h2>
 
             <p className="mt-6 max-w-[62ch] text-[15px] leading-relaxed text-muted-foreground">
-              Two people on the hob, one on tandoor, one on packing, cooking
-              every order to the goal package on the card.
+              There is no central kitchen shipping pre-cooked stock. Every plate
+              is made to order here, then packed and sent out with a rider.
             </p>
           </div>
         </div>

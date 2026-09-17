@@ -31,6 +31,13 @@ const dishSchema = new Schema(
       },
       default: undefined,
     },
+    /** 'confirmed' (design/kitchen figure) or 'estimated' (portion-composition
+     *  guess, CLAUDE.md §8b). Meaningless when `nutrition` is absent. */
+    nutritionSource: {
+      type: String,
+      enum: ['estimated', 'confirmed'],
+      default: 'estimated',
+    },
 
     goals: [{ type: String, enum: GOALS }],
     timing: [{ type: String, enum: TIMINGS }],

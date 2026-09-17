@@ -97,6 +97,7 @@ function HeroSpecial({ dish }) {
           {dish.nutrition && (
             <MacroRow
               nutrition={dish.nutrition}
+              estimated={dish.nutritionSource === 'estimated'}
               className="border-t border-border pt-6"
             />
           )}
@@ -168,6 +169,7 @@ function SideSpecial({ dish }) {
           {dish.nutrition && (
             <MacroRow
               nutrition={dish.nutrition}
+              estimated={dish.nutritionSource === 'estimated'}
               className="border-t border-border pt-5"
             />
           )}

@@ -19,6 +19,7 @@ export function toDish(d) {
           fat: nutrition.fat,
         }
       : undefined,
+    nutritionSource: d.nutritionSource ?? 'estimated',
     goals: d.goals,
     timing: d.timing,
     diet: d.diet,

@@ -1628,6 +1628,8 @@ export async function seed() {
   await seedStaffAccount('admin', config.admin)
   await seedStaffAccount('chef', config.chef)
 
+  await backfillNutritionSource()
+
   const dishCount = await Dish.countDocuments()
   if (dishCount === 0) {
     await Dish.insertMany(
@@ -1637,6 +1639,11 @@ export async function seed() {
         ingredients: '',
         image: '',
         availableToday: true,
+        // The seven design dishes (bestsellers/specials) carry the design's
+        // exact figures; every other dish's nutrition is an estimate from
+        // portion composition (CLAUDE.md §8b) and is marked as such.
+        nutritionSource:
+          d.isBestseller || d.isTodaysSpecial ? 'confirmed' : 'estimated',
       })),
     )
     console.log(
@@ -1651,6 +1658,40 @@ export async function seed() {
  * changed, signs that account out everywhere. Rotating a password is therefore
  * "change backend/.env, restart" (CLAUDE.md §18).
  */
+/**
+ * The seven dishes with the design's exact figures (CLAUDE.md §8b) get
+ * `nutritionSource: 'confirmed'` even on a database seeded before this field
+ * existed. Idempotent and cheap, so it runs on every boot like
+ * resetStaleSoldOut() rather than needing a one-off migration script.
+ */
+const CONFIRMED_NUTRITION_SLUGS = [
+  'palak-paneer-bajra-bhakri',
+  'lean-chicken-thali',
+  'classic-whey-oats-shake',
+  'paneer-gainer-thali',
+  'chicken-sukka-rice-thali',
+  'homestyle-diet-thali',
+  'moong-dal-khichdi-special',
+]
+
+async function backfillNutritionSource() {
+  await Dish.updateMany(
+    { slug: { $in: CONFIRMED_NUTRITION_SLUGS } },
+    { $set: { nutritionSource: 'confirmed' } },
+  )
+  // Everything else: write the default explicitly, so a dish seeded before
+  // this field existed is actually marked in the database, not just at
+  // serialize time (serialize.js's `?? 'estimated'` fallback stays too, as a
+  // second line of defence).
+  await Dish.updateMany(
+    {
+      slug: { $nin: CONFIRMED_NUTRITION_SLUGS },
+      nutritionSource: { $exists: false },
+    },
+    { $set: { nutritionSource: 'estimated' } },
+  )
+}
+
 async function seedStaffAccount(role, account) {
   const email = account.email.toLowerCase()
   const existing = await User.findOne({ role })
@@ -1679,7 +1720,9 @@ async function seedStaffAccount(role, account) {
   await existing.save()
   if (passwordChanged) {
     await endSessionsFor(existing._id)
-    console.log('[seed] ' + role + ' password updated from env; old sessions ended')
+    console.log(
+      '[seed] ' + role + ' password updated from env; old sessions ended',
+    )
   } else {
     console.log('[seed] ' + role + ' account details updated from env')
   }

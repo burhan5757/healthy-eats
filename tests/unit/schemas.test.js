@@ -12,6 +12,7 @@ import {
   assignDriverSchema,
   cancelOrderSchema,
   createDriverSchema,
+  dishSchema,
   dayKey,
   deliveryAddressSchema,
   isOpenAt,
@@ -452,5 +453,44 @@ describe('phone verification payloads', () => {
         false,
       )
     }
+  })
+})
+
+describe('dish nutrition provenance', () => {
+  const base = {
+    id: '1',
+    slug: 'test-dish',
+    name: 'Test Dish',
+    description: '',
+    category: 'Bowls',
+    price: 100,
+    image: '',
+    goals: [],
+    timing: [],
+    diet: [],
+    isBestseller: false,
+    isTodaysSpecial: false,
+    availableToday: true,
+  }
+
+  it('defaults nutritionSource to estimated when not given', () => {
+    const result = dishSchema.safeParse(base)
+    expect(result.success).toBe(true)
+    if (result.success) expect(result.data.nutritionSource).toBe('estimated')
+  })
+
+  it('accepts an explicit confirmed source', () => {
+    const result = dishSchema.safeParse({
+      ...base,
+      nutritionSource: 'confirmed',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) expect(result.data.nutritionSource).toBe('confirmed')
+  })
+
+  it('rejects an unknown source', () => {
+    expect(
+      dishSchema.safeParse({ ...base, nutritionSource: 'measured' }).success,
+    ).toBe(false)
   })
 })

@@ -67,24 +67,33 @@ export function MenuDishCard({ dish }) {
 
         {/* Macros only render when the kitchen has supplied them — never zeros. */}
         {dish.nutrition ? (
-          <dl className="mt-auto flex justify-between gap-2 border-t border-border pt-4 pb-1">
-            {[
-              { v: dish.nutrition.kcal, u: '', l: 'kcal' },
-              { v: dish.nutrition.protein, u: ' g', l: 'prot' },
-              { v: dish.nutrition.carbs, u: ' g', l: 'carb' },
-              { v: dish.nutrition.fat, u: ' g', l: 'fat' },
-            ].map((m) => (
-              <div key={m.l}>
-                <dd className="text-[13px] font-bold tabular-nums">
-                  {m.v}
-                  {m.u}
-                </dd>
-                <dt className="eyebrow mt-0.5 text-[9px] text-muted-foreground">
-                  {m.l}
-                </dt>
-              </div>
-            ))}
-          </dl>
+          <div className="mt-auto border-t border-border pt-4 pb-1">
+            <dl className="flex justify-between gap-2">
+              {[
+                { v: dish.nutrition.kcal, u: '', l: 'kcal' },
+                { v: dish.nutrition.protein, u: ' g', l: 'prot' },
+                { v: dish.nutrition.carbs, u: ' g', l: 'carb' },
+                { v: dish.nutrition.fat, u: ' g', l: 'fat' },
+              ].map((m) => (
+                <div key={m.l}>
+                  <dd className="text-[13px] font-bold tabular-nums">
+                    {m.v}
+                    {m.u}
+                  </dd>
+                  <dt className="eyebrow mt-0.5 text-[9px] text-muted-foreground">
+                    {m.l}
+                  </dt>
+                </div>
+              ))}
+            </dl>
+            {/* Most figures are estimated from portion composition, not measured
+                by the kitchen (CLAUDE.md §8b) — said plainly, not buried. */}
+            {dish.nutritionSource === 'estimated' && (
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                Estimated figures
+              </p>
+            )}
+          </div>
         ) : (
           <p className="mt-auto border-t border-border pt-4 pb-1 text-[12px] text-muted-foreground">
             Macros on request
