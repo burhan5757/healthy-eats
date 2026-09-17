@@ -488,6 +488,8 @@ Append newest at the bottom. Format: date — decision — reason.
 | 2026-09-17 | Nav wordmark drops the "Pune" tag and is larger | User request. City tag stays on Contact/Track/Login/footer. |
 | 2026-09-17 | Removed invented staff biographical detail (named chef's personal history, a family-recipe anecdote, a named dietitian) from the About page | User: remove text that reads as AI-generated filler. None of it was ever supplied by the user, unlike the real menu and brand facts. See §21. |
 | 2026-09-17 | Body text is unselectable by default (`user-select: none`), with inputs and a `.selectable` class (order numbers, addresses, phone numbers) opted back in | User request, for a cleaner feel. See §22. |
+| 2026-09-17 | Production-readiness audit saved to `PRODUCTION_READINESS.md`; fixes tracked there one by one | User asked for an audit and a fix list. |
+| 2026-09-17 | Server refuses to start on Render/Railway without `NODE_ENV=production`, and in production without `MONGODB_URI` | Neither host sets `NODE_ENV`; without it the cookie isn't Secure/cross-site and rate limits key on the proxy IP. A missing URI silently meant an in-memory DB. |
 
 ## 13. Accessibility status
 

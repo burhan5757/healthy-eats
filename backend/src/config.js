@@ -12,6 +12,19 @@ import 'dotenv/config'
 const isProd = process.env.NODE_ENV === 'production'
 const problems = []
 
+// Render sets RENDER, Railway sets RAILWAY_ENVIRONMENT. Neither sets NODE_ENV,
+// and without it the cookie is not Secure/cross-site and rate limits see the
+// proxy's IP instead of the visitor's — so refuse to run half-configured.
+const onHost = Boolean(process.env.RENDER || process.env.RAILWAY_ENVIRONMENT)
+if (onHost && !isProd) {
+  problems.push('NODE_ENV must be set to "production" on the hosting service')
+}
+// Without a URI the server falls back to an in-memory database, which loses
+// every order on restart — fine for development, never for production.
+if (isProd && !process.env.MONGODB_URI) {
+  problems.push('MONGODB_URI must be set in production')
+}
+
 // $2a/$2b/$2y, two-digit cost, 53 chars of salt+digest.
 const BCRYPT_HASH = /^\$2[aby]\$(\d{2})\$[./A-Za-z0-9]{53}$/
 const MIN_BCRYPT_COST = 12
