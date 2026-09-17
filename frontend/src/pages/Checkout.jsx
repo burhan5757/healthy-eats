@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Wallet } from 'lucide-react'
 import {
   BRAND,
@@ -30,6 +30,7 @@ export default function Checkout() {
     phone: '',
     line1: '',
     landmark: '',
+    pincode: '',
   })
   const [pin, setPin] = useState(null)
   const [notes, setNotes] = useState('')
@@ -61,6 +62,18 @@ export default function Checkout() {
     }
   }
 
+  // The server decides whether the kitchen is open; checkout just follows it.
+  const { data: ordering } = useQuery({
+    queryKey: ['ordering-status'],
+    queryFn: api.orderingStatus,
+    refetchInterval: 60_000,
+  })
+  const closed = ordering?.open === false
+
+  // The reverse lookup fills the pincode, but never over what the customer typed.
+  const suggestPincode = (code) =>
+    setForm((f) => (f.pincode ? f : { ...f, pincode: code }))
+
   const place = useMutation({
     mutationFn: api.orders.place,
     onSuccess: ({ order }) => {
@@ -76,11 +89,7 @@ export default function Checkout() {
     e.preventDefault()
 
     // Same Zod schema the server validates with, so the two can never disagree.
-    const address = {
-      ...form,
-      pincode: '411038', // Kothrud — pin drop is the real locator
-      ...(pin ?? {}),
-    }
+    const address = { ...form, ...(pin ?? {}) }
 
     const parsed = deliveryAddressSchema.safeParse(address)
     if (!parsed.success) {
@@ -205,7 +214,8 @@ export default function Checkout() {
             </div>
 
             <p className="mt-4 text-[12px] text-muted-foreground">
-              Kitchen closes at 22:30 · orders after 22:00 are cooked next day
+              Orders taken {BRAND.orderingHours.open} –{' '}
+              {BRAND.orderingHours.lastOrder} · {BRAND.kitchenHours}
             </p>
           </section>
 
@@ -251,6 +261,18 @@ export default function Checkout() {
                   placeholder="Flat 402, Shreeban Residency, Dahanukar Colony"
                 />
                 <Field
+                  id="pincode"
+                  label="Pincode"
+                  value={form.pincode}
+                  error={errors.pincode}
+                  onChange={(v) =>
+                    updateField('pincode', v.replace(/\D/g, '').slice(0, 6))
+                  }
+                  autoComplete="postal-code"
+                  inputMode="numeric"
+                  placeholder="411038"
+                />
+                <Field
                   id="landmark"
                   label="Landmark"
                   hint="helps the rider"
@@ -285,13 +307,27 @@ export default function Checkout() {
             </section>
 
             <section className="rounded-md border border-border bg-surface p-7">
-              <PinMap value={pin} onChange={placePin} />
+              <PinMap
+                value={pin}
+                onChange={placePin}
+                onPostcode={suggestPincode}
+              />
               {(errors.lat || errors.lng) && (
                 <p role="alert" className="mt-3 text-[13px] text-destructive">
                   {errors.lat ?? errors.lng}
                 </p>
               )}
             </section>
+
+            {closed && (
+              <p
+                role="status"
+                className="rounded-sm bg-badge/60 p-4 text-[14px] text-terracotta-dark"
+              >
+                We&apos;re closed right now. Orders open at {ordering.opensAt};
+                last order {ordering.lastOrderAt}.
+              </p>
+            )}
 
             {place.isError && (
               <p
@@ -317,7 +353,7 @@ export default function Checkout() {
 
               <button
                 type="submit"
-                disabled={place.isPending}
+                disabled={place.isPending || closed}
                 className="shrink-0 rounded-full bg-primary px-9 py-4 text-[15px] font-semibold text-primary-foreground transition-colors duration-200 hover:bg-primary-dark disabled:opacity-60"
               >
                 {place.isPending ? 'Placing order…' : 'Place Order'}

@@ -79,6 +79,11 @@ export const config = {
   sessionTtlHours: intFromEnv('SESSION_TTL_HOURS', 12),
   cookieSameSite: sameSite,
 
+  /** Refuse orders outside BRAND.orderingHours. On in production, off in dev. */
+  enforceOrderingHours: process.env.ENFORCE_ORDERING_HOURS
+    ? process.env.ENFORCE_ORDERING_HOURS === 'true'
+    : isProd,
+
   /** Proxy hops in front of the app (Render/Railway = 1), so rate limits see real IPs. */
   trustProxy: intFromEnv('TRUST_PROXY', isProd ? 1 : 0),
 

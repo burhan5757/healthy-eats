@@ -13,6 +13,8 @@ import {
   cancelOrderSchema,
   createDriverSchema,
   dayKey,
+  deliveryAddressSchema,
+  isOpenAt,
   deliveryFeeFor,
   isNonVeg,
   paymentSchema,
@@ -397,5 +399,34 @@ describe('update driver payload', () => {
       false,
     )
     expect(updateDriverSchema.safeParse({}).success).toBe(false)
+  })
+})
+
+describe('ordering hours (IST)', () => {
+  // BRAND.orderingHours is 11:00–22:00 India time = 05:30–16:30 UTC.
+  it('opens at 11:00 and takes the last order before 22:00', () => {
+    expect(isOpenAt(new Date('2026-09-17T05:29:00Z'))).toBe(false)
+    expect(isOpenAt(new Date('2026-09-17T05:30:00Z'))).toBe(true)
+    expect(isOpenAt(new Date('2026-09-17T16:29:00Z'))).toBe(true)
+    expect(isOpenAt(new Date('2026-09-17T16:30:00Z'))).toBe(false)
+  })
+})
+
+describe('delivery distance limit', () => {
+  const base = {
+    name: 'Rohit Kulkarni',
+    phone: '9860422190',
+    line1: 'Flat 12, Sunrise Heights, Baner Road',
+    pincode: '411045',
+  }
+  it('accepts a pin inside the limit and refuses one far beyond it', () => {
+    const near = { ...base, lat: BRAND.geo.lat + 0.1, lng: BRAND.geo.lng }
+    const far = { ...base, lat: BRAND.geo.lat + 0.5, lng: BRAND.geo.lng }
+    expect(deliveryAddressSchema.safeParse(near).success).toBe(true)
+    const result = deliveryAddressSchema.safeParse(far)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toMatch(/more than 25 km/)
+    }
   })
 })

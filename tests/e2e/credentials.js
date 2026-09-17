@@ -25,6 +25,8 @@ export const TEST_SERVER_ENV = {
   // Specs place dozens of orders from one IP; login limits stay at defaults
   // so the brute-force limiter is exercised for real.
   RATE_LIMIT_ORDERS: '1000',
+  // Tests run at any hour; the hours check is covered by isOpenAt unit tests.
+  ENFORCE_ORDERING_HOURS: 'false',
 }
 
 /** Sent on every request, like the real frontend — the API's CSRF guard. */

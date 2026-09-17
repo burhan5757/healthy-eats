@@ -10,10 +10,11 @@ import {
 } from 'lucide-react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { BRAND } from '@shared/index'
+import { BRAND, MAX_DELIVERY_KM } from '@shared/index'
 import {
   describePoint,
   etaMinutes,
+  isBeyondDeliveryLimit,
   isOutsideDeliveryRange,
   kmFromKitchen,
   searchPlaces,
@@ -56,7 +57,7 @@ const kitchenIcon = L.divIcon({
  * takes a search, reads back the street it landed on, and says how far that is
  * from the kitchen.
  */
-export function PinMap({ value, onChange }) {
+export function PinMap({ value, onChange, onPostcode }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const markerRef = useRef(null)
@@ -76,9 +77,11 @@ export function PinMap({ value, onChange }) {
 
   // Keep the latest callback without re-running the map setup effect.
   const onChangeRef = useRef(onChange)
+  const onPostcodeRef = useRef(onPostcode)
   useEffect(() => {
     onChangeRef.current = onChange
-  }, [onChange])
+    onPostcodeRef.current = onPostcode
+  }, [onChange, onPostcode])
 
   /**
    * Places (or moves) the pin. The marker is created on first use rather than at
@@ -230,7 +233,10 @@ export function PinMap({ value, onChange }) {
 
     const timer = setTimeout(() => {
       describePoint(value.lat, value.lng, controller.signal)
-        .then((found) => setLabel(found))
+        .then((found) => {
+          setLabel(found?.label ?? null)
+          if (found?.postcode) onPostcodeRef.current?.(found.postcode)
+        })
         .catch(() => {
           /* The coordinates below are still shown; a missing label is not an error. */
         })
@@ -279,6 +285,7 @@ export function PinMap({ value, onChange }) {
 
   const km = value ? kmFromKitchen(value) : null
   const tooFar = km != null && isOutsideDeliveryRange(km)
+  const beyondLimit = km != null && isBeyondDeliveryLimit(km)
   const eta = km != null ? etaMinutes(km) : null
 
   return (
@@ -453,7 +460,21 @@ export function PinMap({ value, onChange }) {
               </span>
             </p>
 
-            {tooFar && (
+            {beyondLimit && (
+              <p className="mt-2 flex items-start gap-2 rounded-sm bg-destructive/10 p-3 text-[13px] text-destructive">
+                <TriangleAlert
+                  className="mt-0.5 size-4 shrink-0"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
+                <span>
+                  We can&apos;t deliver this far — the limit is{' '}
+                  {MAX_DELIVERY_KM} km from the kitchen. Move the pin closer.
+                </span>
+              </p>
+            )}
+
+            {tooFar && !beyondLimit && (
               <p className="mt-2 flex items-start gap-2 rounded-sm bg-badge/60 p-3 text-[13px] text-terracotta-dark">
                 <TriangleAlert
                   className="mt-0.5 size-4 shrink-0"

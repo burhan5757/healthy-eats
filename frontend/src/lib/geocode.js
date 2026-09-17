@@ -1,4 +1,4 @@
-import { BRAND, distanceKm } from '@shared/index'
+import { BRAND, MAX_DELIVERY_KM, distanceKm } from '@shared/index'
 
 /**
  * Geocoding for the checkout pin, via OpenStreetMap's Nominatim — the same
@@ -66,13 +66,17 @@ export async function searchPlaces(query, signal) {
   return out
 }
 
-/** Turns a dropped pin into something a human can check — "Dahanukar Colony, Kothrud". */
+/**
+ * Turns a dropped pin into something a human can check — "Dahanukar Colony,
+ * Kothrud" — plus the postcode, which pre-fills checkout's pincode field.
+ */
 export async function describePoint(lat, lng, signal) {
   const url = new URL(`${NOMINATIM}/reverse`)
   url.searchParams.set('lat', String(lat))
   url.searchParams.set('lon', String(lng))
   url.searchParams.set('format', 'jsonv2')
   url.searchParams.set('zoom', '18')
+  url.searchParams.set('addressdetails', '1')
 
   const res = await fetch(url, {
     signal,
@@ -85,7 +89,11 @@ export async function describePoint(lat, lng, signal) {
 
   // The full string runs to the country and postcode; the first few parts are
   // the only ones that help someone confirm the pin.
-  return body.display_name.split(', ').slice(0, 3).join(', ')
+  const postcode = String(body.address?.postcode ?? '').replace(/\s/g, '')
+  return {
+    label: body.display_name.split(', ').slice(0, 3).join(', '),
+    postcode: /^\d{6}$/.test(postcode) ? postcode : null,
+  }
 }
 
 /* --- Distance -------------------------------------------------------------- */
@@ -108,4 +116,9 @@ export function etaMinutes(km) {
 
 export function isOutsideDeliveryRange(km) {
   return km > BRAND.deliveryRadiusKm
+}
+
+/** Past this, the order is refused outright (the server checks it too). */
+export function isBeyondDeliveryLimit(km) {
+  return km > MAX_DELIVERY_KM
 }

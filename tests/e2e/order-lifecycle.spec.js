@@ -36,6 +36,7 @@ async function placeGuestOrder(page, count = 2, notes = 'No peanut - allergy') {
   await page.fill('#name', 'Rohit Kulkarni')
   await page.fill('#phone', '9860422190')
   await page.fill('#line1', 'Flat 12, Sunrise Heights, Baner Road')
+  await page.fill('#pincode', '411045')
   await page.fill('#landmark', 'Next to the gym')
   if (notes) await page.fill('#notes', notes)
   // Delivery is priced by distance, so the order needs a pin.
@@ -71,6 +72,7 @@ test.describe('guest checkout', () => {
 
     await expect(page.getByText('Name is required')).toBeVisible()
     await expect(page.getByText(/valid 10-digit Indian mobile/)).toBeVisible()
+    await expect(page.getByText(/valid 6-digit pincode/)).toBeVisible()
     await expect(page.getByText(/Drop a pin on the map/)).toBeVisible()
     await expect(page).toHaveURL(/\/checkout/) // did not proceed
   })

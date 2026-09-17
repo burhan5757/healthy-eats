@@ -54,6 +54,9 @@ async function request(path, init) {
 }
 
 export const api = {
+  /** Whether the kitchen is taking orders right now. */
+  orderingStatus: () => request('/ordering-status'),
+
   menu: {
     list: () => request('/menu'),
     get: (slug) => request(`/menu/${slug}`),

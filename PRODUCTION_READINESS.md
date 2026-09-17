@@ -46,7 +46,7 @@ Tick items off here as they are fixed, with the date and the commit.
 - [x] **8. Timezone.** _Fixed 2026-09-17: `dayKey()` / `BUSINESS_TIME_ZONE` in shared; sold-out reset and stats use IST._ `todayKey()` (`backend/src/models/Dish.js`) and `/orders/stats` use the
       server's local zone; Render runs UTC, so sold-out resets at 05:30 IST and "today's
       revenue" is the wrong window. Pin to `Asia/Kolkata`.
-- [ ] **9. Every order's pincode is hardcoded to `411038`** (`frontend/src/pages/Checkout.jsx`).
+- [x] **9. Every order's pincode is hardcoded to `411038`** (`frontend/src/pages/Checkout.jsx`). _Fixed 2026-09-17: pincode field, pre-filled from the pin's reverse lookup._
 - [x] **10. Unbounded input.** _Fixed 2026-09-17: max 20 per dish, 30 lines, length caps on text fields; steppers stop at 20._ `placeOrderSchema` has no max qty / item count; `reason`,
       `name`, `line1`, `landmark` have no max length.
 - [x] **11. Malformed ids → 500.** _Fixed 2026-09-17: ids validated in schemas and by `router.param` (404); e2e-covered._ Bad `dishId` on `POST /orders`, bad `:id` on
@@ -54,7 +54,7 @@ Tick items off here as they are fixed, with the date and the commit.
 - [x] **12. Transition races.** _Fixed 2026-09-17: `optimisticConcurrency` on orders; a stale save returns 409._ Transitions do read → modify → `save()`; concurrent
       admin-cancel and chef-ready can leave a cancelled order that was ready. Use a conditional
       `findOneAndUpdate({ _id, status: from })`.
-- [ ] **13. Opening hours and delivery radius not enforced** — orders at 3 am, a 400 km pin
+- [x] **13. Opening hours and delivery radius not enforced** _Fixed 2026-09-17: orders 11:00–22:00 IST (server-enforced in prod); pins over 25 km refused._ — orders at 3 am, a 400 km pin
       is charged ₹4,000.
 - [ ] **14. No privacy policy / terms / refund page**, while names, phones and addresses are
       stored indefinitely (India DPDP Act).

@@ -490,6 +490,10 @@ Append newest at the bottom. Format: date — decision — reason.
 | 2026-09-17 | Body text is unselectable by default (`user-select: none`), with inputs and a `.selectable` class (order numbers, addresses, phone numbers) opted back in | User request, for a cleaner feel. See §22. |
 | 2026-09-17 | Production-readiness audit saved to `PRODUCTION_READINESS.md`; fixes tracked there one by one | User asked for an audit and a fix list. |
 | 2026-09-17 | Server refuses to start on Render/Railway without `NODE_ENV=production`, and in production without `MONGODB_URI` | Neither host sets `NODE_ENV`; without it the cookie isn't Secure/cross-site and rate limits key on the proxy IP. A missing URI silently meant an in-memory DB. |
+| 2026-09-17 | **Pins more than 25 km away are refused** (`MAX_DELIVERY_KM`); 12–25 km still only warns | User-confirmed. Partly reverses 2026-08-15's "warn, never block": a 400 km pin was being charged ₹4,000. |
+| 2026-09-17 | **Orders only accepted 11:00–22:00 IST** (`BRAND.orderingHours`, `isOpenAt`), enforced by the server in production; `GET /api/ordering-status` drives checkout's closed state | Audit item 13. Last order at 22:00 matches the existing "kitchen closes 22:30" copy. `ENFORCE_ORDERING_HOURS` overrides (off in dev and tests). |
+| 2026-09-17 | Checkout asks for the **pincode** (pre-filled from the pin's reverse lookup) instead of hardcoding `411038` | Every order and customer record had Kothrud's pincode. |
+| 2026-09-17 | Business dates use **IST** (`dayKey`) everywhere; orders use Mongoose optimistic concurrency | Hosts run UTC; concurrent staff actions could overwrite each other. |
 
 ## 13. Accessibility status
 

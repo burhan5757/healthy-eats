@@ -16,6 +16,7 @@ import { imagesRouter } from './routes/images.js'
 import { driversRouter } from './routes/drivers.js'
 import { initRealtime } from './realtime.js'
 import { seed } from './seed.js'
+import { orderingStatus } from './routes/orders.js'
 
 const app = express()
 
@@ -43,6 +44,7 @@ app.use('/api', csrfGuard)
 app.use(readAuth)
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }))
+app.get('/api/ordering-status', (_req, res) => res.json(orderingStatus()))
 app.use('/api/auth', authRouter)
 app.use('/api/menu', menuRouter)
 app.use('/api/orders', ordersRouter)

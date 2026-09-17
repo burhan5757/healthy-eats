@@ -40,6 +40,8 @@ export const DIET_LABELS = {
 /** Order-size caps — a real order is nowhere near these; they stop absurd totals. */
 export const MAX_QTY_PER_DISH = 20
 export const MAX_ORDER_LINES = 30
+/** Hard limit on delivery distance. Past BRAND.deliveryRadiusKm checkout warns; past this it refuses. */
+export const MAX_DELIVERY_KM = 25
 
 /** A MongoDB ObjectId as a string. Rejecting anything else up front keeps
  *  malformed ids from reaching a query (where they would be a 500). */
@@ -249,16 +251,23 @@ export const loginSchema = z.object({
 const PIN_REQUIRED = 'Drop a pin on the map — delivery is priced by distance'
 
 /** A new order's address: the map pin is mandatory, because it prices delivery. */
-export const deliveryAddressSchema = addressSchema.extend({
-  lat: z
-    .number({ error: PIN_REQUIRED })
-    .min(-90, PIN_REQUIRED)
-    .max(90, PIN_REQUIRED),
-  lng: z
-    .number({ error: PIN_REQUIRED })
-    .min(-180, PIN_REQUIRED)
-    .max(180, PIN_REQUIRED),
-})
+export const deliveryAddressSchema = addressSchema
+  .extend({
+    lat: z
+      .number({ error: PIN_REQUIRED })
+      .min(-90, PIN_REQUIRED)
+      .max(90, PIN_REQUIRED),
+    lng: z
+      .number({ error: PIN_REQUIRED })
+      .min(-180, PIN_REQUIRED)
+      .max(180, PIN_REQUIRED),
+  })
+  // Between deliveryRadiusKm and this, checkout only warns; beyond it the
+  // kitchen can't deliver at all (CLAUDE.md §20).
+  .refine((a) => distanceKm(BRAND.geo, a) <= MAX_DELIVERY_KM, {
+    message: `We can't deliver more than ${MAX_DELIVERY_KM} km from the kitchen — move the pin closer`,
+    path: ['lat'],
+  })
 
 export const placeOrderSchema = z.object({
   items: z
@@ -368,6 +377,23 @@ export const PREP_TIME_MINUTES = 30
 /** The kitchen's clock. Servers run on UTC; "today" always means today in Pune. */
 export const BUSINESS_TIME_ZONE = 'Asia/Kolkata'
 
+/** "HH:MM" for `date` on the kitchen's clock. */
+function clockTime(date) {
+  return date.toLocaleTimeString('en-GB', {
+    timeZone: BUSINESS_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  })
+}
+
+/** True while the kitchen takes orders (BRAND.orderingHours, IST). */
+export function isOpenAt(date = new Date()) {
+  const now = clockTime(date)
+  const { open, lastOrder } = BRAND.orderingHours
+  return now >= open && now < lastOrder
+}
+
 /** YYYY-MM-DD for `date` as a calendar day in the kitchen's time zone. */
 export function dayKey(date = new Date()) {
   return date.toLocaleDateString('en-CA', { timeZone: BUSINESS_TIME_ZONE })
@@ -450,6 +476,8 @@ export const BRAND = {
   phone: '+91 90000 00000',
   hours: 'Mon – Sun, 11:00 – 22:30',
   kitchenHours: 'Kitchen 11:00 – 22:30',
+  /** When orders are accepted (IST). Last order leaves time to cook before close. */
+  orderingHours: { open: '11:00', lastOrder: '22:00' },
   deliveryAreas: ['Kothrud', 'Baner', 'Viman Nagar', 'Hinjewadi'],
   since: '2026',
   instagram: '@healthyeats.demo',

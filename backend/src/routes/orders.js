@@ -4,8 +4,10 @@ import {
   SOCKET_EVENTS,
   assignDriverSchema,
   cancelOrderSchema,
+  BRAND,
   canTransition,
   dayKey,
+  isOpenAt,
   orderTotals,
   placeOrderSchema,
 } from '../shared/index.js'
@@ -24,6 +26,17 @@ import { User } from '../models/User.js'
 import { toOrder, toPublicOrder } from '../serialize.js'
 import { emit } from '../realtime.js'
 import { invalidateMenu } from '../menuCache.js'
+import { config } from '../config.js'
+
+/** Whether the kitchen is taking orders right now — the server's word on it. */
+export function orderingStatus() {
+  const { open, lastOrder } = BRAND.orderingHours
+  return {
+    open: !config.enforceOrderingHours || isOpenAt(),
+    opensAt: open,
+    lastOrderAt: lastOrder,
+  }
+}
 
 /** Bulk-attaches payments to a list of orders — one query, not N. */
 async function withPayments(orders) {
@@ -63,6 +76,14 @@ ordersRouter.post(
   placeOrderLimiter,
   validate(placeOrderSchema),
   asyncRoute(async (req, res) => {
+    const status = orderingStatus()
+    if (!status.open) {
+      res.status(409).json({
+        error: `We're closed right now. Orders open at ${status.opensAt}; last order ${status.lastOrderAt}.`,
+      })
+      return
+    }
+
     await resetStaleSoldOut()
 
     const { items, address, notes } = req.body

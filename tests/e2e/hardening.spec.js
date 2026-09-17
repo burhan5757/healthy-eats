@@ -299,6 +299,10 @@ test.describe('malformed input is refused cleanly', () => {
     for (const items of [
       [{ dishId: 'not-an-id', qty: 1 }],
       [{ dishId: dish.id, qty: 21 }],
+      Array.from({ length: 31 }, (_, i) => ({
+        dishId: String(i).padStart(24, '0'),
+        qty: 1,
+      })),
       [
         { dishId: dish.id, qty: 1 },
         { dishId: dish.id, qty: 1 },
@@ -309,5 +313,39 @@ test.describe('malformed input is refused cleanly', () => {
       })
       expect(res.status(), JSON.stringify(items)).toBe(400)
     }
+  })
+})
+
+test.describe('where and when orders are taken', () => {
+  test('a pin beyond the delivery limit is refused', async ({ request }) => {
+    const menu = await (await request.get(`${API}/menu`)).json()
+    const dish = menu.dishes.find((d) => d.availableToday)
+    const res = await request.post(`${API}/orders`, {
+      data: {
+        items: [{ dishId: dish.id, qty: 1 }],
+        address: {
+          name: 'Far Away',
+          phone: '9823011256',
+          line1: 'Somewhere in Nashik, far off',
+          pincode: '422001',
+          lat: 19.99,
+          lng: 73.79,
+        },
+      },
+    })
+    expect(res.status()).toBe(400)
+    const body = await res.json()
+    expect(JSON.stringify(body.fields)).toMatch(/more than 25 km/)
+  })
+
+  test('the ordering status comes from the server', async ({ request }) => {
+    const res = await request.get(`${API}/ordering-status`)
+    expect(res.ok()).toBeTruthy()
+    // The test server turns hours enforcement off, so it is always open.
+    expect(await res.json()).toMatchObject({
+      open: true,
+      opensAt: expect.stringMatching(/^\d\d:\d\d$/),
+      lastOrderAt: expect.stringMatching(/^\d\d:\d\d$/),
+    })
   })
 })
