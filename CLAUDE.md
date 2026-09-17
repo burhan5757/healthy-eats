@@ -494,6 +494,7 @@ Append newest at the bottom. Format: date — decision — reason.
 | 2026-09-17 | **Orders only accepted 11:00–22:00 IST** (`BRAND.orderingHours`, `isOpenAt`), enforced by the server in production; `GET /api/ordering-status` drives checkout's closed state | Audit item 13. Last order at 22:00 matches the existing "kitchen closes 22:30" copy. `ENFORCE_ORDERING_HOURS` overrides (off in dev and tests). |
 | 2026-09-17 | Checkout asks for the **pincode** (pre-filled from the pin's reverse lookup) instead of hardcoding `411038` | Every order and customer record had Kothrud's pincode. |
 | 2026-09-17 | Business dates use **IST** (`dayKey`) everywhere; orders use Mongoose optimistic concurrency | Hosts run UTC; concurrent staff actions could overwrite each other. |
+| 2026-09-17 | **Orders need an SMS-verified phone** (OTP, 30-minute token), max 3 unfinished orders per phone, per-IP order limit 20 → 60 | Audit item 5; user chose SMS OTP over a confirm-call step. Provider left undecided — see §23. |
 
 ## 13. Accessibility status
 
@@ -854,4 +855,32 @@ User request, for a cleaner/more app-like feel: `body { user-select: none }` in
   "keep this number"), the cancelled-order banner's order number, the customer's delivery address
   on the tracking page, and the customer's name/phone/address on the admin order card and the
   driver's delivery card (staff copy these to call or navigate).
+
+## 23. Phone verification by SMS code (2026-09-17)
+
+Guest checkout has no account, so the phone number is the customer's identity. Every order now
+needs that number proven with a texted code — audit item 5: before this, anyone could send the
+kitchen cash-on-delivery orders for any number.
+
+- **Flow:** `POST /api/otp/send { phone }` → the customer types the code →
+  `POST /api/otp/verify { phone, code }` returns a 30-minute `phoneToken` (JWT,
+  `purpose: 'order-phone'`) → `POST /api/orders` requires it, and its phone must equal
+  `address.phone` (401 otherwise). Checkout's `PhoneVerification` component
+  (`frontend/src/components/checkout/`) drives this; changing the number starts over.
+- **Storage:** `otps` collection (`backend/src/models/Otp.js`), one row per phone, holding only an
+  HMAC of the code, 5-minute TTL. Max 5 wrong tries, then the code is void.
+- **Limits:** resend cooldown 30 s; codes per IP (20 / 15 min) and per phone (5 / hour); code
+  checks per IP (60 / 15 min); at most **3 unfinished orders per phone** (`OPEN_ORDERS_PER_PHONE`).
+  The per-IP order limit rose from 20 to 60 per 10 min, because Indian mobile networks put many
+  customers behind one IP; the per-phone cap is the real abuse limit now.
+- **Providers:** `backend/src/sms/` is provider-neutral. Only `test` exists (sends nothing, code
+  is always `123456`); it is the default in development and refused in production.
+  **The real provider is not chosen yet** (user: "decide later"). Adding one = an adapter file
+  with `sendOtp(phone, code)`, registered in `sms/index.js` and listed in `SMS_PROVIDERS` in
+  `config.js`. Indian business SMS also needs DLT sender and template registration.
+- **Production guard:** with `OTP_REQUIRED` on (the default) and no real `SMS_PROVIDER`, the
+  server refuses to start. `OTP_REQUIRED=false` takes unverified orders; `GET /api/ordering-status`
+  reports `phoneVerification` so checkout hides the step.
+- Tests: `tests/e2e/otp.spec.js`; other specs get tokens through `phoneToken()` in
+  `tests/e2e/fixtures.js` and use `uniquePhone()` so the open-order cap never trips them.
 

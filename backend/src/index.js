@@ -14,6 +14,7 @@ import { menuRouter } from './routes/menu.js'
 import { ordersRouter } from './routes/orders.js'
 import { imagesRouter } from './routes/images.js'
 import { driversRouter } from './routes/drivers.js'
+import { otpRouter } from './routes/otp.js'
 import { initRealtime } from './realtime.js'
 import { seed } from './seed.js'
 import { orderingStatus } from './routes/orders.js'
@@ -50,6 +51,7 @@ app.use('/api/menu', menuRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/images', imagesRouter)
 app.use('/api/drivers', driversRouter)
+app.use('/api/otp', otpRouter)
 
 app.use((_req, res) => res.status(404).json({ error: 'Not found.' }))
 

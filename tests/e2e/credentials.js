@@ -27,7 +27,15 @@ export const TEST_SERVER_ENV = {
   RATE_LIMIT_ORDERS: '1000',
   // Tests run at any hour; the hours check is covered by isOpenAt unit tests.
   ENFORCE_ORDERING_HOURS: 'false',
+  // Phone verification stays on, via the no-send test provider (code 123456).
+  SMS_PROVIDER: 'test',
+  OTP_REQUIRED: 'true',
+  RATE_LIMIT_OTP_PER_IP: '1000',
+  RATE_LIMIT_OTP_VERIFY_PER_IP: '1000',
 }
+
+/** What the test SMS provider always "sends". */
+export const TEST_OTP_CODE = '123456'
 
 /** Sent on every request, like the real frontend — the API's CSRF guard. */
 export const CSRF_HEADERS = { 'X-Healthy-Eats': '1' }

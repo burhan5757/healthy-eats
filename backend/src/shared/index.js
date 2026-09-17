@@ -293,6 +293,27 @@ export const placeOrderSchema = z.object({
     .max(200, 'Keep the note under 200 characters')
     .optional()
     .default(''),
+  /** Proof the phone was verified by SMS code (POST /otp/verify). */
+  phoneToken: z.string().max(2000).optional(),
+})
+
+/* --- Phone verification (SMS OTP) ----------------------------------------- */
+
+export const OTP_LENGTH = 6
+
+export const otpSendSchema = z.object({
+  phone: addressSchema.shape.phone,
+})
+
+export const otpVerifySchema = z.object({
+  phone: addressSchema.shape.phone,
+  code: z
+    .string()
+    .trim()
+    .regex(
+      new RegExp(`^\\d{${OTP_LENGTH}}$`),
+      `Enter the ${OTP_LENGTH}-digit code`,
+    ),
 })
 
 export const cancelOrderSchema = z.object({

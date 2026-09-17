@@ -5,6 +5,7 @@ import { Dish } from './models/Dish.js'
 import { Order } from './models/Order.js'
 import { Customer } from './models/Customer.js'
 import { Payment } from './models/Payment.js'
+import { Otp } from './models/Otp.js'
 
 /* ============================================================================
    MENU - transcribed from the kitchen's printed menu poster
@@ -1621,7 +1622,7 @@ export async function seed() {
   // their indexes before the first write, even though they start empty —
   // no demo data is seeded into them so revenue figures stay real.
   await Promise.all(
-    [Order, Customer, Payment].map((model) => model.syncIndexes()),
+    [Order, Customer, Payment, Otp].map((model) => model.syncIndexes()),
   )
 
   await seedStaffAccount('admin', config.admin)

@@ -1,5 +1,5 @@
-import { expect, test } from './fixtures.js'
-import { ADMIN, CHEF } from './credentials.js'
+import { expect, test, uniquePhone } from './fixtures.js'
+import { ADMIN, CHEF, TEST_OTP_CODE } from './credentials.js'
 
 /**
  * The order lifecycle across all three screens — the behaviour the whole product
@@ -34,7 +34,12 @@ async function placeGuestOrder(page, count = 2, notes = 'No peanut - allergy') {
   ).toBeVisible()
 
   await page.fill('#name', 'Rohit Kulkarni')
-  await page.fill('#phone', '9860422190')
+  // A fresh number per order: one phone may only have a few orders open.
+  await page.fill('#phone', uniquePhone())
+  await page.getByRole('button', { name: 'Text me a code' }).click()
+  await page.fill('#otp', TEST_OTP_CODE)
+  await page.getByRole('button', { name: 'Verify' }).click()
+  await expect(page.getByText('Phone number verified')).toBeVisible()
   await page.fill('#line1', 'Flat 12, Sunrise Heights, Baner Road')
   await page.fill('#pincode', '411045')
   await page.fill('#landmark', 'Next to the gym')
@@ -276,4 +281,30 @@ test.describe('the three-screen loop', () => {
       .first()
     await row.click()
   })
+})
+
+test('checkout will not place an order until the phone is verified', async ({
+  page,
+}) => {
+  await page.goto('/menu')
+  await page.getByRole('button', { name: 'Add', exact: true }).first().click()
+  await page.getByRole('link', { name: 'Checkout' }).click()
+
+  await page.fill('#name', 'Unverified Customer')
+  await page.fill('#phone', uniquePhone())
+  await page.fill('#pincode', '411045')
+  await page.fill('#line1', 'Flat 12, Sunrise Heights, Baner Road')
+  await page
+    .locator('.leaflet-container')
+    .click({ position: { x: 260, y: 150 } })
+  await page.getByRole('button', { name: 'Place Order' }).click()
+
+  await expect(page.getByText(/Verify your phone number/)).toBeVisible()
+  await expect(page).toHaveURL(/\/checkout/)
+
+  // A wrong code is refused with a readable message.
+  await page.getByRole('button', { name: 'Text me a code' }).click()
+  await page.fill('#otp', '000000')
+  await page.getByRole('button', { name: 'Verify' }).click()
+  await expect(page.getByText(/code is not right/)).toBeVisible()
 })

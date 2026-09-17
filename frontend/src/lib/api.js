@@ -20,11 +20,13 @@ export function assetUrl(path) {
 }
 
 export class ApiError extends Error {
-  constructor(message, status, fields) {
+  constructor(message, status, fields, body) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.fields = fields
+    /** The whole error response, for extras like `retryAfterSeconds`. */
+    this.body = body
   }
 }
 
@@ -48,6 +50,7 @@ async function request(path, init) {
       body.error ?? 'Something went wrong.',
       res.status,
       body.fields,
+      body,
     )
   }
   return body
@@ -61,6 +64,17 @@ export const api = {
     list: () => request('/menu'),
     get: (slug) => request(`/menu/${slug}`),
   },
+  /** Guest phone verification by SMS code (CLAUDE.md §23). */
+  otp: {
+    send: (phone) =>
+      request('/otp/send', { method: 'POST', body: JSON.stringify({ phone }) }),
+    verify: (phone, code) =>
+      request('/otp/verify', {
+        method: 'POST',
+        body: JSON.stringify({ phone, code }),
+      }),
+  },
+
   orders: {
     /** Guest checkout — no auth required (CLAUDE.md §10a). */
     place: (input) =>

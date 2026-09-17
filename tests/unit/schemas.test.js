@@ -15,6 +15,8 @@ import {
   dayKey,
   deliveryAddressSchema,
   isOpenAt,
+  otpSendSchema,
+  otpVerifySchema,
   deliveryFeeFor,
   isNonVeg,
   paymentSchema,
@@ -216,13 +218,15 @@ describe('place order payload limits', () => {
 
   it('caps free-text address fields', () => {
     const items = [{ dishId: DISH, qty: 1 }]
-    expect(parse(items, { ...pinned, name: 'x'.repeat(81) }).success).toBe(false)
+    expect(parse(items, { ...pinned, name: 'x'.repeat(81) }).success).toBe(
+      false,
+    )
     expect(parse(items, { ...pinned, line1: 'x'.repeat(201) }).success).toBe(
       false,
     )
-    expect(
-      parse(items, { ...pinned, landmark: 'x'.repeat(121) }).success,
-    ).toBe(false)
+    expect(parse(items, { ...pinned, landmark: 'x'.repeat(121) }).success).toBe(
+      false,
+    )
   })
 })
 
@@ -339,9 +343,10 @@ describe('payment schema', () => {
 /** Driver assignment and account management — admin-only surfaces. */
 describe('assign driver payload', () => {
   it('accepts a driver id', () => {
-    expect(assignDriverSchema.safeParse({ driverId: '66e8f0c2a1b2c3d4e5f60718' }).success).toBe(
-      true,
-    )
+    expect(
+      assignDriverSchema.safeParse({ driverId: '66e8f0c2a1b2c3d4e5f60718' })
+        .success,
+    ).toBe(true)
   })
 
   it('accepts null, which unassigns', () => {
@@ -427,6 +432,25 @@ describe('delivery distance limit', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.issues[0].message).toMatch(/more than 25 km/)
+    }
+  })
+})
+
+describe('phone verification payloads', () => {
+  it('needs a valid Indian mobile number to send a code', () => {
+    expect(otpSendSchema.safeParse({ phone: '9823011284' }).success).toBe(true)
+    expect(otpSendSchema.safeParse({ phone: '12345' }).success).toBe(false)
+  })
+
+  it('accepts only a 6-digit code', () => {
+    const phone = '9823011284'
+    expect(otpVerifySchema.safeParse({ phone, code: '004821' }).success).toBe(
+      true,
+    )
+    for (const code of ['12345', '1234567', '12a456', '']) {
+      expect(otpVerifySchema.safeParse({ phone, code }).success, code).toBe(
+        false,
+      )
     }
   })
 })

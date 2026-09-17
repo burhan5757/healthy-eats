@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures.js'
+import { expect, phoneToken, test, uniquePhone } from './fixtures.js'
 import { deliveryFeeFor } from '../../backend/src/shared/index.js'
 import { ADMIN as ADMIN_USER, CHEF as CHEF_USER } from './credentials.js'
 
@@ -143,13 +143,15 @@ test.describe('state machine is enforced server-side', () => {
   test('an order cannot be cancelled once it is ready', async ({ request }) => {
     const menu = await (await request.get(`${API}/menu`)).json()
     const dish = menu.dishes.find((d) => d.availableToday)
+    const phone = uniquePhone()
 
     const created = await request.post(`${API}/orders`, {
       data: {
         items: [{ dishId: dish.id, qty: 1 }],
+        phoneToken: await phoneToken(request, phone),
         address: {
           name: 'State Machine Probe',
-          phone: '9823011284',
+          phone,
           line1: 'Flat 1, Some Building, Kothrud',
           pincode: '411038',
           lat: 18.52,
@@ -188,14 +190,16 @@ test.describe('state machine is enforced server-side', () => {
   }) => {
     const menu = await (await request.get(`${API}/menu`)).json()
     const dish = menu.dishes.find((d) => d.availableToday)
+    const phone = uniquePhone()
 
     const res = await request.post(`${API}/orders`, {
       data: {
         // A tampered price here must be ignored entirely.
         items: [{ dishId: dish.id, qty: 2, price: 1 }],
+        phoneToken: await phoneToken(request, phone),
         address: {
           name: 'Pricing Probe',
-          phone: '9823011284',
+          phone,
           line1: 'Flat 1, Some Building, Kothrud',
           pincode: '411038',
           lat: 18.52,
@@ -243,6 +247,7 @@ test.describe('payment status (COD ledger)', () => {
     const res = await request.post(`${API}/orders`, {
       data: {
         items: [{ dishId: dish.id, qty: 1 }],
+        phoneToken: await phoneToken(request, phone),
         address: {
           name: 'Payment Probe',
           phone,

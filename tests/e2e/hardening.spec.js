@@ -1,5 +1,5 @@
 import { request as pwRequest } from '@playwright/test'
-import { expect, test } from './fixtures.js'
+import { expect, phoneToken, test } from './fixtures.js'
 import { ADMIN, CHEF, CSRF_HEADERS } from './credentials.js'
 
 /**
@@ -15,6 +15,7 @@ async function placeOrder(request, phone) {
   const res = await request.post(`${API}/orders`, {
     data: {
       items: [{ dishId: dish.id, qty: 1 }],
+      phoneToken: await phoneToken(request, phone),
       address: {
         name: 'Privacy Probe',
         phone,

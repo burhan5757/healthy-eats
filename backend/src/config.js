@@ -61,6 +61,29 @@ function intFromEnv(name, fallback) {
   return n
 }
 
+/**
+ * SMS providers with an adapter in src/sms/. 'test' sends nothing and uses a
+ * fixed code, so it is never allowed in production.
+ */
+const SMS_PROVIDERS = ['test']
+const smsProviderName = process.env.SMS_PROVIDER ?? (isProd ? '' : 'test')
+const otpRequired = process.env.OTP_REQUIRED
+  ? process.env.OTP_REQUIRED === 'true'
+  : true
+if (smsProviderName && !SMS_PROVIDERS.includes(smsProviderName)) {
+  problems.push(
+    `SMS_PROVIDER must be one of: ${SMS_PROVIDERS.join(', ')} (got "${smsProviderName}")`,
+  )
+}
+if (isProd && smsProviderName === 'test') {
+  problems.push('SMS_PROVIDER=test sends no SMS and cannot be used in production')
+}
+if (otpRequired && !smsProviderName) {
+  problems.push(
+    'OTP_REQUIRED is on but no SMS_PROVIDER is set — configure a provider, or set OTP_REQUIRED=false to take unverified orders',
+  )
+}
+
 const sameSite = process.env.COOKIE_SAME_SITE ?? (isProd ? 'none' : 'lax')
 if (!['lax', 'strict', 'none'].includes(sameSite)) {
   problems.push('COOKIE_SAME_SITE must be lax, strict or none')
@@ -91,8 +114,27 @@ export const config = {
     loginPerAccount: intFromEnv('RATE_LIMIT_LOGIN_PER_ACCOUNT', 5),
     loginPerIp: intFromEnv('RATE_LIMIT_LOGIN_PER_IP', 30),
     trackPerMinute: intFromEnv('RATE_LIMIT_TRACK_PER_MINUTE', 120),
-    ordersPer10Min: intFromEnv('RATE_LIMIT_ORDERS', 20),
+    // Customers on one mobile network often share an IP, so this is generous;
+    // the per-phone open-order cap below is the real abuse limit.
+    ordersPer10Min: intFromEnv('RATE_LIMIT_ORDERS', 60),
+    otpSendsPerIp: intFromEnv('RATE_LIMIT_OTP_PER_IP', 20),
+    otpSendsPerPhone: intFromEnv('RATE_LIMIT_OTP_PER_PHONE', 5),
+    otpVerifiesPerIp: intFromEnv('RATE_LIMIT_OTP_VERIFY_PER_IP', 60),
   },
+
+  sms: { provider: smsProviderName },
+
+  /** Orders need a phone verified by SMS code (CLAUDE.md §23). */
+  otp: {
+    required: otpRequired,
+    ttlMinutes: 5,
+    resendSeconds: 30,
+    maxAttempts: 5,
+    tokenMinutes: 30,
+  },
+
+  /** Unfinished orders one phone number may have at once. */
+  openOrdersPerPhone: intFromEnv('OPEN_ORDERS_PER_PHONE', 3),
 
   admin: {
     name: process.env.ADMIN_NAME ?? 'Healthy Eats Admin',

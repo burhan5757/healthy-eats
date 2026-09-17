@@ -35,7 +35,7 @@ Tick items off here as they are fixed, with the date and the commit.
       **delivery is priced from `geo`**, so every fee would be wrong. FSSAI display is a legal
       requirement for Indian food businesses.
 - [ ] **4. "Macros on every plate" hero pill is false.** No dish has nutrition data (§8b).
-- [ ] **5. COD orders need no verification.** Any phone number, no OTP; the only guard is
+- [ ] **5. COD orders need no verification.** _Code done 2026-09-17 (SMS OTP, 3 open orders per phone, see CLAUDE.md §23). Still open: choose an SMS provider, add its adapter, register DLT._ Any phone number, no OTP; the only guard is
       20 orders per IP, which also blocks real customers behind Indian mobile CGNAT.
       Add OTP or a confirm-call step before the kitchen cooks.
 - [x] **6. Unit suite is red** _Fixed 2026-09-17: test measures between fixed points, not the placeholder kitchen._ — `geocode.test.js` distance assertion vs placeholder `geo`.

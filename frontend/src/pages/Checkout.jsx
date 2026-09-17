@@ -14,6 +14,7 @@ import { rememberOrder } from '@/store/myOrders'
 import { Container } from '@/components/ui/primitives'
 import { QtyStepper } from '@/components/menu/QtyStepper'
 import { PinMap } from '@/components/checkout/PinMap'
+import { PhoneVerification } from '@/components/checkout/PhoneVerification'
 import { PlatePlaceholder } from '@/components/ui/PlatePlaceholder'
 import { cn, formatINR } from '@/lib/utils'
 
@@ -69,6 +70,11 @@ export default function Checkout() {
     refetchInterval: 60_000,
   })
   const closed = ordering?.open === false
+  const needsVerification = ordering?.phoneVerification !== false
+
+  // { phone, token } once the number is confirmed by SMS code.
+  const [verified, setVerified] = useState(null)
+  const phoneVerified = verified?.phone === form.phone
 
   // The reverse lookup fills the pincode, but never over what the customer typed.
   const suggestPincode = (code) =>
@@ -76,6 +82,10 @@ export default function Checkout() {
 
   const place = useMutation({
     mutationFn: api.orders.place,
+    onError: (err) => {
+      // An expired verification: ask for a fresh code.
+      if (err instanceof ApiError && err.status === 401) setVerified(null)
+    },
     onSuccess: ({ order }) => {
       rememberOrder(order.orderNumber)
       clear()
@@ -100,11 +110,17 @@ export default function Checkout() {
       return
     }
 
+    if (needsVerification && !phoneVerified) {
+      setErrors({ otp: 'Verify your phone number with the code we text you.' })
+      return
+    }
+
     setErrors({})
     place.mutate({
       items: lines.map((l) => ({ dishId: l.dishId, qty: l.qty })),
       address: parsed.data,
       notes: notes.trim(),
+      ...(phoneVerified ? { phoneToken: verified.token } : {}),
     })
   }
 
@@ -249,6 +265,20 @@ export default function Checkout() {
                   placeholder="98230 11284"
                 />
               </div>
+
+              {needsVerification && (
+                <div className="mt-5">
+                  <PhoneVerification
+                    phone={form.phone}
+                    verified={verified}
+                    onVerified={(v) => {
+                      setVerified(v)
+                      setErrors(({ otp: _done, ...rest }) => rest)
+                    }}
+                    error={errors.otp}
+                  />
+                </div>
+              )}
 
               <div className="mt-5 grid gap-5">
                 <Field

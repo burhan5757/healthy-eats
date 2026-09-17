@@ -86,6 +86,7 @@ const orderSchema = new Schema(
 )
 
 orderSchema.index({ status: 1, createdAt: -1 })
+orderSchema.index({ 'address.phone': 1, status: 1 })
 orderSchema.index({ 'driver.user': 1, status: 1 })
 
 export const Order = mongoose.model('Order', orderSchema)

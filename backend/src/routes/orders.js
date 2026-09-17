@@ -27,6 +27,7 @@ import { toOrder, toPublicOrder } from '../serialize.js'
 import { emit } from '../realtime.js'
 import { invalidateMenu } from '../menuCache.js'
 import { config } from '../config.js'
+import { verifiedPhone } from './otp.js'
 
 /** Whether the kitchen is taking orders right now — the server's word on it. */
 export function orderingStatus() {
@@ -35,6 +36,8 @@ export function orderingStatus() {
     open: !config.enforceOrderingHours || isOpenAt(),
     opensAt: open,
     lastOrderAt: lastOrder,
+    /** Whether checkout must verify the phone by SMS code first. */
+    phoneVerification: config.otp.required,
   }
 }
 
@@ -84,9 +87,29 @@ ordersRouter.post(
       return
     }
 
+    const { items, address, notes, phoneToken } = req.body
+
+    // Guest checkout: the phone, proven by SMS code, is the customer's identity.
+    if (config.otp.required && verifiedPhone(phoneToken) !== address.phone) {
+      res.status(401).json({
+        error: 'Verify your phone number with the code we text you first.',
+      })
+      return
+    }
+
+    const openOrders = await Order.countDocuments({
+      'address.phone': address.phone,
+      status: { $in: ['placed', 'preparing', 'ready'] },
+    })
+    if (openOrders >= config.openOrdersPerPhone) {
+      res.status(429).json({
+        error: `This number already has ${openOrders} orders on the way. Please wait for one to arrive, or call us.`,
+      })
+      return
+    }
+
     await resetStaleSoldOut()
 
-    const { items, address, notes } = req.body
     const dishes = await Dish.find({ _id: { $in: items.map((i) => i.dishId) } })
 
     if (dishes.length !== items.length) {

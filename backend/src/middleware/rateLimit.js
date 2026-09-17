@@ -55,3 +55,37 @@ export const placeOrderLimiter = rateLimit({
   legacyHeaders: false,
   handler: tooMany('Too many orders from this connection. Try again shortly.'),
 })
+
+const OTP_WINDOW = 15 * 60 * 1000
+const otpMessage = 'Too many code requests. Try again in a few minutes.'
+
+/** SMS codes cost money per message: cap requests per IP and per phone. */
+export const otpSendLimiter = [
+  rateLimit({
+    windowMs: OTP_WINDOW,
+    limit: config.rateLimits.otpSendsPerIp,
+    keyGenerator: ip,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: tooMany(otpMessage),
+  }),
+  rateLimit({
+    windowMs: 60 * 60 * 1000,
+    limit: config.rateLimits.otpSendsPerPhone,
+    keyGenerator: (req) => `phone|${String(req.body?.phone ?? '')}`,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: tooMany(otpMessage),
+  }),
+]
+
+/** Wrong-code guesses across many phones from one IP. */
+export const otpVerifyLimiter = rateLimit({
+  windowMs: OTP_WINDOW,
+  limit: config.rateLimits.otpVerifiesPerIp,
+  skipSuccessfulRequests: true,
+  keyGenerator: ip,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  handler: tooMany('Too many attempts. Try again in a few minutes.'),
+})
