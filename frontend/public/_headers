@@ -1,9 +1,12 @@
 # Cloudflare Pages response headers (the same set as vercel.json, which stays
 # for anyone deploying to Vercel instead). Cloudflare serves index.html for
 # unknown paths on its own, because the build has no 404.html.
+# CSP: connect-src/img-src allow any https: origin so the API subdomain, map
+# tiles and geocoder need no edit here (CLAUDE.md §18).
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=(self)
   Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'

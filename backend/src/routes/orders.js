@@ -6,7 +6,6 @@ import {
   cancelOrderSchema,
   BRAND,
   canTransition,
-  dayKey,
   isOpenAt,
   orderTotals,
   placeOrderSchema,
@@ -24,8 +23,9 @@ import { requireRole } from '../middleware/auth.js'
 import { placeOrderLimiter, trackLimiter } from '../middleware/rateLimit.js'
 import { User } from '../models/User.js'
 import { toOrder, toPublicOrder } from '../serialize.js'
-import { emit } from '../realtime.js'
+import { emit, notifyOrderChanged } from '../realtime.js'
 import { invalidateMenu } from '../menuCache.js'
+import { orderStats } from '../stats.js'
 import { config } from '../config.js'
 import { verifiedPhone } from './otp.js'
 
@@ -274,50 +274,7 @@ ordersRouter.get(
   '/stats',
   requireRole('admin'),
   asyncRoute(async (_req, res) => {
-    const orders = await Order.find().sort({ createdAt: -1 })
-    const earned = orders.filter((o) => o.status === 'delivered')
-    // "Today" is the kitchen's day (IST), whatever zone the server runs in.
-    const today = dayKey()
-    const isToday = (o) => dayKey(o.createdAt) === today
-
-    const sum = (list) => list.reduce((s, o) => s + o.total, 0)
-
-    // Revenue by dish, from delivered orders only.
-    const byDish = new Map()
-    for (const o of earned) {
-      for (const i of o.items) {
-        const key = String(i.dishId)
-        const row = byDish.get(key) ?? { name: i.name, qty: 0, revenue: 0 }
-        row.qty += i.qty
-        row.revenue += i.price * i.qty
-        byDish.set(key, row)
-      }
-    }
-
-    // Last 7 days of delivered revenue, oldest first.
-    const daily = []
-    for (let d = 6; d >= 0; d--) {
-      const key = dayKey(new Date(Date.now() - d * 24 * 60 * 60 * 1000))
-      daily.push({
-        date: key,
-        revenue: sum(earned.filter((o) => dayKey(o.createdAt) === key)),
-      })
-    }
-
-    res.json({
-      todayRevenue: sum(earned.filter(isToday)),
-      todayOrders: orders.filter(isToday).length,
-      pending: orders.filter((o) => o.status === 'placed').length,
-      inKitchen: orders.filter((o) => o.status === 'preparing').length,
-      averageOrderValue: earned.length
-        ? Math.round(sum(earned) / earned.length)
-        : 0,
-      lostToCancellations: sum(orders.filter((o) => o.status === 'cancelled')),
-      daily,
-      topDishes: [...byDish.values()]
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 8),
-    })
+    res.json(await orderStats())
   }),
 )
 
@@ -389,7 +346,7 @@ function respond(res, result, payment) {
     }
     return
   }
-  emit(SOCKET_EVENTS.orderUpdated)
+  notifyOrderChanged(result.order)
   res.json({ order: toOrder(result.order, payment) })
 }
 
@@ -452,7 +409,7 @@ ordersRouter.post(
     await order.save()
 
     const payment = await Payment.findOne({ order: order._id })
-    emit(SOCKET_EVENTS.orderUpdated)
+    notifyOrderChanged(order)
     res.json({ order: toOrder(order, payment) })
   }),
 )
@@ -478,7 +435,7 @@ ordersRouter.post(
     order.driver.acceptedAt = new Date()
     await order.save()
 
-    emit(SOCKET_EVENTS.orderUpdated)
+    notifyOrderChanged(order)
     res.json({ order: toOrder(order) })
   }),
 )
@@ -595,7 +552,7 @@ ordersRouter.post(
       }
     }
 
-    emit(SOCKET_EVENTS.orderUpdated)
+    notifyOrderChanged(order)
     res.json({ order: toOrder(order, payment) })
   }),
 )

@@ -69,9 +69,9 @@ Tick items off here as they are fixed, with the date and the commit.
 
 ## 🟡 Later
 
-- [ ] **21.** `/orders/stats` loads every order into memory on each call.
-- [ ] **22.** Every open tracking page refetches on any order change anywhere.
-- [ ] **23.** No Content-Security-Policy (§18).
+- [x] **21.** _Fixed 2026-09-17: MongoDB aggregation in `backend/src/stats.js`, checked against the old version._ `/orders/stats` loads every order into memory on each call.
+- [x] **22.** _Fixed 2026-09-17: per-order socket rooms; e2e-covered._ Every open tracking page refetches on any order change anywhere.
+- [x] **23.** _Fixed 2026-09-17: CSP in `_headers` and `vercel.json`, checked on the production build._ No Content-Security-Policy (§18).
 - [x] **24.** _Fixed 2026-09-17._ Mongoose `new:` option deprecation warnings (use `returnDocument: 'after'`).
 - [x] **25.** _Fixed 2026-09-17: a dummy bcrypt compare runs when the account doesn't match._ Login timing difference reveals whether an email exists.
 - [x] **26.** _Fixed 2026-09-17: rejected by the schema with a clear message._ Duplicate `dishId` lines in an order return "dish no longer exists".

@@ -383,6 +383,10 @@ export function canTransition(from, to) {
 export const SOCKET_EVENTS = {
   orderCreated: 'order:created',
   orderUpdated: 'order:updated',
+  /** Sent only to tracking pages that joined that order's room. No payload. */
+  orderTracked: 'order:tracked',
+  /** Client → server: a tracking page asks for its order's updates. */
+  trackJoin: 'track:join',
   menuUpdated: 'menu:updated',
 }
 

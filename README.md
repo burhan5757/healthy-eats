@@ -103,22 +103,18 @@ design/     design handoff
 
 ## Tests
 
-**70 tests.** `npm run test:all`.
+**148 tests.** `npm run test:all`. CI runs lint, unit tests, the build and the e2e suite on
+every push (`.github/workflows/ci.yml`).
 
-**Unit (52)** — the shared contract, since frontend and backend both depend on it:
-the order state machine, the Zod schemas, and the cart arithmetic.
+**Unit (86)** — the shared contract both packages depend on: the order state machine, the Zod
+schemas and their limits, IST business days and ordering hours, delivery pricing and distance
+limits, cart arithmetic, and the dish-image query rules.
 
-**End-to-end (18)** — Playwright, against the running app:
-
-- _Guest checkout_ — ordering without an account, validation, cart persistence, unknown order numbers.
-- _The three-screen loop_ — an order travelling customer → admin → chef → admin, asserting the
-  chef's button appears live over Socket.IO with no reload, and that the allergy note reaches
-  the kitchen.
-- _Cancel → sold out_ — admin picks a dish, the customer is told which one ran out, and the
-  public menu refuses it.
-- _Access control_ — tested at the API, not the UI, because hiding a screen is not access control.
-  Anonymous gets 401, chef gets 403 on admin routes, registering with `role: "admin"` still
-  produces a customer, and a tampered price in the payload is ignored.
+**End-to-end (62)** — Playwright against the running app, on an in-memory database: guest
+checkout with SMS phone verification, the customer → admin → chef → driver loop, cancel →
+sold out, payment states, access control and role-locked logins (asserted at the API),
+hardening (CSRF, rate limits, sessions, malformed input, delivery limits, live tracking rooms),
+and the public legal and order-lookup pages.
 
 ---
 

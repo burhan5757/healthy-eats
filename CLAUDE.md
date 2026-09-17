@@ -506,6 +506,7 @@ Append newest at the bottom. Format: date — decision — reason.
 | 2026-09-17 | Draft privacy policy and terms added (`/privacy`, `/terms`), marked for legal review; `/track` lookup page added | User asked Claude to draft them. See §25. |
 | 2026-09-17 | Production refuses to start while `BRAND.placeholder` is true | The demo kitchen coordinates would misprice every delivery; the FSSAI number must be real. |
 | 2026-09-17 | Graceful shutdown on SIGTERM/SIGINT; `/api/health` is 503 until the database is connected; React error boundary; GitHub Actions CI | Audit items 16 and 19. Railway sends SIGTERM on every deploy. The e2e backend now runs `npm start` instead of the `--watch` dev server, which fixed the §14 ECONNRESET flake. |
+| 2026-09-17 | Admin stats computed with a MongoDB aggregation (`backend/src/stats.js`); tracking pages use per-order socket rooms; CSP added | Audit items 21–23. Stats verified identical to the old in-memory version on 1,200 generated orders, including IST midnight edges. |
 
 ## 13. Accessibility status
 
@@ -524,7 +525,9 @@ Re-run the audit any time with `$CLAUDE_JOB_DIR/tmp/audit.py` and `contrast2.py`
 
 ## 14. Tests
 
-`npm run test:all` — 121 tests.
+`npm run test:all` — 148 tests (86 unit, 62 end-to-end) as of 2026-09-17. The per-file
+notes below predate that count; newer specs: `otp.spec.js` (§23), `site-pages.spec.js` (§25),
+and additions to `hardening.spec.js` (bad ids, order limits, delivery limit, live tracking rooms).
 
 - **Vitest (75)** in `tests/unit/` — the shared contract: state machine (now covering the
   `TRANSITION_ROLE.delivered = ['admin', 'driver']` array form, §17), Zod schemas (including
@@ -594,7 +597,10 @@ and three things keep it and the customer's details away from anyone who doesn't
    receives every broadcast. Order events used to carry the full order — name, phone, address and
    order number — so anyone with the site open could harvest every order live. `order:created` /
    `order:updated` now carry **no payload**; each screen refetches through its own guarded REST
-   call (`backend/src/realtime.js`, `frontend/src/pages/Track.jsx`).
+   call (`backend/src/realtime.js`, `frontend/src/pages/Track.jsx`). Since 2026-09-17 a tracking
+   page also joins a room named after its own order (`track:join`) and listens only for the
+   payload-free `order:tracked` sent to that room, so it no longer refetches whenever any
+   order anywhere changes.
 
 Pre-existing order numbers in Atlas keep their old 4-digit form. They still resolve in the admin
 screens but **no longer resolve on the public tracking page**, because they fail the new pattern.
@@ -786,8 +792,11 @@ per 10 min. Over the limit → 429 with a readable `error`.
 **Headers.** `helmet` on the API (with `Cross-Origin-Resource-Policy: cross-origin` so the
 frontend can load `/api/images/:id`); `frontend/vercel.json` sets nosniff, frame denial,
 referrer policy, HSTS and a permissions policy, plus the SPA rewrite Vercel needs for client-side
-routes. **Not done yet:** a Content-Security-Policy — it depends on the production API, map-tile
-and geocoder URLs, and a wrong one silently breaks the checkout map.
+routes. **Content-Security-Policy** (2026-09-17) in both `_headers` and `vercel.json`:
+`script-src 'self'` (the build has no inline scripts), fonts from Google, and `connect-src` /
+`img-src` open to any `https:` origin so the API subdomain, map tiles and geocoder need no edit.
+Verified against the production build with the checkout map, SMS step, order placement and the
+tracking socket: zero violations, and an injected inline script is refused.
 
 **Load balancing and scaling.** Not needed now: Render and Railway already terminate TLS and
 balance traffic in front of the service. `TRUST_PROXY` (default 1 in production) makes `req.ip`

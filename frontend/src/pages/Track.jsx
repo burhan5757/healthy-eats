@@ -20,15 +20,21 @@ export default function Track() {
     enabled: Boolean(orderNumber),
   })
 
-  // Live updates. Broadcasts carry no order data (they reach every visitor), so
-  // any order event just refetches this one order by its own number.
+  // Live updates for this order only: the page joins its order's room (again
+  // after any reconnect) and refetches when told it changed. The signal
+  // carries no order data.
   useEffect(() => {
     const socket = getSocket()
+    const number = orderNumber.toUpperCase()
+    const join = () => socket.emit(SOCKET_EVENTS.trackJoin, number)
     const refresh = () =>
       queryClient.invalidateQueries({ queryKey: ['order', orderNumber] })
-    socket.on(SOCKET_EVENTS.orderUpdated, refresh)
+    if (socket.connected) join()
+    socket.on('connect', join)
+    socket.on(SOCKET_EVENTS.orderTracked, refresh)
     return () => {
-      socket.off(SOCKET_EVENTS.orderUpdated, refresh)
+      socket.off('connect', join)
+      socket.off(SOCKET_EVENTS.orderTracked, refresh)
     }
   }, [orderNumber, queryClient])
 

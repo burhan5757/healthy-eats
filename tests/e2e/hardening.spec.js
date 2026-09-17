@@ -1,5 +1,5 @@
 import { request as pwRequest } from '@playwright/test'
-import { expect, phoneToken, test } from './fixtures.js'
+import { expect, phoneToken, test, uniquePhone } from './fixtures.js'
 import { ADMIN, CHEF, CSRF_HEADERS } from './credentials.js'
 
 /**
@@ -348,5 +348,47 @@ test.describe('where and when orders are taken', () => {
       opensAt: expect.stringMatching(/^\d\d:\d\d$/),
       lastOrderAt: expect.stringMatching(/^\d\d:\d\d$/),
     })
+  })
+})
+
+test.describe('live tracking updates', () => {
+  test('a tracking page updates live, and only for its own order', async ({
+    request,
+    browser,
+  }) => {
+    const mine = await placeOrder(request, uniquePhone())
+    const other = await placeOrder(request, uniquePhone())
+
+    const minePage = await browser.newPage()
+    const otherPage = await browser.newPage()
+    await minePage.goto(`/track/${mine.orderNumber}`)
+    await otherPage.goto(`/track/${other.orderNumber}`)
+    await expect(minePage.getByText(/keep this number/i)).toBeVisible()
+    await expect(otherPage.getByText(/keep this number/i)).toBeVisible()
+    // Give both sockets time to join their rooms.
+    await minePage.waitForTimeout(1000)
+
+    let otherRefetches = 0
+    otherPage.on('request', (req) => {
+      if (req.url().includes(`/orders/track/${other.orderNumber}`)) {
+        otherRefetches += 1
+      }
+    })
+
+    // Admin accepts only "mine".
+    await request.post(`${API}/auth/admin/login`, {
+      data: { email: ADMIN.email, password: ADMIN.password },
+    })
+    const { orders } = await (await request.get(`${API}/orders`)).json()
+    const id = orders.find((o) => o.orderNumber === mine.orderNumber).id
+    expect((await request.post(`${API}/orders/${id}/accept`)).ok()).toBe(true)
+
+    // No reload: the page learns about it over the socket.
+    await expect(minePage.getByText(/Accepted at/)).toBeVisible()
+    await otherPage.waitForTimeout(1500)
+    expect(otherRefetches).toBe(0)
+
+    await minePage.close()
+    await otherPage.close()
   })
 })
