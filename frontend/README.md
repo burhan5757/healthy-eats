@@ -9,7 +9,8 @@ npm run build    # production build
 npm run lint     # oxlint
 ```
 
-`@shared/*` resolves to `../shared` (see `vite.config.js`'s `resolve.alias`);
+`@shared/*` resolves to `./src/shared` (see `vite.config.js`'s `resolve.alias`) — a copy
+kept identical to `backend/src/shared/index.js`;
 `jsconfig.json` mirrors the same paths for editor autocomplete.
 
 ## Environment variables

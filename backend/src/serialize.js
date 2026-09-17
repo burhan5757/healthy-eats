@@ -25,10 +25,21 @@ export function toDish(d) {
     isBestseller: d.isBestseller,
     isTodaysSpecial: d.isTodaysSpecial,
     availableToday: d.availableToday,
+    imageSource: d.imageSource ?? 'none',
   }
 }
 
-export function toOrder(o) {
+export function toPayment(p) {
+  return {
+    method: p.method,
+    status: p.status,
+    amount: p.amount,
+    collectedAt: p.collectedAt ? p.collectedAt.toISOString() : undefined,
+    voidedAt: p.voidedAt ? p.voidedAt.toISOString() : undefined,
+  }
+}
+
+export function toOrder(o, payment) {
   const address = o.address
   return {
     id: String(o._id),
@@ -62,7 +73,42 @@ export function toOrder(o) {
           soldOutDishIds: o.cancellation.soldOutDishIds.map(String),
         }
       : undefined,
+    payment: payment ? toPayment(payment) : undefined,
+    driver: o.driver
+      ? {
+          id: String(o.driver.user),
+          name: o.driver.name,
+          assignedAt: o.driver.assignedAt.toISOString(),
+          acceptedAt: o.driver.acceptedAt
+            ? o.driver.acceptedAt.toISOString()
+            : undefined,
+        }
+      : undefined,
     createdAt: o.createdAt.toISOString(),
+  }
+}
+
+/**
+ * What an unauthenticated caller may see about an order — the guest who placed it,
+ * or anyone holding its order number. No internal ids, no phone, no payment
+ * ledger, no driver identity: nothing that helps find or act on other orders.
+ */
+export function toPublicOrder(o) {
+  const {
+    id: _id,
+    customerId: _customerId,
+    payment: _payment,
+    driver,
+    address,
+    ...rest
+  } = toOrder(o)
+  const { phone: _phone, ...publicAddress } = address
+  return {
+    ...rest,
+    address: publicAddress,
+    driver: driver
+      ? { name: driver.name, acceptedAt: driver.acceptedAt }
+      : undefined,
   }
 }
 
@@ -72,5 +118,7 @@ export function toPublicUser(u) {
     name: u.name,
     email: u.email,
     role: u.role,
+    phone: u.phone || undefined,
+    active: u.active !== false,
   }
 }

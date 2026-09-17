@@ -2,33 +2,16 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 /**
- * shared/index.js is duplicated into frontend/src/shared/ and
- * backend/src/shared/ so each package is deployable on its own (no sibling
- * folder needed at build time — see scripts/sync-shared.mjs). This test is
- * the safety net for that duplication: if someone edits a copy directly, or
- * edits the canonical file and forgets to run `npm run sync-shared`, this
- * fails loudly instead of the two packages silently disagreeing about
- * validation.
+ * frontend/src/shared/index.js and backend/src/shared/index.js are two committed
+ * copies of the same contract, kept separate so each package deploys on its own.
+ * There is no canonical third copy: edit one, copy it over the other.
+ * This fails loudly if the two ever disagree about validation.
  */
-describe('shared/ duplication stays in sync', () => {
-  const canonical = readFileSync(
-    new URL('../../shared/index.js', import.meta.url),
-    'utf8',
-  )
-
-  it('frontend/src/shared/index.js matches the canonical source', () => {
-    const copy = readFileSync(
-      new URL('../../frontend/src/shared/index.js', import.meta.url),
-      'utf8',
+describe('frontend and backend shared contracts stay identical', () => {
+  it('frontend/src/shared/index.js matches backend/src/shared/index.js', () => {
+    const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8')
+    expect(read('../../frontend/src/shared/index.js')).toBe(
+      read('../../backend/src/shared/index.js'),
     )
-    expect(copy).toBe(canonical)
-  })
-
-  it('backend/src/shared/index.js matches the canonical source', () => {
-    const copy = readFileSync(
-      new URL('../../backend/src/shared/index.js', import.meta.url),
-      'utf8',
-    )
-    expect(copy).toBe(canonical)
   })
 })

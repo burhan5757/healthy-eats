@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ORDER_STATUS_LABELS, SOCKET_EVENTS } from '@shared/index'
+import {
+  ORDER_STATUS_LABELS,
+  PAYMENT_STATUS_LABELS,
+  SOCKET_EVENTS,
+} from '@shared/index'
 import { api } from '@/lib/api'
 import { getSocket } from '@/lib/socket'
 import { CancelDialog } from '@/components/admin/CancelDialog'
@@ -45,6 +49,12 @@ export default function LiveOrders() {
     refetchInterval: 30_000,
   })
 
+  const { data: driversData } = useQuery({
+    queryKey: ['admin-drivers'],
+    queryFn: api.drivers.list,
+  })
+  const activeDrivers = (driversData?.drivers ?? []).filter((d) => d.active)
+
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 30_000)
     return () => clearInterval(id)
@@ -82,6 +92,10 @@ export default function LiveOrders() {
       invalidateAll()
       setCancelling(null)
     },
+  })
+  const assign = useMutation({
+    mutationFn: ({ id, driverId }) => api.orders.assign(id, driverId),
+    onSuccess: invalidateAll,
   })
 
   const orders = useMemo(() => data?.orders ?? [], [data])
@@ -177,12 +191,17 @@ export default function LiveOrders() {
             <li key={order.id}>
               <OrderCard
                 order={order}
+                drivers={activeDrivers}
                 onAccept={() => accept.mutate(order.id)}
                 onDeliver={() => deliver.mutate(order.id)}
                 onCancel={() => setCancelling(order)}
+                onAssign={(driverId) =>
+                  assign.mutate({ id: order.id, driverId })
+                }
                 busy={
                   (accept.isPending && accept.variables === order.id) ||
-                  (deliver.isPending && deliver.variables === order.id)
+                  (deliver.isPending && deliver.variables === order.id) ||
+                  (assign.isPending && assign.variables?.id === order.id)
                 }
               />
             </li>
@@ -202,7 +221,15 @@ export default function LiveOrders() {
   )
 }
 
-function OrderCard({ order, onAccept, onDeliver, onCancel, busy }) {
+function OrderCard({
+  order,
+  drivers,
+  onAccept,
+  onDeliver,
+  onCancel,
+  onAssign,
+  busy,
+}) {
   const style = STATUS_STYLES[order.status]
   const hhmm = (iso) =>
     new Date(iso).toLocaleTimeString('en-GB', {
@@ -239,7 +266,7 @@ function OrderCard({ order, onAccept, onDeliver, onCancel, busy }) {
 
       <div className="flex-1 p-5">
         <div className="flex items-start justify-between gap-3">
-          <p className="font-display text-[22px] tabular-nums">
+          <p className="font-display text-[22px] whitespace-nowrap tabular-nums">
             {order.orderNumber}
           </p>
           <span className={cn('eyebrow rounded-sm px-2 py-1', style.badge)}>
@@ -249,8 +276,10 @@ function OrderCard({ order, onAccept, onDeliver, onCancel, busy }) {
 
         <p className="mt-1.5 text-[12px] text-muted-foreground">{meta}</p>
 
-        <p className="mt-4 text-[15px] font-semibold">{order.address.name}</p>
-        <p className="text-[13px] text-muted-foreground">
+        <p className="selectable mt-4 text-[15px] font-semibold">
+          {order.address.name}
+        </p>
+        <p className="selectable text-[13px] text-muted-foreground">
           +91 {order.address.phone}
         </p>
 
@@ -272,7 +301,11 @@ function OrderCard({ order, onAccept, onDeliver, onCancel, busy }) {
         )}
 
         <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
-          <span className="eyebrow text-muted-foreground">Total · cash</span>
+          <span className="eyebrow text-muted-foreground">
+            {order.payment
+              ? `COD · ${PAYMENT_STATUS_LABELS[order.payment.status]}`
+              : 'Total · cash'}
+          </span>
           <span className="font-display text-[20px] tabular-nums">
             {formatINR(order.total)}
           </span>
@@ -320,15 +353,52 @@ function OrderCard({ order, onAccept, onDeliver, onCancel, busy }) {
                 Cancel
               </button>
             </>
+          ) : order.driver ? (
+            <div className="flex flex-1 items-center justify-between gap-3">
+              <span className="text-[13px] text-muted-foreground">
+                {order.driver.acceptedAt
+                  ? `${order.driver.name} · out for delivery`
+                  : `${order.driver.name} · awaiting acceptance`}
+              </span>
+              <button
+                type="button"
+                onClick={() => onAssign(null)}
+                disabled={busy}
+                className="shrink-0 rounded-full border border-border px-3.5 py-2 text-[13px] font-semibold transition-colors hover:border-primary/60 disabled:opacity-60"
+              >
+                Unassign
+              </button>
+            </div>
           ) : (
-            <button
-              type="button"
-              onClick={onDeliver}
-              disabled={busy}
-              className="flex-1 rounded-full bg-primary py-3 text-[14px] font-semibold text-primary-foreground transition-colors hover:bg-primary-dark disabled:opacity-60"
-            >
-              Mark delivered
-            </button>
+            <div className="flex flex-1 flex-col gap-2.5">
+              {drivers.length > 0 && (
+                <select
+                  defaultValue=""
+                  disabled={busy}
+                  onChange={(e) => {
+                    if (e.target.value) onAssign(e.target.value)
+                  }}
+                  className="w-full rounded-full border border-border bg-background px-4 py-2.5 text-[13px] font-semibold disabled:opacity-60"
+                >
+                  <option value="" disabled>
+                    Assign a driver…
+                  </option>
+                  {drivers.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <button
+                type="button"
+                onClick={onDeliver}
+                disabled={busy}
+                className="w-full rounded-full bg-primary py-3 text-[14px] font-semibold text-primary-foreground transition-colors hover:bg-primary-dark disabled:opacity-60"
+              >
+                Mark delivered
+              </button>
+            </div>
           )}
         </div>
       )}

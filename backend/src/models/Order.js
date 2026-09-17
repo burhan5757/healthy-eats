@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto'
 import mongoose, { Schema } from 'mongoose'
 import { ORDER_STATUSES } from '../shared/index.js'
 
@@ -8,6 +9,13 @@ const orderSchema = new Schema(
     customerId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
+      required: false,
+      index: true,
+    },
+    /** The guest-checkout Customer profile, upserted by phone at order time. */
+    customer: {
+      type: Schema.Types.ObjectId,
+      ref: 'Customer',
       required: false,
       index: true,
     },
@@ -60,13 +68,42 @@ const orderSchema = new Schema(
       },
       default: undefined,
     },
+
+    /** Assigned by admin once READY. `acceptedAt` set = out for delivery. */
+    driver: {
+      type: {
+        user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        name: { type: String, required: true }, // snapshot — no populate needed
+        assignedAt: { type: Date, required: true },
+        acceptedAt: { type: Date },
+      },
+      default: undefined,
+    },
   },
   { timestamps: true },
 )
 
+orderSchema.index({ status: 1, createdAt: -1 })
+orderSchema.index({ 'driver.user': 1, status: 1 })
+
 export const Order = mongoose.model('Order', orderSchema)
 
-/** Human-friendly, kitchen-shoutable order number: HE-4821 */
+// No 0/O or 1/I, so a customer can read the number back without ambiguity.
+const ORDER_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
+export const ORDER_CODE_LENGTH = 8
+export const ORDER_NUMBER_PATTERN = new RegExp(
+  `^HE-[${ORDER_ALPHABET}]{${ORDER_CODE_LENGTH}}$`,
+)
+
+/**
+ * HE-7K4QXNPT. The order number is what unlocks the public tracking page, so it
+ * is a secret, not a counter: 32^8 ≈ 10^12 values from a CSPRNG, so nobody can
+ * enumerate other customers' orders (CLAUDE.md §10b).
+ */
 export function generateOrderNumber() {
-  return `HE-${Math.floor(1000 + Math.random() * 9000)}`
+  let code = ''
+  for (let i = 0; i < ORDER_CODE_LENGTH; i++) {
+    code += ORDER_ALPHABET[randomInt(ORDER_ALPHABET.length)]
+  }
+  return `HE-${code}`
 }

@@ -6,9 +6,10 @@ let io = null
 /**
  * Socket.IO keeps the chef and admin screens live without polling.
  *
- * Broadcasts carry no private data beyond the order itself, and every screen
- * still fetches through the role-guarded REST API — sockets are an invalidation
- * signal, not an authorization bypass.
+ * Every connected browser receives every broadcast, anonymous visitors included,
+ * so order events carry NO payload — no order number, no customer details.
+ * They are a bare "something changed" signal; each screen refetches through
+ * its own role-guarded (or order-number-guarded) REST call (CLAUDE.md §10b).
  */
 export function initRealtime(server) {
   io = new Server(server, {

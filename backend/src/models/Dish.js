@@ -11,6 +11,15 @@ const dishSchema = new Schema(
     category: { type: String, required: true, trim: true },
     price: { type: Number, required: true, min: 0 },
     image: { type: String, default: '' },
+    /** 'none' until an image exists. 'stock' is a matched free photo, illustrative
+     *  only. 'photo' is real kitchen photography and never gets overwritten. */
+    imageSource: {
+      type: String,
+      enum: ['none', 'stock', 'photo'],
+      default: 'none',
+    },
+    /** GridFS file id backing `image`, when imageSource is 'stock'. */
+    imageFileId: { type: Schema.Types.ObjectId, default: null },
 
     // Optional — see the note on `nutrition` in shared/index.js.
     nutrition: {
@@ -48,13 +57,19 @@ export function todayKey() {
   return new Date().toLocaleDateString('en-CA') // YYYY-MM-DD
 }
 
+let lastResetDay = null
+
 /**
- * Restores availability for dishes sold out on a previous day.
- * Cheap enough to call before any menu read.
+ * Restores availability for dishes sold out on a previous day. Runs the write
+ * at most once per calendar day per process: after it, every sold-out dish is
+ * stamped with today's key, so there is nothing stale until tomorrow.
  */
 export async function resetStaleSoldOut() {
+  const today = todayKey()
+  if (lastResetDay === today) return
   await Dish.updateMany(
-    { availableToday: false, soldOutOn: { $ne: todayKey() } },
+    { availableToday: false, soldOutOn: { $ne: today } },
     { $set: { availableToday: true, soldOutOn: null } },
   )
+  lastResetDay = today
 }

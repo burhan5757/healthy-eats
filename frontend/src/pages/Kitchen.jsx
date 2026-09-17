@@ -23,7 +23,7 @@ export default function Kitchen() {
 
   const handleSignOut = async () => {
     await logout()
-    navigate('/login', { replace: true })
+    navigate('/kitchen/login', { replace: true })
   }
 
   const [now, setNow] = useState(() => Date.now())
@@ -282,7 +282,11 @@ function Ticket({ order, now, tone, onReady, busy }) {
 
       {isReady && (
         <p className="eyebrow border-t border-[#243A2C] px-4 py-2.5 font-sans text-[#5E7466]">
-          On the pass — waiting for rider
+          {order.driver
+            ? order.driver.acceptedAt
+              ? `Out for delivery — ${order.driver.name}`
+              : `Assigned to ${order.driver.name} — waiting to accept`
+            : 'On the pass — waiting for rider'}
         </p>
       )}
     </article>

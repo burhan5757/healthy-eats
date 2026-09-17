@@ -2,7 +2,12 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { ArrowLeft, Wallet } from 'lucide-react'
-import { BRAND, addressSchema } from '@shared/index'
+import {
+  BRAND,
+  DELIVERY_FEE_PER_KM,
+  billableKm,
+  deliveryAddressSchema,
+} from '@shared/index'
 import { api, ApiError } from '@/lib/api'
 import { cartTotals, useCart } from '@/store/cart'
 import { rememberOrder } from '@/store/myOrders'
@@ -43,7 +48,18 @@ export default function Checkout() {
     })
   }
 
-  const totals = cartTotals(lines)
+  const totals = cartTotals(lines, pin)
+
+  const placePin = (next) => {
+    setPin(next)
+    if (next) {
+      setErrors((e) => {
+        if (!e.lat && !e.lng) return e
+        const { lat: _lat, lng: _lng, ...rest } = e
+        return rest
+      })
+    }
+  }
 
   const place = useMutation({
     mutationFn: api.orders.place,
@@ -66,7 +82,7 @@ export default function Checkout() {
       ...(pin ?? {}),
     }
 
-    const parsed = addressSchema.safeParse(address)
+    const parsed = deliveryAddressSchema.safeParse(address)
     if (!parsed.success) {
       const next = {}
       for (const issue of parsed.error.issues)
@@ -115,7 +131,7 @@ export default function Checkout() {
               {lines.map((line) => (
                 <li key={line.dishId} className="flex gap-4 py-5">
                   <div className="size-14 shrink-0 overflow-hidden rounded-sm border border-border">
-                    <PlatePlaceholder alt="" />
+                    <PlatePlaceholder src={line.image} alt="" />
                   </div>
 
                   <div className="min-w-0 flex-1">
@@ -146,10 +162,14 @@ export default function Checkout() {
             <dl className="space-y-2.5 border-t border-border pt-5 text-[14px]">
               <Row label="Subtotal" value={formatINR(totals.subtotal)} />
               <Row
-                label={`Delivery — ${BRAND.deliveryAreas[0]}`}
+                label={
+                  pin
+                    ? `Delivery · ${billableKm(pin)} km × ₹${DELIVERY_FEE_PER_KM}`
+                    : `Delivery · ₹${DELIVERY_FEE_PER_KM}/km`
+                }
                 value={
-                  totals.deliveryFee === 0
-                    ? 'Free'
+                  totals.deliveryFee == null
+                    ? 'Drop a pin'
                     : formatINR(totals.deliveryFee)
                 }
                 muted
@@ -194,7 +214,8 @@ export default function Checkout() {
             <section className="rounded-md border border-border bg-surface p-7">
               <h2 className="font-display text-[24px]">Your details</h2>
               <p className="mt-1 text-[13px] text-muted-foreground">
-                Guest checkout — we only keep this for today&apos;s delivery.
+                Guest checkout — no account needed. We save your details for
+                delivery.
               </p>
 
               <div className="mt-6 grid gap-5 sm:grid-cols-2">
@@ -264,7 +285,12 @@ export default function Checkout() {
             </section>
 
             <section className="rounded-md border border-border bg-surface p-7">
-              <PinMap value={pin} onChange={setPin} />
+              <PinMap value={pin} onChange={placePin} />
+              {(errors.lat || errors.lng) && (
+                <p role="alert" className="mt-3 text-[13px] text-destructive">
+                  {errors.lat ?? errors.lng}
+                </p>
+              )}
             </section>
 
             {place.isError && (

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import {
   QueryClient,
   QueryClientProvider,
@@ -12,17 +13,25 @@ import { RequireRole } from '@/components/RequireRole'
 import { AuthProvider } from '@/store/auth'
 import { api } from '@/lib/api'
 import Home from '@/pages/Home'
-import Menu from '@/pages/Menu'
-import About from '@/pages/About'
-import Contact from '@/pages/Contact'
-import Checkout from '@/pages/Checkout'
-import Track from '@/pages/Track'
-import Login from '@/pages/Login'
-import Kitchen from '@/pages/Kitchen'
-import LiveOrders from '@/pages/admin/LiveOrders'
-import History from '@/pages/admin/History'
-import MenuAdmin from '@/pages/admin/MenuAdmin'
-import Settings from '@/pages/admin/Settings'
+
+// Everything except the landing page loads on demand, so a customer's first
+// visit doesn't download the admin charts (recharts) or the map (leaflet).
+const Menu = lazy(() => import('@/pages/Menu'))
+const About = lazy(() => import('@/pages/About'))
+const Contact = lazy(() => import('@/pages/Contact'))
+const Checkout = lazy(() => import('@/pages/Checkout'))
+const Track = lazy(() => import('@/pages/Track'))
+const LoginHub = lazy(() => import('@/pages/Login'))
+const StaffLogin = lazy(() =>
+  import('@/pages/Login').then((m) => ({ default: m.StaffLogin })),
+)
+const Kitchen = lazy(() => import('@/pages/Kitchen'))
+const Driver = lazy(() => import('@/pages/Driver'))
+const LiveOrders = lazy(() => import('@/pages/admin/LiveOrders'))
+const History = lazy(() => import('@/pages/admin/History'))
+const MenuAdmin = lazy(() => import('@/pages/admin/MenuAdmin'))
+const Settings = lazy(() => import('@/pages/admin/Settings'))
+const Drivers = lazy(() => import('@/pages/admin/Drivers'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,7 +45,9 @@ function SiteLayout() {
     <div className="flex min-h-dvh flex-col">
       <Header />
       <main className="flex-1">
-        <Outlet />
+        <Suspense fallback={<PageLoading />}>
+          <Outlet />
+        </Suspense>
       </main>
       <Footer />
     </div>
@@ -50,7 +61,9 @@ function SiteLayout() {
 function FocusLayout() {
   return (
     <main className="min-h-dvh">
-      <Outlet />
+      <Suspense fallback={<PageLoading />}>
+        <Outlet />
+      </Suspense>
     </main>
   )
 }
@@ -83,20 +96,53 @@ export default function App() {
             <Route element={<FocusLayout />}>
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/track/:orderNumber" element={<Track />} />
-              <Route path="/login" element={<Login />} />
+              <Route path="/login" element={<LoginHub />} />
+              <Route
+                path="/admin/login"
+                element={<StaffLogin role="admin" />}
+              />
+              <Route
+                path="/kitchen/login"
+                element={<StaffLogin role="chef" />}
+              />
+              <Route
+                path="/driver/login"
+                element={<StaffLogin role="driver" />}
+              />
 
               {/* Kitchen display — chef, and admin for oversight. */}
-              <Route element={<RequireRole roles={['chef', 'admin']} />}>
+              <Route
+                element={
+                  <RequireRole
+                    roles={['chef', 'admin']}
+                    loginPath="/kitchen/login"
+                  />
+                }
+              >
                 <Route path="/kitchen" element={<Kitchen />} />
+              </Route>
+
+              {/* Driver screen — only the orders assigned to this driver. */}
+              <Route
+                element={
+                  <RequireRole roles={['driver']} loginPath="/driver/login" />
+                }
+              >
+                <Route path="/driver" element={<Driver />} />
               </Route>
             </Route>
 
             {/* The ONE monitoring dashboard. Admin only, server-enforced. */}
-            <Route element={<RequireRole roles={['admin']} />}>
+            <Route
+              element={
+                <RequireRole roles={['admin']} loginPath="/admin/login" />
+              }
+            >
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<LiveOrders />} />
                 <Route path="history" element={<History />} />
                 <Route path="menu" element={<MenuAdmin />} />
+                <Route path="drivers" element={<Drivers />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
             </Route>
@@ -104,6 +150,17 @@ export default function App() {
         </BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>
+  )
+}
+
+function PageLoading() {
+  return (
+    <p
+      className="py-32 text-center text-sm text-muted-foreground"
+      role="status"
+    >
+      Loading…
+    </p>
   )
 }
 

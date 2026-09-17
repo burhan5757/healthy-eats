@@ -474,7 +474,8 @@ export function PinMap({ value, onChange }) {
           </>
         ) : (
           <p className="text-[13px] text-muted-foreground">
-            No pin yet — the rider will only have the address above to go on.
+            No pin yet — tap the map where the rider should come. Delivery is
+            priced by distance, so a pin is needed to place the order.
           </p>
         )}
       </div>

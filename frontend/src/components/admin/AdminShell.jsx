@@ -1,5 +1,7 @@
+import { Suspense } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import {
+  Bike,
   ClipboardList,
   Clock,
   UtensilsCrossed,
@@ -14,6 +16,7 @@ const NAV = [
   { to: '/admin', label: 'Live orders', icon: ClipboardList, end: true },
   { to: '/admin/history', label: 'Order history', icon: Clock, end: false },
   { to: '/admin/menu', label: 'Menu', icon: UtensilsCrossed, end: false },
+  { to: '/admin/drivers', label: 'Drivers', icon: Bike, end: false },
   { to: '/admin/settings', label: 'Settings', icon: Settings2, end: false },
 ]
 
@@ -110,7 +113,11 @@ export function AdminShell({ liveCount }) {
         </div>
 
         <main className="px-6 py-8 lg:px-10">
-          <Outlet />
+          <Suspense
+            fallback={<p className="text-muted-foreground">Loading…</p>}
+          >
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

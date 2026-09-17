@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { SOCKET_EVENTS } from '../shared/index.js'
-import { Dish, resetStaleSoldOut, todayKey } from '../models/Dish.js'
+import { Dish, todayKey } from '../models/Dish.js'
+import { getMenu, invalidateMenu } from '../menuCache.js'
 import { asyncRoute, validate } from '../middleware/validate.js'
 import { requireRole } from '../middleware/auth.js'
 import { toDish } from '../serialize.js'
@@ -13,22 +14,19 @@ export const menuRouter = Router()
 menuRouter.get(
   '/',
   asyncRoute(async (_req, res) => {
-    await resetStaleSoldOut()
-    const dishes = await Dish.find().sort({ sortOrder: 1, name: 1 })
-    res.json({ dishes: dishes.map(toDish) })
+    res.json({ dishes: await getMenu() })
   }),
 )
 
 menuRouter.get(
   '/:slug',
   asyncRoute(async (req, res) => {
-    await resetStaleSoldOut()
-    const dish = await Dish.findOne({ slug: req.params.slug })
+    const dish = (await getMenu()).find((d) => d.slug === req.params.slug)
     if (!dish) {
       res.status(404).json({ error: 'Dish not found.' })
       return
     }
-    res.json({ dish: toDish(dish) })
+    res.json({ dish })
   }),
 )
 
@@ -47,8 +45,9 @@ menuRouter.patch(
         availableToday: req.body.availableToday,
         soldOutOn: req.body.availableToday ? null : todayKey(),
       },
-      { new: true },
+      { returnDocument: 'after' },
     )
+    invalidateMenu()
     if (!dish) {
       res.status(404).json({ error: 'Dish not found.' })
       return

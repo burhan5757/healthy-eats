@@ -20,13 +20,12 @@ export default function Contact() {
       <Eyebrow>Contact</Eyebrow>
 
       <h1 className="mt-5 max-w-[16ch] text-[clamp(2.5rem,5.5vw,4rem)]">
-        The kitchen picks up the phone
+        Get in touch
       </h1>
 
       <p className="mt-7 max-w-[58ch] text-[17px] leading-relaxed text-muted-foreground">
-        Questions about a plate, a macro or an order already on its way — call
-        during service and you&apos;ll get someone standing next to the hob, not
-        a call centre.
+        Questions about a dish, a macro, or an order already on its way — call
+        the kitchen directly during service hours.
       </p>
 
       <div className="mt-14 grid gap-6 lg:grid-cols-[1fr_minmax(0,480px)]">
@@ -88,8 +87,7 @@ export default function Contact() {
               ))}
             </ul>
             <p className="mt-5 text-[14px] text-muted-foreground">
-              Outside these four? Call the kitchen — some evenings the rider can
-              stretch a little.
+              Outside these areas? Call the kitchen to check availability.
             </p>
           </div>
         </div>

@@ -10,7 +10,7 @@ import { Container } from '@/components/ui/primitives'
  * customer hitting an admin endpoint regardless of what the browser does
  * (CLAUDE.md §10).
  */
-export function RequireRole({ roles }) {
+export function RequireRole({ roles, loginPath = '/login' }) {
   const { user, loading } = useAuth()
   const location = useLocation()
 
@@ -22,7 +22,8 @@ export function RequireRole({ roles }) {
     )
   }
 
-  if (!user) return <Navigate to="/login" state={{ from: location }} replace />
+  if (!user)
+    return <Navigate to={loginPath} state={{ from: location }} replace />
 
   if (!roles.includes(user.role)) {
     return (
@@ -30,8 +31,8 @@ export function RequireRole({ roles }) {
         <p className="eyebrow text-muted-foreground">Not permitted</p>
         <h1 className="mt-4 text-4xl">This area isn&apos;t yours</h1>
         <p className="mx-auto mt-4 max-w-[44ch] text-[15px] leading-relaxed text-muted-foreground">
-          You&apos;re signed in as {user.name} ({user.role}). Only the admin
-          account can open the monitoring dashboard.
+          You&apos;re signed in as {user.name} ({user.role}). This screen
+          belongs to a different staff role.
         </p>
       </Container>
     )

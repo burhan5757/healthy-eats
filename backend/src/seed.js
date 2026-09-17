@@ -1,6 +1,10 @@
 import { config } from './config.js'
-import { User, hashPassword } from './models/User.js'
+import { User } from './models/User.js'
+import { endSessionsFor } from './models/Session.js'
 import { Dish } from './models/Dish.js'
+import { Order } from './models/Order.js'
+import { Customer } from './models/Customer.js'
+import { Payment } from './models/Payment.js'
 
 /* ============================================================================
    MENU - transcribed from the kitchen's printed menu poster
@@ -1613,6 +1617,13 @@ const MENU = [
  * This is what makes "only one admin" enforceable (CLAUDE.md 10).
  */
 export async function seed() {
+  // Ensures orders/customers/payments exist as real Atlas collections with
+  // their indexes before the first write, even though they start empty —
+  // no demo data is seeded into them so revenue figures stay real.
+  await Promise.all(
+    [Order, Customer, Payment].map((model) => model.syncIndexes()),
+  )
+
   await seedStaffAccount('admin', config.admin)
   await seedStaffAccount('chef', config.chef)
 
@@ -1633,15 +1644,42 @@ export async function seed() {
   }
 }
 
+/**
+ * Exactly one admin and one chef, always matching env. Creates the account if
+ * missing; otherwise syncs name, email and password hash, and when the hash
+ * changed, signs that account out everywhere. Rotating a password is therefore
+ * "change backend/.env, restart" (CLAUDE.md §18).
+ */
 async function seedStaffAccount(role, account) {
+  const email = account.email.toLowerCase()
   const existing = await User.findOne({ role })
-  if (existing) return
+  if (!existing) {
+    await User.create({
+      name: account.name,
+      email,
+      passwordHash: account.passwordHash,
+      role,
+    })
+    console.log('[seed] created ' + role + ' account: ' + email)
+    return
+  }
 
-  await User.create({
-    name: account.name,
-    email: account.email.toLowerCase(),
-    passwordHash: await hashPassword(account.password),
-    role,
-  })
-  console.log('[seed] created ' + role + ' account: ' + account.email)
+  const passwordChanged = existing.passwordHash !== account.passwordHash
+  if (
+    !passwordChanged &&
+    existing.email === email &&
+    existing.name === account.name
+  ) {
+    return
+  }
+  existing.name = account.name
+  existing.email = email
+  existing.passwordHash = account.passwordHash
+  await existing.save()
+  if (passwordChanged) {
+    await endSessionsFor(existing._id)
+    console.log('[seed] ' + role + ' password updated from env; old sessions ended')
+  } else {
+    console.log('[seed] ' + role + ' account details updated from env')
+  }
 }

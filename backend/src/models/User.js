@@ -15,9 +15,13 @@ const userSchema = new Schema(
     passwordHash: { type: String, required: true },
     /**
      * NEVER assignable from a request body. Registration always forces 'customer';
-     * admin and chef exist only via the seed script (CLAUDE.md §10).
+     * admin and chef exist only via the seed script, drivers only via admin's
+     * POST /api/drivers, which hardcodes the role (CLAUDE.md §10).
      */
     role: { type: String, enum: ROLES, required: true, default: 'customer' },
+    phone: { type: String, trim: true },
+    /** False = deactivated by admin; login and driver routes refuse the account. */
+    active: { type: Boolean, default: true },
   },
   { timestamps: true },
 )
@@ -27,7 +31,7 @@ userSchema.methods.verifyPassword = function (password) {
 }
 
 export async function hashPassword(password) {
-  return bcrypt.hash(password, 10)
+  return bcrypt.hash(password, 12)
 }
 
 export const User = mongoose.model('User', userSchema)

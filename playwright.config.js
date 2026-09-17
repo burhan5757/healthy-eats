@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { TEST_SERVER_ENV } from './tests/e2e/credentials.js'
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -23,7 +24,11 @@ export default defineConfig({
     {
       command: 'npm run dev:backend',
       url: 'http://localhost:4000/api/health',
-      reuseExistingServer: !process.env.CI,
+      // Force the in-memory database regardless of backend/.env — e2e tests
+      // place, cancel and mark-sold-out real orders/dishes, and must never do
+      // that against Atlas. dotenv never overrides an already-set env var.
+      env: { ...TEST_SERVER_ENV, MONGODB_URI: '' },
+      reuseExistingServer: false,
       timeout: 180_000,
     },
     {

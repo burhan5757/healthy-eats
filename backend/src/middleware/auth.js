@@ -1,50 +1,81 @@
 import jwt from 'jsonwebtoken'
 import { config } from '../config.js'
 import { authPayloadSchema } from '../shared/index.js'
+import {
+  Session,
+  endSession as deleteSession,
+  findSession,
+} from '../models/Session.js'
 
 export const AUTH_COOKIE = 'he_token'
 
-export function signToken(payload) {
-  return jwt.sign(payload, config.jwtSecret, { expiresIn: config.jwtExpiresIn })
-}
+const sessionMs = () => config.sessionTtlHours * 60 * 60 * 1000
 
-export function setAuthCookie(res, token) {
-  res.cookie(AUTH_COOKIE, token, {
+function cookieOptions() {
+  return {
     httpOnly: true,
     secure: config.isProd,
-    sameSite: config.isProd ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  })
-}
-
-export function clearAuthCookie(res) {
-  res.clearCookie(AUTH_COOKIE, {
-    httpOnly: true,
-    secure: config.isProd,
-    sameSite: config.isProd ? 'none' : 'lax',
-  })
-}
-
-/** Populates req.auth when a valid token is present. Never rejects. */
-export function readAuth(req, _res, next) {
-  const token = req.cookies?.[AUTH_COOKIE]
-  if (token) {
-    try {
-      // jwt.verify only proves the signature; it says nothing about the shape
-      // of the decoded payload. Validate it too — a stale token from an older
-      // code version could otherwise carry a different claim shape and leave
-      // req.auth.role silently undefined.
-      const parsed = authPayloadSchema.safeParse(
-        jwt.verify(token, config.jwtSecret),
-      )
-      if (parsed.success) {
-        req.auth = parsed.data
-      }
-    } catch {
-      /* expired or tampered — treat as anonymous */
-    }
+    sameSite: config.cookieSameSite,
+    path: '/',
   }
-  next()
+}
+
+/** Starts a server-side session and sets the cookie that points at it. */
+export async function startSession(res, user) {
+  const session = await Session.create({
+    user: user._id,
+    role: user.role,
+    expiresAt: new Date(Date.now() + sessionMs()),
+  })
+  const token = jwt.sign(
+    { sub: String(user._id), role: user.role, sid: session._id },
+    config.jwtSecret,
+    { expiresIn: `${config.sessionTtlHours}h` },
+  )
+  res.cookie(AUTH_COOKIE, token, { ...cookieOptions(), maxAge: sessionMs() })
+}
+
+/** Ends only this browser's session; the user's other devices stay signed in. */
+export async function endSession(req, res) {
+  if (req.auth?.sid) await deleteSession(req.auth.sid)
+  res.clearCookie(AUTH_COOKIE, cookieOptions())
+}
+
+/**
+ * Populates req.auth when the cookie holds a valid token AND its session row
+ * still exists. Never rejects — anything else is simply anonymous.
+ */
+export async function readAuth(req, _res, next) {
+  const token = req.cookies?.[AUTH_COOKIE]
+  if (!token) return next()
+
+  let payload
+  try {
+    // verify() proves the signature only; the shape is checked too, so a token
+    // from an older code version (no `sid`) is just treated as signed out.
+    const parsed = authPayloadSchema.safeParse(
+      jwt.verify(token, config.jwtSecret),
+    )
+    if (!parsed.success) return next()
+    payload = parsed.data
+  } catch {
+    return next() // expired or tampered
+  }
+
+  try {
+    const session = await findSession(payload.sid)
+    if (
+      session &&
+      String(session.user) === payload.sub &&
+      session.role === payload.role &&
+      session.expiresAt > new Date()
+    ) {
+      req.auth = payload
+    }
+    next()
+  } catch (err) {
+    next(err)
+  }
 }
 
 export function requireAuth(req, res, next) {
@@ -57,7 +88,7 @@ export function requireAuth(req, res, next) {
 
 /**
  * Role gate. This is the real enforcement — hiding UI is not access control.
- * A logged-in chef or customer hitting an admin route must get 403 (CLAUDE.md §10).
+ * A logged-in chef or driver hitting an admin route must get 403 (CLAUDE.md §10).
  */
 export function requireRole(...roles) {
   return (req, res, next) => {

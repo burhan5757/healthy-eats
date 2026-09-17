@@ -1,15 +1,15 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures.js'
+import { ADMIN, CHEF } from './credentials.js'
 
 /**
  * The order lifecycle across all three screens — the behaviour the whole product
  * exists to deliver. If this passes, the system works.
  */
 
-const ADMIN = { email: 'admin@healthyeats.in', password: 'admin123' }
-const CHEF = { email: 'chef@healthyeats.in', password: 'chef123' }
+const ORDER_NUMBER = /^HE-[2-9A-HJ-NP-Z]{8}$/
 
 async function signIn(page, who) {
-  await page.goto('/login')
+  await page.goto(who.loginPath)
   await page.fill('#email', who.email)
   await page.fill('#password', who.password)
   await page.getByRole('button', { name: 'Sign in' }).click()
@@ -38,9 +38,14 @@ async function placeGuestOrder(page, count = 2, notes = 'No peanut - allergy') {
   await page.fill('#line1', 'Flat 12, Sunrise Heights, Baner Road')
   await page.fill('#landmark', 'Next to the gym')
   if (notes) await page.fill('#notes', notes)
+  // Delivery is priced by distance, so the order needs a pin.
+  await page
+    .locator('.leaflet-container')
+    .click({ position: { x: 260, y: 150 } })
+  await expect(page.getByText(/km from the kitchen/)).toBeVisible()
 
   await page.getByRole('button', { name: 'Place Order' }).click()
-  await page.waitForURL(/\/track\/HE-\d+/)
+  await page.waitForURL(/\/track\/HE-[A-Z0-9]+$/)
 
   return page.url().split('/').pop()
 }
@@ -51,7 +56,7 @@ test.describe('guest checkout', () => {
   }) => {
     const orderNumber = await placeGuestOrder(page)
 
-    expect(orderNumber).toMatch(/^HE-\d{4}$/)
+    expect(orderNumber).toMatch(ORDER_NUMBER)
     await expect(page.getByText(orderNumber)).toBeVisible()
     await expect(page.getByText(/keep this number/i)).toBeVisible()
     await expect(page.getByText('Cash to pay on delivery')).toBeVisible()
@@ -66,6 +71,7 @@ test.describe('guest checkout', () => {
 
     await expect(page.getByText('Name is required')).toBeVisible()
     await expect(page.getByText(/valid 10-digit Indian mobile/)).toBeVisible()
+    await expect(page.getByText(/Drop a pin on the map/)).toBeVisible()
     await expect(page).toHaveURL(/\/checkout/) // did not proceed
   })
 
@@ -205,9 +211,11 @@ test.describe('the three-screen loop', () => {
       timeout: 15_000,
     })
     await readyCard.getByRole('button', { name: 'Mark delivered' }).click()
-    await expect(readyCard.getByText('Delivered')).toBeVisible({
-      timeout: 15_000,
-    })
+    await expect(readyCard.getByText('Delivered', { exact: true })).toBeVisible(
+      {
+        timeout: 15_000,
+      },
+    )
 
     // 6. The customer sees the finished journey.
     await customer.reload()

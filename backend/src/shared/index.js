@@ -2,8 +2,9 @@ import { z } from 'zod'
 
 /* ============================================================================
    HEALTHY EATS — shared contract
-   Single source of truth for types AND validation, imported by client + server.
-   See CLAUDE.md §6 principle 1.
+   One validation contract for client + server. This file exists twice, byte-for-
+   byte: backend/src/shared/index.js and frontend/src/shared/index.js, so each
+   package deploys on its own. Edit one, copy it over the other (CLAUDE.md §2b).
    ========================================================================= */
 
 /* --- Taxonomy: the two-axis USP (CLAUDE.md §1) ---------------------------- */
@@ -38,7 +39,7 @@ export const DIET_LABELS = {
 
 /* --- Roles ---------------------------------------------------------------- */
 
-export const ROLES = ['customer', 'chef', 'admin']
+export const ROLES = ['customer', 'chef', 'admin', 'driver']
 export const roleSchema = z.enum(ROLES)
 
 /** Shape of the JWT payload. Validated on decode — a stale token from an older
@@ -47,6 +48,8 @@ export const roleSchema = z.enum(ROLES)
 export const authPayloadSchema = z.object({
   sub: z.string(),
   role: roleSchema,
+  /** Server-side session id — the token is only valid while that row exists. */
+  sid: z.string().min(1),
 })
 
 /* --- Nutrition ------------------------------------------------------------ */
@@ -85,6 +88,9 @@ export const dishSchema = z.object({
   isTodaysSpecial: z.boolean(),
   /** Flipped false when admin cancels an order citing this dish. Resets daily. */
   availableToday: z.boolean(),
+  /** 'none' until an image exists. 'stock' is a matched free stock photo, illustrative
+   *  only — never the real plate. 'photo' (real kitchen photography) is never overwritten. */
+  imageSource: z.enum(['none', 'stock', 'photo']).default('none'),
 })
 
 export const dishInputSchema = dishSchema.omit({ id: true })
@@ -146,6 +152,35 @@ export const cancellationSchema = z.object({
   soldOutDishIds: z.array(z.string()),
 })
 
+/* --- Payment (Cash on Delivery ledger — CLAUDE.md §3 "COD only") ---------- */
+
+export const PAYMENT_METHODS = ['cod']
+export const PAYMENT_STATUSES = ['pending', 'collected', 'void']
+export const paymentMethodSchema = z.enum(PAYMENT_METHODS)
+export const paymentStatusSchema = z.enum(PAYMENT_STATUSES)
+
+export const PAYMENT_STATUS_LABELS = {
+  pending: 'Pending',
+  collected: 'Collected',
+  void: 'Void',
+}
+
+export const paymentSchema = z.object({
+  method: paymentMethodSchema,
+  status: paymentStatusSchema,
+  amount: z.number().nonnegative(),
+  collectedAt: z.string().optional(),
+  voidedAt: z.string().optional(),
+})
+
+/** Set by admin once an order is READY. `acceptedAt` present = out for delivery. */
+export const orderDriverSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  assignedAt: z.string(),
+  acceptedAt: z.string().optional(),
+})
+
 export const orderSchema = z.object({
   id: z.string(),
   orderNumber: z.string(),
@@ -162,6 +197,9 @@ export const orderSchema = z.object({
   status: orderStatusSchema,
   timeline: z.array(timelineEntrySchema),
   cancellation: cancellationSchema.optional(),
+  /** COD ledger entry. Absent only for legacy orders placed before payments existed. */
+  payment: paymentSchema.optional(),
+  driver: orderDriverSchema.optional(),
   createdAt: z.string(),
 })
 
@@ -172,28 +210,38 @@ export const publicUserSchema = z.object({
   name: z.string(),
   email: z.email(),
   role: roleSchema,
+  phone: z.string().optional(),
+  active: z.boolean().optional(),
 })
 
 /* ============================================================================
    Request payloads
    ========================================================================= */
 
-export const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.email('Enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-})
-
 export const loginSchema = z.object({
   email: z.email('Enter a valid email'),
   password: z.string().min(1, 'Password is required'),
+})
+
+const PIN_REQUIRED = 'Drop a pin on the map — delivery is priced by distance'
+
+/** A new order's address: the map pin is mandatory, because it prices delivery. */
+export const deliveryAddressSchema = addressSchema.extend({
+  lat: z
+    .number({ error: PIN_REQUIRED })
+    .min(-90, PIN_REQUIRED)
+    .max(90, PIN_REQUIRED),
+  lng: z
+    .number({ error: PIN_REQUIRED })
+    .min(-180, PIN_REQUIRED)
+    .max(180, PIN_REQUIRED),
 })
 
 export const placeOrderSchema = z.object({
   items: z
     .array(z.object({ dishId: z.string(), qty: z.number().int().positive() }))
     .min(1, 'Your cart is empty'),
-  address: addressSchema,
+  address: deliveryAddressSchema,
   notes: z
     .string()
     .max(200, 'Keep the note under 200 characters')
@@ -205,6 +253,23 @@ export const cancelOrderSchema = z.object({
   reason: z.string().min(1, 'Give the customer a reason'),
   /** Empty array = reject the order without marking anything sold out. */
   soldOutDishIds: z.array(z.string()).default([]),
+})
+
+/** `null` unassigns — the order falls back to admin closing it out. */
+export const assignDriverSchema = z.object({
+  driverId: z.string().min(1).nullable(),
+})
+
+/** Drivers are created by admin only; role is never read from the body (CLAUDE.md §10). */
+export const createDriverSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  phone: addressSchema.shape.phone,
+  email: z.email('Enter a valid email'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+})
+
+export const updateDriverSchema = z.object({
+  active: z.boolean(),
 })
 
 /* ============================================================================
@@ -219,12 +284,13 @@ export const ALLOWED_TRANSITIONS = {
   cancelled: [],
 }
 
-/** Which role is permitted to perform each transition. */
+/** Which roles are permitted to perform each transition. */
 export const TRANSITION_ROLE = {
-  preparing: 'admin', // admin accepts → auto-enters preparing
-  ready: 'chef', // the chef's single button
-  delivered: 'admin', // admin closes the order out
-  cancelled: 'admin',
+  preparing: ['admin'], // admin accepts → auto-enters preparing
+  ready: ['chef'], // the chef's single button
+  // the assigned driver closes it out; admin only when no driver is assigned
+  delivered: ['admin', 'driver'],
+  cancelled: ['admin'],
 }
 
 export function canTransition(from, to) {
@@ -245,10 +311,55 @@ export const SOCKET_EVENTS = {
    Business constants
    ========================================================================= */
 
-export const DELIVERY_FEE = 39 // ₹ — matches the checkout design
+/** ₹ per started km, straight line from the kitchen to the customer's pin. */
+export const DELIVERY_FEE_PER_KM = 10
 export const PACKAGING_FEE = 15 // ₹ — matches the checkout design
-export const FREE_DELIVERY_ABOVE = 599 // ₹
 export const PREP_TIME_MINUTES = 30
+
+const EARTH_RADIUS_KM = 6371
+const toRad = (deg) => (deg * Math.PI) / 180
+
+/** Straight-line (great-circle) distance in km between two { lat, lng }. */
+export function distanceKm(a, b) {
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(h))
+}
+
+/** Billable km: every started km counts, and there is always at least one. */
+export function billableKm(pin) {
+  return Math.max(1, Math.ceil(distanceKm(BRAND.geo, pin)))
+}
+
+/**
+ * Delivery fee for a pinned address — ₹10 for every started km. The server
+ * charges exactly this; checkout shows the same number (CLAUDE.md §20).
+ */
+export function deliveryFeeFor(pin) {
+  return billableKm(pin) * DELIVERY_FEE_PER_KM
+}
+
+/**
+ * Order totals from `{ price, qty }` lines and the delivery pin. The server
+ * computes the charged amount with this; checkout shows the same function's
+ * result. `deliveryFee` is null until there is a pin to price it from.
+ */
+export function orderTotals(lines, pin) {
+  const subtotal = lines.reduce((sum, l) => sum + l.price * l.qty, 0)
+  const empty = lines.length === 0
+  const hasPin = pin?.lat != null && pin?.lng != null
+  const deliveryFee = empty ? 0 : hasPin ? deliveryFeeFor(pin) : null
+  const packaging = empty ? 0 : PACKAGING_FEE
+  return {
+    subtotal,
+    deliveryFee,
+    packaging,
+    total: subtotal + (deliveryFee ?? 0) + packaging,
+  }
+}
 
 /** True when the dish should carry the red non-veg mark. */
 export function isNonVeg(diet) {

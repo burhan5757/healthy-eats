@@ -20,15 +20,12 @@ export default function Track() {
     enabled: Boolean(orderNumber),
   })
 
-  // Live updates: the kitchen accepting or finishing this order pushes straight
-  // to this page, so the customer never has to refresh.
+  // Live updates. Broadcasts carry no order data (they reach every visitor), so
+  // any order event just refetches this one order by its own number.
   useEffect(() => {
     const socket = getSocket()
-    const refresh = ({ order }) => {
-      if (order.orderNumber === orderNumber) {
-        queryClient.setQueryData(['order', orderNumber], { order })
-      }
-    }
+    const refresh = () =>
+      queryClient.invalidateQueries({ queryKey: ['order', orderNumber] })
     socket.on(SOCKET_EVENTS.orderUpdated, refresh)
     return () => {
       socket.off(SOCKET_EVENTS.orderUpdated, refresh)
@@ -74,7 +71,7 @@ function LiveView({ order }) {
           <p className="eyebrow text-muted-foreground">
             Order received · keep this number
           </p>
-          <p className="mt-3 font-display text-[clamp(2.75rem,7vw,4rem)] leading-none tabular-nums">
+          <p className="selectable mt-3 font-display text-[clamp(2.75rem,7vw,4rem)] leading-none tabular-nums">
             {order.orderNumber}
           </p>
           <p className="mt-4 max-w-[46ch] text-[14px] leading-relaxed text-muted-foreground">
@@ -178,7 +175,7 @@ function LiveView({ order }) {
             </div>
           )}
 
-          <address className="mt-6 space-y-1 text-[14px] not-italic">
+          <address className="selectable mt-6 space-y-1 text-[14px] not-italic">
             <p className="font-semibold">{order.address.name}</p>
             <p className="text-muted-foreground">{order.address.line1}</p>
             <p className="text-muted-foreground">
@@ -224,7 +221,7 @@ function CancelledView({ order }) {
           <CircleX className="size-4" strokeWidth={2} aria-hidden />
           Order unavailable — the kitchen couldn&apos;t take this order
         </p>
-        <p className="text-[13px] text-destructive-foreground/85 tabular-nums">
+        <p className="selectable text-[13px] text-destructive-foreground/85 tabular-nums">
           {order.orderNumber}
           {at &&
             ` · ${new Date(at.at).toLocaleTimeString('en-GB', {
@@ -237,7 +234,7 @@ function CancelledView({ order }) {
       <div className="grid gap-8 p-8 lg:grid-cols-[1fr_minmax(0,320px)]">
         <div>
           <p className="eyebrow text-muted-foreground">Order number</p>
-          <p className="mt-3 font-display text-[clamp(2.5rem,6vw,3.5rem)] leading-none tabular-nums">
+          <p className="selectable mt-3 font-display text-[clamp(2.5rem,6vw,3.5rem)] leading-none tabular-nums">
             {order.orderNumber}
           </p>
           <p className="mt-5 max-w-[48ch] text-[14px] leading-relaxed text-muted-foreground">

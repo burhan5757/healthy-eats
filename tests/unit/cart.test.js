@@ -1,35 +1,25 @@
 import { describe, expect, it } from 'vitest'
 import {
-  DELIVERY_FEE,
-  FREE_DELIVERY_ABOVE,
+  BRAND,
+  DELIVERY_FEE_PER_KM,
   PACKAGING_FEE,
-} from '../../shared/index'
+  orderTotals,
+} from '../../frontend/src/shared/index.js'
 
 /**
- * The client mirrors the server's total calculation so the customer never sees a
- * different number at checkout than the one the kitchen charges. These tests pin
- * that arithmetic down on both sides at once.
- *
- * Re-implemented here rather than imported from the client store, which pulls in
- * zustand and a browser localStorage — the formula is what matters.
+ * `orderTotals` is the one formula: the server charges with it and checkout
+ * displays it, so testing it here covers both sides.
  */
-function totals(lines) {
-  const subtotal = lines.reduce((sum, l) => sum + l.price * l.qty, 0)
-  const empty = lines.length === 0
-  const deliveryFee =
-    empty || subtotal >= FREE_DELIVERY_ABOVE ? 0 : DELIVERY_FEE
-  const packaging = empty ? 0 : PACKAGING_FEE
-  return {
-    subtotal,
-    deliveryFee,
-    packaging,
-    total: subtotal + deliveryFee + packaging,
-  }
-}
 
-describe('cart totals', () => {
+// ~0.009° of latitude ≈ 1 km in Pune.
+const pinKmNorth = (km) => ({
+  lat: BRAND.geo.lat + km * 0.009,
+  lng: BRAND.geo.lng,
+})
+
+describe('order totals', () => {
   it('is entirely zero for an empty cart', () => {
-    expect(totals([])).toEqual({
+    expect(orderTotals([], pinKmNorth(3))).toEqual({
       subtotal: 0,
       deliveryFee: 0,
       packaging: 0,
@@ -37,43 +27,50 @@ describe('cart totals', () => {
     })
   })
 
-  it('adds delivery and packaging to a small order', () => {
-    // Lean Chicken Thali + Paneer & Brown Rice, the pair used throughout testing.
-    const t = totals([
-      { price: 229, qty: 1 },
-      { price: 179, qty: 1 },
-    ])
+  it('adds distance delivery and packaging to an order', () => {
+    // Lean Chicken Thali + Paneer & Brown Rice, ~2.7 km away → 3 billable km.
+    const t = orderTotals(
+      [
+        { price: 229, qty: 1 },
+        { price: 179, qty: 1 },
+      ],
+      pinKmNorth(2.7),
+    )
     expect(t.subtotal).toBe(408)
-    expect(t.deliveryFee).toBe(39)
-    expect(t.packaging).toBe(15)
-    expect(t.total).toBe(462)
+    expect(t.deliveryFee).toBe(30)
+    expect(t.packaging).toBe(PACKAGING_FEE)
+    expect(t.total).toBe(408 + 30 + PACKAGING_FEE)
+  })
+
+  it('charges delivery on big orders too — there is no free threshold', () => {
+    const t = orderTotals([{ price: 2000, qty: 1 }], pinKmNorth(5.5))
+    expect(t.deliveryFee).toBe(6 * DELIVERY_FEE_PER_KM)
+  })
+
+  it('leaves delivery unpriced until there is a pin', () => {
+    const t = orderTotals([{ price: 229, qty: 1 }], null)
+    expect(t.deliveryFee).toBeNull()
+    expect(t.total).toBe(229 + PACKAGING_FEE)
   })
 
   it('multiplies by quantity', () => {
-    const t = totals([{ price: 229, qty: 3 }])
-    expect(t.subtotal).toBe(687)
-  })
-
-  it('drops the delivery fee once the order is big enough', () => {
-    const t = totals([{ price: FREE_DELIVERY_ABOVE, qty: 1 }])
-    expect(t.deliveryFee).toBe(0)
-    expect(t.total).toBe(FREE_DELIVERY_ABOVE + PACKAGING_FEE)
-  })
-
-  it('still charges delivery one rupee below the threshold', () => {
-    const t = totals([{ price: FREE_DELIVERY_ABOVE - 1, qty: 1 }])
-    expect(t.deliveryFee).toBe(DELIVERY_FEE)
+    expect(orderTotals([{ price: 229, qty: 3 }], pinKmNorth(1)).subtotal).toBe(
+      687,
+    )
   })
 
   it('never charges packaging without any items', () => {
-    expect(totals([]).packaging).toBe(0)
+    expect(orderTotals([], null).packaging).toBe(0)
   })
 
   it('produces whole rupees — no floating point cents', () => {
-    const t = totals([
-      { price: 99, qty: 3 },
-      { price: 129, qty: 2 },
-    ])
+    const t = orderTotals(
+      [
+        { price: 99, qty: 3 },
+        { price: 129, qty: 2 },
+      ],
+      pinKmNorth(4.2),
+    )
     expect(Number.isInteger(t.total)).toBe(true)
     expect(t.subtotal).toBe(555)
   })

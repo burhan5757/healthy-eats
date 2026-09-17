@@ -46,11 +46,10 @@ export function Header() {
       )}
     >
       <Container className="flex h-[76px] items-center justify-between gap-6 md:h-[92px]">
-        <Link to="/" className="flex items-baseline gap-2.5">
-          <span className="font-display text-[24px] leading-none md:text-[28px]">
+        <Link to="/" className="flex items-baseline">
+          <span className="font-display text-[28px] leading-none md:text-[34px]">
             {BRAND.name}
           </span>
-          <span className="eyebrow text-muted-foreground">{BRAND.city}</span>
         </Link>
 
         <nav aria-label="Primary" className="hidden md:block">

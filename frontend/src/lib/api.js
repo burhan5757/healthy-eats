@@ -9,6 +9,16 @@
  */
 const BASE = import.meta.env.VITE_API_URL ?? ''
 
+/**
+ * Resolves a backend-relative asset path (e.g. a dish's `/api/images/<id>`)
+ * against the same origin the API calls use. Empty/absolute paths pass through.
+ */
+export function assetUrl(path) {
+  if (!path) return path
+  if (/^https?:\/\//.test(path)) return path
+  return `${BASE}${path}`
+}
+
 export class ApiError extends Error {
   constructor(message, status, fields) {
     super(message)
@@ -21,8 +31,15 @@ export class ApiError extends Error {
 async function request(path, init) {
   const res = await fetch(`${BASE}/api${path}`, {
     credentials: 'include',
-    headers: init?.body ? { 'Content-Type': 'application/json' } : undefined,
     ...init,
+    headers: {
+      // The API refuses writes without this header — a cross-site page can't
+      // send it (CSRF guard, CLAUDE.md §18). GETs skip it to avoid a preflight.
+      ...(init?.method && init.method !== 'GET'
+        ? { 'X-Healthy-Eats': '1' }
+        : {}),
+      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+    },
   })
 
   const body = await res.json().catch(() => ({}))
@@ -64,11 +81,35 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(input),
       }),
+    /** Admin: `driverId: null` unassigns. */
+    assign: (id, driverId) =>
+      request(`/orders/${id}/assign`, {
+        method: 'POST',
+        body: JSON.stringify({ driverId }),
+      }),
+
+    /** Driver only: READY orders assigned to the signed-in driver. */
+    driverQueue: () => request('/orders/driver'),
+    driverAccept: (id) =>
+      request(`/orders/${id}/driver-accept`, { method: 'POST' }),
+  },
+
+  /** Admin only. */
+  drivers: {
+    list: () => request('/drivers'),
+    create: (input) =>
+      request('/drivers', { method: 'POST', body: JSON.stringify(input) }),
+    setActive: (id, active) =>
+      request(`/drivers/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ active }),
+      }),
   },
 
   auth: {
-    login: (input) =>
-      request('/auth/login', {
+    /** Staff sign-in; `role` picks the endpoint and only that role is accepted. */
+    login: (role, input) =>
+      request(`/auth/${role}/login`, {
         method: 'POST',
         body: JSON.stringify(input),
       }),

@@ -1,5 +1,6 @@
 import { ImageIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { assetUrl } from '@/lib/api'
 
 /**
  * Stands in for dish photography until real images land.
@@ -13,8 +14,10 @@ export function PlatePlaceholder({ label, className, src, alt }) {
   if (src) {
     return (
       <img
-        src={src}
+        src={assetUrl(src)}
         alt={alt ?? ''}
+        loading="lazy"
+        decoding="async"
         className={cn('h-full w-full object-cover', className)}
       />
     )

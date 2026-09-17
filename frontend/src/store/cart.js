@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { DELIVERY_FEE, FREE_DELIVERY_ABOVE, PACKAGING_FEE } from '@shared/index'
+import { orderTotals } from '@shared/index'
 
 /**
  * The cart is purely local state — no account required, matching the checkout
@@ -34,6 +34,7 @@ export const useCart = create()(
                 slug: dish.slug,
                 name: dish.name,
                 price: dish.price,
+                image: dish.image,
                 kcal: dish.nutrition?.kcal,
                 protein: dish.nutrition?.protein,
                 qty: 1,
@@ -73,23 +74,9 @@ export function cartSubtotal(lines) {
   return lines.reduce((sum, l) => sum + l.price * l.qty, 0)
 }
 
-/** Mirrors the server's calculation so the UI never shows a different number. */
-export function cartTotals(lines) {
-  const subtotal = cartSubtotal(lines)
-
-  // An empty cart costs nothing. Without the length guard a subtotal of 0 falls
-  // below the free-delivery threshold and picks up a delivery fee.
-  const empty = lines.length === 0
-  const deliveryFee =
-    empty || subtotal >= FREE_DELIVERY_ABOVE ? 0 : DELIVERY_FEE
-  const packaging = empty ? 0 : PACKAGING_FEE
-
-  return {
-    subtotal,
-    deliveryFee,
-    packaging,
-    total: subtotal + deliveryFee + packaging,
-  }
+/** The server's own formula (shared), so checkout never shows a different number. */
+export function cartTotals(lines, pin) {
+  return orderTotals(lines, pin)
 }
 
 /** Quantity of one dish, for the menu card steppers. */

@@ -3,7 +3,7 @@ import { api } from '@/lib/api'
 
 /**
  * Staff session. Customers never log in — checkout is guest-only (CLAUDE.md §10a) —
- * so this exists purely for the chef and the single admin account.
+ * so this exists purely for staff: the single admin, the single chef, and drivers.
  *
  * The token itself lives in an httpOnly cookie the JS cannot read; this only
  * mirrors *who* is signed in so routes can render the right thing. Every actual

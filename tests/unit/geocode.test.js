@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { BRAND } from '../../shared/index'
+import { BRAND, distanceKm } from '../../frontend/src/shared/index.js'
 import {
-  distanceKm,
   etaMinutes,
   isOutsideDeliveryRange,
   kmFromKitchen,

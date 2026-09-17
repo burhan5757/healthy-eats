@@ -1,78 +1,73 @@
 import { Router } from 'express'
-import { loginSchema, registerSchema } from '../shared/index.js'
-import { User, hashPassword } from '../models/User.js'
+import { loginSchema } from '../shared/index.js'
+import { User } from '../models/User.js'
 import { asyncRoute, validate } from '../middleware/validate.js'
 import {
-  clearAuthCookie,
+  endSession,
   requireAuth,
-  setAuthCookie,
-  signToken,
+  startSession,
 } from '../middleware/auth.js'
+import { loginLimiter } from '../middleware/rateLimit.js'
 import { toPublicUser } from '../serialize.js'
 
+/**
+ * Staff sign-in only. Customers never log in (guest checkout), so there is no
+ * registration route at all. Admin and chef exist only via env + the seed;
+ * drivers only via admin's POST /api/drivers (CLAUDE.md §10).
+ */
 export const authRouter = Router()
 
 /**
- * Registration ALWAYS creates a customer. There is deliberately no way to
- * register as chef or admin — those accounts exist only via the seed script.
- * `role` is never read from the request body (CLAUDE.md §10).
+ * One login endpoint per role, each accepting only its own role. A role
+ * mismatch gets the same 401 as a wrong password — the response never reveals
+ * that an account exists under a different role.
  */
+function loginFor(role) {
+  return [
+    ...loginLimiter,
+    validate(loginSchema),
+    asyncRoute(async (req, res) => {
+      const { email, password } = req.body
+
+      const user = await User.findOne({ email: email.toLowerCase() })
+      if (
+        !user ||
+        user.role !== role ||
+        !(await user.verifyPassword(password))
+      ) {
+        res.status(401).json({ error: 'Incorrect email or password.' })
+        return
+      }
+      if (user.active === false) {
+        res.status(401).json({ error: 'This account has been deactivated.' })
+        return
+      }
+
+      await startSession(res, user)
+      res.json({ user: toPublicUser(user) })
+    }),
+  ]
+}
+
+authRouter.post('/admin/login', ...loginFor('admin'))
+authRouter.post('/chef/login', ...loginFor('chef'))
+authRouter.post('/driver/login', ...loginFor('driver'))
+
 authRouter.post(
-  '/register',
-  validate(registerSchema),
+  '/logout',
   asyncRoute(async (req, res) => {
-    const { name, email, password } = req.body
-
-    const existing = await User.findOne({ email: email.toLowerCase() })
-    if (existing) {
-      res
-        .status(409)
-        .json({ error: 'An account with this email already exists.' })
-      return
-    }
-
-    const user = await User.create({
-      name,
-      email: email.toLowerCase(),
-      passwordHash: await hashPassword(password),
-      role: 'customer',
-    })
-
-    setAuthCookie(res, signToken({ sub: String(user._id), role: 'customer' }))
-    res.status(201).json({ user: toPublicUser(user) })
+    await endSession(req, res)
+    res.json({ ok: true })
   }),
 )
-
-authRouter.post(
-  '/login',
-  validate(loginSchema),
-  asyncRoute(async (req, res) => {
-    const { email, password } = req.body
-
-    const user = await User.findOne({ email: email.toLowerCase() })
-    // Same message either way — don't reveal which accounts exist.
-    if (!user || !(await user.verifyPassword(password))) {
-      res.status(401).json({ error: 'Incorrect email or password.' })
-      return
-    }
-
-    setAuthCookie(res, signToken({ sub: String(user._id), role: user.role }))
-    res.json({ user: toPublicUser(user) })
-  }),
-)
-
-authRouter.post('/logout', (_req, res) => {
-  clearAuthCookie(res)
-  res.json({ ok: true })
-})
 
 authRouter.get(
   '/me',
   requireAuth,
   asyncRoute(async (req, res) => {
     const user = await User.findById(req.auth.sub)
-    if (!user) {
-      clearAuthCookie(res)
+    if (!user || user.active === false) {
+      await endSession(req, res)
       res.status(401).json({ error: 'Session no longer valid.' })
       return
     }

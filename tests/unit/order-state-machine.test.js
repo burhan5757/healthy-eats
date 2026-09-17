@@ -5,7 +5,7 @@ import {
   ORDER_STATUSES,
   TRANSITION_ROLE,
   canTransition,
-} from '../../shared/index'
+} from '../../backend/src/shared/index.js'
 
 /**
  * The state machine is the safety-critical part of the product: it is what stops
@@ -60,11 +60,11 @@ describe('order state machine', () => {
     }
   })
 
-  it('assigns the ready transition to the chef and the rest to admin', () => {
-    expect(TRANSITION_ROLE.ready).toBe('chef')
-    expect(TRANSITION_ROLE.preparing).toBe('admin')
-    expect(TRANSITION_ROLE.delivered).toBe('admin')
-    expect(TRANSITION_ROLE.cancelled).toBe('admin')
+  it('assigns ready to the chef, delivered to admin or driver, the rest to admin', () => {
+    expect(TRANSITION_ROLE.ready).toEqual(['chef'])
+    expect(TRANSITION_ROLE.preparing).toEqual(['admin'])
+    expect(TRANSITION_ROLE.delivered).toEqual(['admin', 'driver'])
+    expect(TRANSITION_ROLE.cancelled).toEqual(['admin'])
   })
 
   it('keeps cancelled off the customer-facing progress track', () => {

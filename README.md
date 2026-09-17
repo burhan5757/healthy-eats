@@ -2,7 +2,7 @@
 
 Ordering and delivery platform for a fitness-focused kitchen, built as a working prototype.
 Brand details (address, phone, FSSAI number) shipped in this repo are placeholders — see
-`shared/index.js`'s `BRAND` constant.
+the `BRAND` constant in `frontend/src/shared/index.js` (and its copy in `backend/`).
 
 Every dish is tagged by **fitness goal** (fat loss · muscle gain · basic fitness) and by
 **timing** (pre-workout · post-workout · meal), with calories and macros on every plate.
@@ -24,15 +24,26 @@ No database setup is needed: with `MONGODB_URI` unset, an in-memory MongoDB star
 automatically and seeds itself. Point `MONGODB_URI` at Atlas when you want persistence —
 nothing else changes.
 
-### Staff sign-in — http://localhost:5173/login
+### Staff sign-in — each role has its own page
 
-| Role  | Email                  | Password   |
-| ----- | ---------------------- | ---------- |
-| Admin | `admin@healthyeats.in` | `admin123` |
-| Chef  | `chef@healthyeats.in`  | `chef123`  |
+| Role   | Sign in at                          | Account                                                      |
+| ------ | ----------------------------------- | ------------------------------------------------------------ |
+| Admin  | http://localhost:5173/admin/login   | `ADMIN_EMAIL` + password whose hash is `ADMIN_PASSWORD_HASH` |
+| Chef   | http://localhost:5173/kitchen/login | `CHEF_EMAIL` + password whose hash is `CHEF_PASSWORD_HASH`   |
+| Driver | http://localhost:5173/driver/login  | created by admin under Admin → Drivers                       |
 
-Both are seeded server-side and **cannot be registered**. Change them via `backend/.env`
-before this goes anywhere real.
+There is exactly one admin and one chef, and their passwords exist **only as bcrypt hashes** in
+`backend/.env` (or the host's environment settings). The server refuses to start without
+`JWT_SECRET`, `ADMIN_PASSWORD_HASH` and `CHEF_PASSWORD_HASH`. To set or rotate a password:
+
+```bash
+cd backend
+npm run hash-password      # type the new password; it prints a hash
+# paste the hash into backend/.env in single quotes, then restart — old sessions end
+```
+
+Each sign-in page calls its own endpoint (`/api/auth/<role>/login`), which only accepts that role.
+Customers never sign in — checkout is guest-only.
 
 ---
 
@@ -66,16 +77,14 @@ Cancelling is blocked once an order is `ready` — it has already been cooked.
 React + Vite · JavaScript · Tailwind · shadcn/ui · TanStack Query · Zustand · Leaflet
 Node + Express · Mongoose · Zod · Socket.IO · JWT in httpOnly cookies
 
-`shared/index.js` is the canonical Zod-schema source. Frontend and backend host on separate
-services, so each keeps its own committed copy (`frontend/src/shared/`, `backend/src/shared/`)
-rather than importing the sibling folder — run `npm run sync-shared` after editing the
-canonical file (also runs automatically on `dev`/`build`), then commit all three together.
-`tests/unit/shared-sync.test.js` fails loudly if a copy ever drifts.
+Frontend and backend are hosted as separate services, so each carries its own identical copy of
+the Zod contract: `frontend/src/shared/index.js` and `backend/src/shared/index.js`. There is no
+root `shared/` folder. Edit one, copy it over the other, and commit both together —
+`tests/unit/shared-sync.test.js` fails loudly if they ever differ.
 
 ```
-frontend/   React app (with its own committed copy of shared/)
-backend/    Express API (with its own committed copy of shared/)
-shared/     Zod schemas — canonical source, hand-edited here only
+frontend/   React app, fully self-contained
+backend/    Express API, fully self-contained
 design/     design handoff
 ```
 
@@ -117,12 +126,12 @@ the order state machine, the Zod schemas, and the cart arithmetic.
 
 Two items need a decision:
 
-1. **Order-number privacy** — tracking is public by 4-digit order number, per the design.
-   Enumerable. Lengthen the number or add a phone check first (§10b).
+1. **Content Security Policy** — `frontend/vercel.json` sets the basic security headers, but no
+   CSP yet; add one once the production API, map-tile and geocoder URLs are fixed (§18).
 2. **Real menu** — 119 dishes are seeded from the kitchen's printed menu, but it carries no
    calorie or macro figures; `nutrition` is optional and the UI shows "Macros on request"
    rather than inventing numbers (§8b).
 
-Also: set `JWT_SECRET` and change both staff passwords. The server refuses to boot in
-production with the dev defaults. If the frontend and backend end up on separate domains
+Also: set `JWT_SECRET` and both staff password hashes in the host's environment settings — the
+server refuses to boot without them. Security details and scaling notes: CLAUDE.md §18. If the frontend and backend end up on separate domains
 (e.g. Vercel + Render), set `VITE_API_URL` and `VITE_SOCKET_URL` — see `frontend/.env.example`.
