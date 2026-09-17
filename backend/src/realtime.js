@@ -23,6 +23,11 @@ export function initRealtime(server) {
   console.log('[realtime] socket.io ready')
 }
 
+/** Disconnects every socket; part of graceful shutdown. */
+export function closeRealtime() {
+  return new Promise((resolve) => (io ? io.close(() => resolve()) : resolve()))
+}
+
 export function emit(event, payload) {
   io?.emit(event, payload)
 }

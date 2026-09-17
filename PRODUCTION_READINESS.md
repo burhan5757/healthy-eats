@@ -60,11 +60,11 @@ Tick items off here as they are fixed, with the date and the commit.
       stored indefinitely (India DPDP Act). _Fixed 2026-09-17: draft `/privacy` and `/terms`, pending legal review._
 - [x] **15. Silent in-memory DB in production.** _Fixed 2026-09-17: `MONGODB_URI` is required when `NODE_ENV=production`._ If `MONGODB_URI` is unset and dev deps are
       installed, prod runs on `mongodb-memory-server` and loses every order on restart.
-- [ ] **16. Operability.** No graceful `SIGTERM` shutdown, no React error boundary, no error
+- [ ] **16. Operability.** _Mostly fixed 2026-09-17: graceful SIGTERM/SIGINT shutdown, `/api/health` returns 503 without a DB connection, React error boundary. Still open: error monitoring (e.g. Sentry) needs an account._ No graceful `SIGTERM` shutdown, no React error boundary, no error
       monitoring, `/api/health` ignores DB state.
 - [x] **17. Stock dish photos** not captioned as illustrative (§16). _Fixed 2026-09-17: "Illustrative photo" tag._
 - [ ] **18. Public Nominatim** is not for production traffic (§15). _Partly fixed 2026-09-17: `VITE_GEOCODER_URL` makes the switch an env change. Still open: pick a geocoder._
-- [ ] **19. No CI** running tests on push.
+- [x] **19. No CI** running tests on push. _Added 2026-09-17: `.github/workflows/ci.yml` (lint, unit, build, e2e). Not yet run on GitHub — check the first run after pushing._
 - [x] **20. `qs` moderate advisory** _Fixed 2026-09-17: `npm audit fix`, 0 vulnerabilities._ in the backend (`npm audit fix`).
 
 ## 🟡 Later

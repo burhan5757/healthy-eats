@@ -505,6 +505,7 @@ Append newest at the bottom. Format: date — decision — reason.
 | 2026-09-17 | **Hosting: Cloudflare Pages + Railway (Singapore) on one domain, API at `api.` subdomain, `COOKIE_SAME_SITE=lax`** | User-confirmed. Vercel Hobby is non-commercial; separate hosts' default domains would make the login cookie third-party (blocked by Safari). See §24. |
 | 2026-09-17 | Draft privacy policy and terms added (`/privacy`, `/terms`), marked for legal review; `/track` lookup page added | User asked Claude to draft them. See §25. |
 | 2026-09-17 | Production refuses to start while `BRAND.placeholder` is true | The demo kitchen coordinates would misprice every delivery; the FSSAI number must be real. |
+| 2026-09-17 | Graceful shutdown on SIGTERM/SIGINT; `/api/health` is 503 until the database is connected; React error boundary; GitHub Actions CI | Audit items 16 and 19. Railway sends SIGTERM on every deploy. The e2e backend now runs `npm start` instead of the `--watch` dev server, which fixed the §14 ECONNRESET flake. |
 
 ## 13. Accessibility status
 
@@ -550,6 +551,10 @@ Re-run the audit any time with `$CLAUDE_JOB_DIR/tmp/audit.py` and `contrast2.py`
 
 Third-party geocoding is deliberately **not** asserted in the e2e tests — it is a network lookup
 against someone else's rate-limited service and would make the suite flaky.
+
+(2026-09-17: the flake below is addressed — the e2e backend runs `npm --prefix backend start`
+rather than the `--watch` dev server, and `/api/health` only answers 200 once MongoDB is
+connected. CI: `.github/workflows/ci.yml`.)
 
 ⚠️ Since 2026-09-16 the backend `webServer` always cold-starts (`reuseExistingServer: false`,
 §16) rather than reusing an already-running dev server — deliberate, so a developer's `npm run dev`

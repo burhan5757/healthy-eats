@@ -10,6 +10,7 @@ import { Footer } from '@/components/site/Footer'
 import { Container } from '@/components/ui/primitives'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { RequireRole } from '@/components/RequireRole'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { AuthProvider } from '@/store/auth'
 import { api } from '@/lib/api'
 import Home from '@/pages/Home'
@@ -88,78 +89,80 @@ function AdminLayout() {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<SiteLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/menu" element={<Menu />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/track" element={<TrackLookup />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route element={<SiteLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/menu" element={<Menu />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/track" element={<TrackLookup />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
 
-            <Route element={<FocusLayout />}>
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/track/:orderNumber" element={<Track />} />
-              <Route path="/login" element={<LoginHub />} />
-              <Route
-                path="/admin/login"
-                element={<StaffLogin role="admin" />}
-              />
-              <Route
-                path="/kitchen/login"
-                element={<StaffLogin role="chef" />}
-              />
-              <Route
-                path="/driver/login"
-                element={<StaffLogin role="driver" />}
-              />
+              <Route element={<FocusLayout />}>
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/track/:orderNumber" element={<Track />} />
+                <Route path="/login" element={<LoginHub />} />
+                <Route
+                  path="/admin/login"
+                  element={<StaffLogin role="admin" />}
+                />
+                <Route
+                  path="/kitchen/login"
+                  element={<StaffLogin role="chef" />}
+                />
+                <Route
+                  path="/driver/login"
+                  element={<StaffLogin role="driver" />}
+                />
 
-              {/* Kitchen display — chef, and admin for oversight. */}
+                {/* Kitchen display — chef, and admin for oversight. */}
+                <Route
+                  element={
+                    <RequireRole
+                      roles={['chef', 'admin']}
+                      loginPath="/kitchen/login"
+                    />
+                  }
+                >
+                  <Route path="/kitchen" element={<Kitchen />} />
+                </Route>
+
+                {/* Driver screen — only the orders assigned to this driver. */}
+                <Route
+                  element={
+                    <RequireRole roles={['driver']} loginPath="/driver/login" />
+                  }
+                >
+                  <Route path="/driver" element={<Driver />} />
+                </Route>
+              </Route>
+
+              {/* The ONE monitoring dashboard. Admin only, server-enforced. */}
               <Route
                 element={
-                  <RequireRole
-                    roles={['chef', 'admin']}
-                    loginPath="/kitchen/login"
-                  />
+                  <RequireRole roles={['admin']} loginPath="/admin/login" />
                 }
               >
-                <Route path="/kitchen" element={<Kitchen />} />
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<LiveOrders />} />
+                  <Route path="history" element={<History />} />
+                  <Route path="menu" element={<MenuAdmin />} />
+                  <Route path="drivers" element={<Drivers />} />
+                  <Route path="settings" element={<Settings />} />
+                </Route>
               </Route>
-
-              {/* Driver screen — only the orders assigned to this driver. */}
-              <Route
-                element={
-                  <RequireRole roles={['driver']} loginPath="/driver/login" />
-                }
-              >
-                <Route path="/driver" element={<Driver />} />
-              </Route>
-            </Route>
-
-            {/* The ONE monitoring dashboard. Admin only, server-enforced. */}
-            <Route
-              element={
-                <RequireRole roles={['admin']} loginPath="/admin/login" />
-              }
-            >
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<LiveOrders />} />
-                <Route path="history" element={<History />} />
-                <Route path="menu" element={<MenuAdmin />} />
-                <Route path="drivers" element={<Drivers />} />
-                <Route path="settings" element={<Settings />} />
-              </Route>
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   )
 }
 

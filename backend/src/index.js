@@ -6,7 +6,7 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import { config } from './config.js'
-import { connectDb } from './db.js'
+import { connectDb, disconnectDb } from './db.js'
 import { readAuth } from './middleware/auth.js'
 import { CSRF_HEADER, csrfGuard } from './middleware/csrf.js'
 import { authRouter } from './routes/auth.js'
@@ -15,7 +15,7 @@ import { ordersRouter } from './routes/orders.js'
 import { imagesRouter } from './routes/images.js'
 import { driversRouter } from './routes/drivers.js'
 import { otpRouter } from './routes/otp.js'
-import { initRealtime } from './realtime.js'
+import { closeRealtime, initRealtime } from './realtime.js'
 import { seed } from './seed.js'
 import { orderingStatus } from './routes/orders.js'
 
@@ -44,7 +44,12 @@ app.use(cookieParser())
 app.use('/api', csrfGuard)
 app.use(readAuth)
 
-app.get('/api/health', (_req, res) => res.json({ ok: true }))
+// Healthy only while the database is connected, so the host (and the e2e
+// runner) never routes traffic to an instance that can't serve it.
+app.get('/api/health', (_req, res) => {
+  const dbUp = mongoose.connection.readyState === 1
+  res.status(dbUp ? 200 : 503).json({ ok: dbUp })
+})
 app.get('/api/ordering-status', (_req, res) => res.json(orderingStatus()))
 app.use('/api/auth', authRouter)
 app.use('/api/menu', menuRouter)
@@ -77,6 +82,28 @@ async function start() {
   server.listen(config.port, () => {
     console.log(`[server] http://localhost:${config.port}`)
   })
+
+  // Railway sends SIGTERM on every deploy: finish in-flight requests, then
+  // close the database, instead of dropping orders mid-write.
+  let stopping = false
+  const shutdown = async (signal) => {
+    if (stopping) return
+    stopping = true
+    console.log(`[server] ${signal} received, shutting down`)
+    const force = setTimeout(() => process.exit(1), 10_000)
+    force.unref()
+    try {
+      await closeRealtime()
+      await new Promise((resolve) => server.close(resolve))
+      await disconnectDb()
+      process.exit(0)
+    } catch (err) {
+      console.error('[server] shutdown failed', err)
+      process.exit(1)
+    }
+  }
+  process.on('SIGTERM', () => shutdown('SIGTERM'))
+  process.on('SIGINT', () => shutdown('SIGINT'))
 }
 
 start().catch((err) => {
