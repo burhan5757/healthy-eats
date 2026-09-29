@@ -10,6 +10,19 @@
 const BASE = import.meta.env.VITE_API_URL ?? ''
 
 /**
+ * Which staff role this browser tab is currently acting as. Each staff area
+ * (admin/kitchen/driver) has its own cookie on the backend (lib/auth.jsx), so
+ * this header tells the server which one to check — that's what lets an
+ * admin tab and a driver tab stay signed in side by side in the same browser
+ * instead of one login clobbering the other.
+ */
+const ROLE_HEADER = 'X-Healthy-Eats-Role'
+let staffRole = null
+export function setStaffRole(role) {
+  staffRole = role
+}
+
+/**
  * Resolves a backend-relative asset path (e.g. a dish's `/api/images/<id>`)
  * against the same origin the API calls use. Empty/absolute paths pass through.
  */
@@ -30,7 +43,7 @@ export class ApiError extends Error {
   }
 }
 
-async function request(path, init) {
+async function request(path, init, role = staffRole) {
   const res = await fetch(`${BASE}/api${path}`, {
     credentials: 'include',
     ...init,
@@ -40,6 +53,9 @@ async function request(path, init) {
       ...(init?.method && init.method !== 'GET'
         ? { 'X-Healthy-Eats': '1' }
         : {}),
+      // Sent on GETs too (public pages never set a role, so most GETs still
+      // avoid the preflight this adds — only the staff screens pay for it).
+      ...(role ? { [ROLE_HEADER]: role } : {}),
       ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
     },
   })
@@ -131,7 +147,10 @@ export const api = {
         body: JSON.stringify(input),
       }),
     logout: () => request('/auth/logout', { method: 'POST' }),
-    me: () => request('/auth/me'),
+    /** `role` overrides the active staff role — used to probe a specific
+     *  role's cookie (e.g. AuthProvider trying `chef` then `admin` on
+     *  /kitchen) without disturbing whichever role is otherwise active. */
+    me: (role) => request('/auth/me', undefined, role),
   },
 
   menuAdmin: {

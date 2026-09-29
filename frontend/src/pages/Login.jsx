@@ -80,7 +80,10 @@ export function StaffLogin({ role }) {
     },
   })
 
-  if (user?.role === role) return <Navigate to={cfg.home} replace />
+  // A screen only ever resolves an identity matching its own role (see
+  // rolesForPath in store/auth.jsx), so reaching this page signed in means
+  // signed in as `role` specifically — safe to redirect straight past the form.
+  if (user) return <Navigate to={cfg.home} replace />
 
   return (
     <Frame>
@@ -90,12 +93,6 @@ export function StaffLogin({ role }) {
         <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
           {cfg.blurb}
         </p>
-        {user && (
-          <p className="mt-3 text-[13px] text-muted-foreground">
-            You&apos;re signed in as {user.name} ({user.role}). Signing in here
-            switches account.
-          </p>
-        )}
 
         <form
           className="mt-8 space-y-5"

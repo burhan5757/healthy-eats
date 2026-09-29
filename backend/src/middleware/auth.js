@@ -7,7 +7,37 @@ import {
   findSession,
 } from '../models/Session.js'
 
-export const AUTH_COOKIE = 'he_token'
+/**
+ * One cookie PER STAFF ROLE, not one shared cookie. Signing into admin, chef
+ * and driver all in the same browser used to overwrite a single `he_token`
+ * cookie, so the second login silently signed the first one out ("switches
+ * account" in the login copy). Each role now gets its own cookie, so all
+ * three can be signed in at once — e.g. an admin tab and a driver tab open
+ * side by side.
+ */
+export const ROLE_COOKIE = {
+  admin: 'he_token_admin',
+  chef: 'he_token_chef',
+  driver: 'he_token_driver',
+}
+const STAFF_ROLES = Object.keys(ROLE_COOKIE)
+
+/**
+ * Which role a request is acting as. The frontend sends this explicitly (each
+ * screen — /admin, /kitchen, /driver — knows its own role), so two tabs never
+ * interfere with each other even when both cookies are valid at once. Ends up
+ * here.
+ */
+export const ROLE_HEADER = 'x-healthy-eats-role'
+
+/**
+ * Non-sensitive hint cookie: "the role most recently signed into in this
+ * browser." Used only as a fallback when a caller doesn't send ROLE_HEADER
+ * (e.g. a script hitting the API directly) — it lets that caller keep
+ * behaving like there's a single signed-in identity, same as before this
+ * change, without forcing every caller to learn about per-role cookies.
+ */
+const ROLE_HINT_COOKIE = 'he_active_role'
 
 const sessionMs = () => config.sessionTtlHours * 60 * 60 * 1000
 
@@ -32,21 +62,35 @@ export async function startSession(res, user) {
     config.jwtSecret,
     { expiresIn: `${config.sessionTtlHours}h` },
   )
-  res.cookie(AUTH_COOKIE, token, { ...cookieOptions(), maxAge: sessionMs() })
+  const opts = { ...cookieOptions(), maxAge: sessionMs() }
+  res.cookie(ROLE_COOKIE[user.role], token, opts)
+  res.cookie(ROLE_HINT_COOKIE, user.role, opts)
 }
 
-/** Ends only this browser's session; the user's other devices stay signed in. */
+/** Ends only this browser's session for this role; other roles and other devices stay signed in. */
 export async function endSession(req, res) {
   if (req.auth?.sid) await deleteSession(req.auth.sid)
-  res.clearCookie(AUTH_COOKIE, cookieOptions())
+  if (req.auth?.role) {
+    res.clearCookie(ROLE_COOKIE[req.auth.role], cookieOptions())
+  }
 }
 
 /**
- * Populates req.auth when the cookie holds a valid token AND its session row
- * still exists. Never rejects — anything else is simply anonymous.
+ * Populates req.auth when the resolved role's cookie holds a valid token AND
+ * its session row still exists. Never rejects — anything else is simply
+ * anonymous. The role to check is ROLE_HEADER when the caller sent one
+ * (matched against STAFF_ROLES so a bogus value can't be used to probe
+ * cookies that don't exist), else the ROLE_HINT_COOKIE fallback above.
  */
 export async function readAuth(req, _res, next) {
-  const token = req.cookies?.[AUTH_COOKIE]
+  const headerRole = req.headers[ROLE_HEADER]
+  const hintRole = req.cookies?.[ROLE_HINT_COOKIE]
+  const role = STAFF_ROLES.includes(headerRole)
+    ? headerRole
+    : STAFF_ROLES.includes(hintRole)
+      ? hintRole
+      : null
+  const token = role ? req.cookies?.[ROLE_COOKIE[role]] : null
   if (!token) return next()
 
   let payload

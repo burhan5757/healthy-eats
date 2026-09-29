@@ -508,6 +508,7 @@ Append newest at the bottom. Format: date — decision — reason.
 | 2026-09-17 | Production refuses to start while `BRAND.placeholder` is true | The demo kitchen coordinates would misprice every delivery; the FSSAI number must be real. |
 | 2026-09-17 | Graceful shutdown on SIGTERM/SIGINT; `/api/health` is 503 until the database is connected; React error boundary; GitHub Actions CI | Audit items 16 and 19. Railway sends SIGTERM on every deploy. The e2e backend now runs `npm start` instead of the `--watch` dev server, which fixed the §14 ECONNRESET flake. |
 | 2026-09-17 | Admin stats computed with a MongoDB aggregation (`backend/src/stats.js`); tracking pages use per-order socket rooms; CSP added | Audit items 21–23. Stats verified identical to the old in-memory version on 1,200 generated orders, including IST midnight edges. |
+| 2026-09-29 | **One auth cookie per staff role instead of one shared cookie**, resolved via an explicit `X-Healthy-Eats-Role` header the frontend sends per screen (with a non-sensitive last-role-signed-in cookie as a fallback for headerless callers, e.g. the e2e suite) | User request: be signed into admin, kitchen and driver at once in the same browser. Previously the second login silently signed out whichever role was signed in before it. See §27. |
 
 ## 13. Accessibility status
 
@@ -779,6 +780,9 @@ stored in `users` with cost-12 hashes.
 logout ends that one device's session; deactivating a driver or changing a staff password ends all
 of that user's sessions immediately. Cost: one indexed lookup per authenticated request.
 
+**One cookie per staff role** (`he_token_admin` / `he_token_chef` / `he_token_driver`,
+`backend/src/middleware/auth.js`), not one shared cookie — see §27.
+
 **CSRF.** In production the cookie is `SameSite=None` because the frontend (Vercel) and API
 (Render/Railway) are different sites. `backend/src/middleware/csrf.js` therefore rejects every
 non-GET `/api` request that lacks `X-Healthy-Eats: 1` or carries a foreign `Origin`. A cross-site
@@ -973,3 +977,47 @@ was the actual problem, not the absence of data.
   two on the hob, one on tandoor, one on packing" staffing breakdown. None of these were ever
   supplied by the user. Replaced with statements grounded in things the app actually does (the
   goal-tagging system, the cook-to-order state machine) rather than invented specifics.
+
+## 27. Concurrent staff logins in one browser (2026-09-29)
+
+User request: be able to be signed into admin, kitchen and driver at once in the same browser
+(e.g. three tabs open side by side), instead of the most recent staff login silently signing
+out whichever role was signed in before it.
+
+- **One cookie per staff role**, not one shared `he_token` cookie: `he_token_admin` /
+  `he_token_chef` / `he_token_driver` (`ROLE_COOKIE` in `backend/src/middleware/auth.js`).
+  `startSession` writes to the cookie for the role that just signed in; the other roles' cookies
+  are untouched, so they stay signed in.
+- **Which cookie a request is checked against is explicit**, not guessed: the frontend sends
+  `X-Healthy-Eats-Role: admin|chef|driver` (`ROLE_HEADER`) on every request once a screen has
+  resolved its identity. This matters because some routes accept more than one role (`/kitchen`
+  takes chef or admin, `/orders/:id/deliver` takes admin or driver) — with two cookies valid at
+  once, which one a write acts as is no longer implied by "the only cookie present," and getting
+  it wrong would misattribute who delivered an order (`collectedBy`) or apply the wrong side of
+  a conflict check (e.g. a driver's own deliver call being evaluated as admin's, which fails
+  with the wrong error rather than succeeding). `frontend/src/store/auth.jsx`'s `rolesForPath` maps a
+  screen to the role(s) it may act as (`/admin` → admin; `/kitchen` → chef, falling back to
+  admin; `/driver` → driver), probes each with `GET /auth/me`, and `frontend/src/lib/api.js`
+  stamps every subsequent call from that screen with whichever role resolved
+  (`setStaffRole`/`ROLE_HEADER`). `AuthProvider` moved inside `<BrowserRouter>` (was outside) so
+  it can read the current route.
+- **A non-sensitive fallback hint cookie**, `he_active_role` (also written by `startSession`,
+  holding just a role name, not a token), lets a caller that never sends `ROLE_HEADER` — a
+  script hitting the API directly, e.g. every existing Playwright API test — keep behaving
+  like there's a single signed-in identity, "whichever role most recently signed in," matching
+  the pre-existing behaviour those tests assume. This is why **no test file needed to change**:
+  every e2e flow that signs into two roles in one API request context already does so
+  sequentially (sign in as admin, act, sign in as chef, act), which the hint cookie resolves
+  identically to an explicit header would.
+- `endSession` (logout) clears only the calling role's own cookie — the other roles a browser
+  is signed into are unaffected, matching "logout ends that one device's session" from §18,
+  now scoped to "that one role" as well.
+- Login copy: `Login.jsx`'s "You're signed in as X, signing in here switches account" banner
+  is gone — it can't happen for a real role switch anymore (each login screen only ever
+  resolves its own role's identity, so reaching the form already-signed-in-as-that-role now
+  just redirects straight past it).
+- CORS' `allowedHeaders` and the new header both needed adding to
+  `backend/src/index.js`/`api.js`; `ROLE_HEADER` is sent on GETs too (unlike the CSRF header),
+  so staff-area GETs now pay for a CORS preflight in production that they didn't before —
+  accepted, since it only affects the three low-traffic staff dashboards, never the
+  public/customer-facing pages (those never set a role, so their GETs stay preflight-free).

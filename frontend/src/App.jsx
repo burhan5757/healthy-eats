@@ -91,8 +91,8 @@ export default function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <BrowserRouter>
+        <BrowserRouter>
+          <AuthProvider>
             <Routes>
               <Route element={<SiteLayout />}>
                 <Route path="/" element={<Home />} />
@@ -159,8 +159,8 @@ export default function App() {
                 </Route>
               </Route>
             </Routes>
-          </BrowserRouter>
-        </AuthProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </QueryClientProvider>
     </ErrorBoundary>
   )

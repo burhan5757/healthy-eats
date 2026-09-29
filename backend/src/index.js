@@ -7,7 +7,7 @@ import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import { config } from './config.js'
 import { connectDb, disconnectDb } from './db.js'
-import { readAuth } from './middleware/auth.js'
+import { readAuth, ROLE_HEADER } from './middleware/auth.js'
 import { CSRF_HEADER, csrfGuard } from './middleware/csrf.js'
 import { authRouter } from './routes/auth.js'
 import { menuRouter } from './routes/menu.js'
@@ -35,7 +35,7 @@ app.use(
   cors({
     origin: config.clientOrigin,
     credentials: true,
-    allowedHeaders: ['Content-Type', CSRF_HEADER],
+    allowedHeaders: ['Content-Type', CSRF_HEADER, ROLE_HEADER],
   }),
 )
 app.use(compression())
