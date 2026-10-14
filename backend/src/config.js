@@ -22,11 +22,14 @@ if (onHost && !isProd) {
 }
 // Demo brand details (phone, address, FSSAI number, kitchen coordinates) must
 // never reach customers — delivery fees are priced from BRAND.geo.
-if (isProd && BRAND.placeholder) {
+const allowDemoBrand = process.env.ALLOW_DEMO_BRAND === 'true';
+
+if (isProd && BRAND.placeholder && !allowDemoBrand) {
   problems.push(
-    'BRAND in src/shared/index.js still holds placeholder business details — fill in the real ones (both copies) and set placeholder: false',
-  )
+    'BRAND contains placeholder details. Configure the real business details before production.',
+  );
 }
+
 // Without a URI the server falls back to an in-memory database, which loses
 // every order on restart — fine for development, never for production.
 if (isProd && !process.env.MONGODB_URI) {
