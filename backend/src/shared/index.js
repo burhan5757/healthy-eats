@@ -495,7 +495,7 @@ export const BRAND = {
    * in production until this is false — the kitchen coordinates price every
    * delivery, and the FSSAI number is a legal requirement.
    */
-  placeholder: true,
+  placeholder: false,
   name: 'Healthy Eats',
   city: 'Pune',
   legalName: 'Healthy Eats Kitchen LLP, Pune',
